@@ -49,7 +49,7 @@ class Scene extends StatelessWidget {
                             width: 1024*fem,
                             height: 1001*fem,
                             child: Image.asset(
-                              'assets/page-1/images/illustration-j5K.png',
+                              'assets/UI/images/illustration-j5K.png',
                               width: 1024*fem,
                               height: 1001*fem,
                             ),
@@ -109,7 +109,7 @@ class Scene extends StatelessWidget {
                             width: 98*fem,
                             height: 61*fem,
                             child: Image.asset(
-                              'assets/page-1/images/rectangle-35.png',
+                              'assets/UI/images/rectangle-35.png',
                               width: 98*fem,
                               height: 61*fem,
                             ),
@@ -125,7 +125,7 @@ class Scene extends StatelessWidget {
                             width: 98*fem,
                             height: 61*fem,
                             child: Image.asset(
-                              'assets/page-1/images/rectangle-34.png',
+                              'assets/UI/images/rectangle-34.png',
                               width: 98*fem,
                               height: 61*fem,
                             ),

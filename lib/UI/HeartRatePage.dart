@@ -47,7 +47,7 @@ class Scene extends StatelessWidget {
                               width: 64.36*fem,
                               height: 66.77*fem,
                               child: Image.asset(
-                                'assets/page-1/images/icon-Yoj.png',
+                                'assets/UI/images/icon-Yoj.png',
                                 width: 64.36*fem,
                                 height: 66.77*fem,
                               ),
@@ -292,7 +292,7 @@ class Scene extends StatelessWidget {
                       image: DecorationImage (
                         fit: BoxFit.cover,
                         image: AssetImage (
-                          'assets/page-1/images/auto-group-iiwh.png',
+                          'assets/UI/images/auto-group-iiwh.png',
                         ),
                       ),
                     ),
@@ -303,7 +303,7 @@ class Scene extends StatelessWidget {
                         width: 323*fem,
                         height: 92*fem,
                         child: Image.asset(
-                          'assets/page-1/images/path-uE9.png',
+                          'assets/UI/images/path-uE9.png',
                           width: 323*fem,
                           height: 92*fem,
                         ),
@@ -326,7 +326,7 @@ class Scene extends StatelessWidget {
                   width: 428*fem,
                   height: 105*fem,
                   child: Image.asset(
-                    'assets/page-1/images/auto-group-8ruv.png',
+                    'assets/UI/images/auto-group-8ruv.png',
                     width: 428*fem,
                     height: 105*fem,
                   ),

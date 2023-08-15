@@ -48,7 +48,7 @@ class Scene extends StatelessWidget {
                               width: 56*fem,
                               height: 56*fem,
                               child: Image.asset(
-                                'assets/page-1/images/close-8W5.png',
+                                'assets/UI/images/close-8W5.png',
                                 width: 56*fem,
                                 height: 56*fem,
                               ),
@@ -258,7 +258,7 @@ class Scene extends StatelessWidget {
                       image: DecorationImage (
                         fit: BoxFit.cover,
                         image: AssetImage (
-                          'assets/page-1/images/auto-group-znzz.png',
+                          'assets/UI/images/auto-group-znzz.png',
                         ),
                       ),
                     ),
@@ -286,7 +286,7 @@ class Scene extends StatelessWidget {
                           width: 27.5*fem,
                           height: 24*fem,
                           child: Image.asset(
-                            'assets/page-1/images/icon-fd3.png',
+                            'assets/UI/images/icon-fd3.png',
                             width: 27.5*fem,
                             height: 24*fem,
                           ),
@@ -414,7 +414,7 @@ class Scene extends StatelessWidget {
                                   width: 4*fem,
                                   height: 12*fem,
                                   child: Image.asset(
-                                    'assets/page-1/images/icon-GeV.png',
+                                    'assets/UI/images/icon-GeV.png',
                                     width: 4*fem,
                                     height: 12*fem,
                                   ),
@@ -442,7 +442,7 @@ class Scene extends StatelessWidget {
                   width: 452.28*fem,
                   height: 105*fem,
                   child: Image.asset(
-                    'assets/page-1/images/auto-group-qzcz.png',
+                    'assets/UI/images/auto-group-qzcz.png',
                     width: 452.28*fem,
                     height: 105*fem,
                   ),

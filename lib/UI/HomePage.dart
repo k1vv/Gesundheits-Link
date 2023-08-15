@@ -46,7 +46,7 @@ class Scene extends StatelessWidget {
                               width: 51*fem,
                               height: 49*fem,
                               child: Image.asset(
-                                'assets/page-1/images/ellipse-24.png',
+                                'assets/UI/images/ellipse-24.png',
                                 width: 51*fem,
                                 height: 49*fem,
                               ),
@@ -59,7 +59,7 @@ class Scene extends StatelessWidget {
                           width: 48*fem,
                           height: 48*fem,
                           child: Image.asset(
-                            'assets/page-1/images/auto-group-c2xf.png',
+                            'assets/UI/images/auto-group-c2xf.png',
                             width: 48*fem,
                             height: 48*fem,
                           ),
@@ -69,7 +69,7 @@ class Scene extends StatelessWidget {
                           width: 48*fem,
                           height: 48*fem,
                           child: Image.asset(
-                            'assets/page-1/images/auto-group-snwr.png',
+                            'assets/UI/images/auto-group-snwr.png',
                             width: 48*fem,
                             height: 48*fem,
                           ),
@@ -610,7 +610,7 @@ class Scene extends StatelessWidget {
                                       width: 4.1*fem,
                                       height: 11.21*fem,
                                       child: Image.asset(
-                                        'assets/page-1/images/icon-PvR.png',
+                                        'assets/UI/images/icon-PvR.png',
                                         width: 4.1*fem,
                                         height: 11.21*fem,
                                       ),
@@ -699,7 +699,7 @@ class Scene extends StatelessWidget {
                                                             width: 16.4*fem,
                                                             height: 18.69*fem,
                                                             child: Image.asset(
-                                                              'assets/page-1/images/flame-VMj.png',
+                                                              'assets/UI/images/flame-VMj.png',
                                                               width: 16.4*fem,
                                                               height: 18.69*fem,
                                                             ),
@@ -807,7 +807,7 @@ class Scene extends StatelessWidget {
                                                           width: 22.55*fem,
                                                           height: 19.2*fem,
                                                           child: Image.asset(
-                                                            'assets/page-1/images/icon-HL5.png',
+                                                            'assets/UI/images/icon-HL5.png',
                                                             width: 22.55*fem,
                                                             height: 19.2*fem,
                                                           ),
@@ -888,7 +888,7 @@ class Scene extends StatelessWidget {
                                           width: 159.92*fem,
                                           height: 235.47*fem,
                                           child: Image.asset(
-                                            'assets/page-1/images/auto-group-x6tp.png',
+                                            'assets/UI/images/auto-group-x6tp.png',
                                             width: 159.92*fem,
                                             height: 235.47*fem,
                                           ),
@@ -951,7 +951,7 @@ class Scene extends StatelessWidget {
                                                       width: 20*fem,
                                                       height: 19.5*fem,
                                                       child: Image.asset(
-                                                        'assets/page-1/images/icon-2iM.png',
+                                                        'assets/UI/images/icon-2iM.png',
                                                         width: 20*fem,
                                                         height: 19.5*fem,
                                                       ),
@@ -1063,7 +1063,7 @@ class Scene extends StatelessWidget {
                                                       width: 22.55*fem,
                                                       height: 19.2*fem,
                                                       child: Image.asset(
-                                                        'assets/page-1/images/icon-Z93.png',
+                                                        'assets/UI/images/icon-Z93.png',
                                                         width: 22.55*fem,
                                                         height: 19.2*fem,
                                                       ),
@@ -1154,7 +1154,7 @@ class Scene extends StatelessWidget {
                   width: 452.28*fem,
                   height: 105*fem,
                   child: Image.asset(
-                    'assets/page-1/images/auto-group-iwav.png',
+                    'assets/UI/images/auto-group-iwav.png',
                     width: 452.28*fem,
                     height: 105*fem,
                   ),

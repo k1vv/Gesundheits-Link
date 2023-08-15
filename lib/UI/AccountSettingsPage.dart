@@ -61,7 +61,7 @@ class Scene extends StatelessWidget {
                                             width: 122*fem,
                                             height: 121*fem,
                                             child: Image.asset(
-                                              'assets/page-1/images/ellipse-14.png',
+                                              'assets/UI/images/ellipse-14.png',
                                               width: 122*fem,
                                               height: 121*fem,
                                             ),
@@ -121,7 +121,7 @@ class Scene extends StatelessWidget {
                                             width: 48*fem,
                                             height: 48*fem,
                                             child: Image.asset(
-                                              'assets/page-1/images/auto-group-s7hf.png',
+                                              'assets/UI/images/auto-group-s7hf.png',
                                               width: 48*fem,
                                               height: 48*fem,
                                             ),
@@ -146,7 +146,7 @@ class Scene extends StatelessWidget {
                                             width: 5*fem,
                                             height: 8*fem,
                                             child: Image.asset(
-                                              'assets/page-1/images/arrow.png',
+                                              'assets/UI/images/arrow.png',
                                               width: 5*fem,
                                               height: 8*fem,
                                             ),
@@ -175,7 +175,7 @@ class Scene extends StatelessWidget {
                                             width: 48*fem,
                                             height: 48*fem,
                                             child: Image.asset(
-                                              'assets/page-1/images/icon-zQZ.png',
+                                              'assets/UI/images/icon-zQZ.png',
                                               width: 48*fem,
                                               height: 48*fem,
                                             ),
@@ -200,7 +200,7 @@ class Scene extends StatelessWidget {
                                             width: 5*fem,
                                             height: 8*fem,
                                             child: Image.asset(
-                                              'assets/page-1/images/arrow-pBB.png',
+                                              'assets/UI/images/arrow-pBB.png',
                                               width: 5*fem,
                                               height: 8*fem,
                                             ),
@@ -256,7 +256,7 @@ class Scene extends StatelessWidget {
                                 width: 534*fem,
                                 height: 514*fem,
                                 child: Image.asset(
-                                  'assets/page-1/images/ellipse-24-G4R.png',
+                                  'assets/UI/images/ellipse-24-G4R.png',
                                   width: 534*fem,
                                   height: 514*fem,
                                 ),
@@ -290,7 +290,7 @@ class Scene extends StatelessWidget {
                         width: 56*fem,
                         height: 56*fem,
                         child: Image.asset(
-                          'assets/page-1/images/arrow-EYq.png',
+                          'assets/UI/images/arrow-EYq.png',
                           width: 56*fem,
                           height: 56*fem,
                         ),
@@ -318,7 +318,7 @@ class Scene extends StatelessWidget {
                         width: 56*fem,
                         height: 56*fem,
                         child: Image.asset(
-                          'assets/page-1/images/more.png',
+                          'assets/UI/images/more.png',
                           width: 56*fem,
                           height: 56*fem,
                         ),
