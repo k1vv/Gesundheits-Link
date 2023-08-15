@@ -61,7 +61,7 @@ class Scene extends StatelessWidget {
                                       width: 56*fem,
                                       height: 54.69*fem,
                                       child: Image.asset(
-                                        'assets/page-1/images/arrow-zW5.png',
+                                        'assets/UI/images/arrow-zW5.png',
                                         width: 56*fem,
                                         height: 54.69*fem,
                                       ),
@@ -92,7 +92,7 @@ class Scene extends StatelessWidget {
                                       width: 56*fem,
                                       height: 54.69*fem,
                                       child: Image.asset(
-                                        'assets/page-1/images/more-yxu.png',
+                                        'assets/UI/images/more-yxu.png',
                                         width: 56*fem,
                                         height: 54.69*fem,
                                       ),
@@ -150,7 +150,7 @@ class Scene extends StatelessWidget {
                                                     width: 48*fem,
                                                     height: 46.88*fem,
                                                     child: Image.asset(
-                                                      'assets/page-1/images/avatar-he1.png',
+                                                      'assets/UI/images/avatar-he1.png',
                                                       width: 48*fem,
                                                       height: 46.88*fem,
                                                     ),
@@ -259,7 +259,7 @@ class Scene extends StatelessWidget {
                                                         width: 22.83*fem,
                                                         height: 24.79*fem,
                                                         child: Image.asset(
-                                                          'assets/page-1/images/icon-A81.png',
+                                                          'assets/UI/images/icon-A81.png',
                                                           width: 22.83*fem,
                                                           height: 24.79*fem,
                                                         ),
@@ -396,7 +396,7 @@ class Scene extends StatelessWidget {
                                                             image: DecorationImage (
                                                               fit: BoxFit.cover,
                                                               image: AssetImage (
-                                                                'assets/page-1/images/ellipse-bg.png',
+                                                                'assets/UI/images/ellipse-bg.png',
                                                               ),
                                                             ),
                                                           ),
@@ -504,7 +504,7 @@ class Scene extends StatelessWidget {
                                                           width: 48*fem,
                                                           height: 46.88*fem,
                                                           child: Image.asset(
-                                                            'assets/page-1/images/avatar.png',
+                                                            'assets/UI/images/avatar.png',
                                                             width: 48*fem,
                                                             height: 46.88*fem,
                                                           ),
@@ -601,7 +601,7 @@ class Scene extends StatelessWidget {
                         width: 17*fem,
                         height: 15*fem,
                         child: Image.asset(
-                          'assets/page-1/images/vector-MtM.png',
+                          'assets/UI/images/vector-MtM.png',
                           width: 17*fem,
                           height: 15*fem,
                         ),
@@ -624,7 +624,7 @@ class Scene extends StatelessWidget {
                   width: 428*fem,
                   height: 105*fem,
                   child: Image.asset(
-                    'assets/page-1/images/auto-group-7pau.png',
+                    'assets/UI/images/auto-group-7pau.png',
                     width: 428*fem,
                     height: 105*fem,
                   ),

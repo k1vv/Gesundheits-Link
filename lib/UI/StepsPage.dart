@@ -35,7 +35,7 @@ class Scene extends StatelessWidget {
                     width: 48*fem,
                     height: 10*fem,
                     child: Image.asset(
-                      'assets/page-1/images/push.png',
+                      'assets/UI/images/push.png',
                       width: 48*fem,
                       height: 10*fem,
                     ),
@@ -59,7 +59,7 @@ class Scene extends StatelessWidget {
                                 width: 375*fem,
                                 height: 732*fem,
                                 child: Image.asset(
-                                  'assets/page-1/images/group-19.png',
+                                  'assets/UI/images/group-19.png',
                                   width: 375*fem,
                                   height: 732*fem,
                                 ),
@@ -112,7 +112,7 @@ class Scene extends StatelessWidget {
                                     width: 13.7*fem,
                                     height: 13.95*fem,
                                     child: Image.asset(
-                                      'assets/page-1/images/percent-aLZ.png',
+                                      'assets/UI/images/percent-aLZ.png',
                                       width: 13.7*fem,
                                       height: 13.95*fem,
                                     ),
@@ -174,7 +174,7 @@ class Scene extends StatelessWidget {
                                 width: 13.7*fem,
                                 height: 13.95*fem,
                                 child: Image.asset(
-                                  'assets/page-1/images/percent.png',
+                                  'assets/UI/images/percent.png',
                                   width: 13.7*fem,
                                   height: 13.95*fem,
                                 ),
@@ -258,7 +258,7 @@ class Scene extends StatelessWidget {
                                 width: 9.13*fem,
                                 height: 6.98*fem,
                                 child: Image.asset(
-                                  'assets/page-1/images/triangle-Jbs.png',
+                                  'assets/UI/images/triangle-Jbs.png',
                                   width: 9.13*fem,
                                   height: 6.98*fem,
                                 ),
@@ -277,7 +277,7 @@ class Scene extends StatelessWidget {
                                 image: DecorationImage (
                                   fit: BoxFit.cover,
                                   image: AssetImage (
-                                    'assets/page-1/images/path.png',
+                                    'assets/UI/images/path.png',
                                   ),
                                 ),
                               ),
@@ -288,7 +288,7 @@ class Scene extends StatelessWidget {
                                   width: 375*fem,
                                   height: 76*fem,
                                   child: Image.asset(
-                                    'assets/page-1/images/path-3t5.png',
+                                    'assets/UI/images/path-3t5.png',
                                     width: 375*fem,
                                     height: 76*fem,
                                   ),
@@ -370,7 +370,7 @@ class Scene extends StatelessWidget {
                                 width: 9.13*fem,
                                 height: 6.98*fem,
                                 child: Image.asset(
-                                  'assets/page-1/images/triangle.png',
+                                  'assets/UI/images/triangle.png',
                                   width: 9.13*fem,
                                   height: 6.98*fem,
                                 ),
@@ -504,7 +504,7 @@ class Scene extends StatelessWidget {
                                 width: 44*fem,
                                 height: 41.1*fem,
                                 child: Image.asset(
-                                  'assets/page-1/images/vector.png',
+                                  'assets/UI/images/vector.png',
                                   width: 44*fem,
                                   height: 41.1*fem,
                                 ),
@@ -520,7 +520,7 @@ class Scene extends StatelessWidget {
                                 width: 38*fem,
                                 height: 17*fem,
                                 child: Image.asset(
-                                  'assets/page-1/images/rectangle-20.png',
+                                  'assets/UI/images/rectangle-20.png',
                                   width: 38*fem,
                                   height: 17*fem,
                                 ),
@@ -536,7 +536,7 @@ class Scene extends StatelessWidget {
                                 width: 6*fem,
                                 height: 8.04*fem,
                                 child: Image.asset(
-                                  'assets/page-1/images/polygon-1.png',
+                                  'assets/UI/images/polygon-1.png',
                                   width: 6*fem,
                                   height: 8.04*fem,
                                 ),
@@ -586,7 +586,7 @@ class Scene extends StatelessWidget {
                                       width: 56*fem,
                                       height: 56*fem,
                                       child: Image.asset(
-                                        'assets/page-1/images/close.png',
+                                        'assets/UI/images/close.png',
                                         width: 56*fem,
                                         height: 56*fem,
                                       ),
@@ -628,7 +628,7 @@ class Scene extends StatelessWidget {
                   width: 452.28*fem,
                   height: 105*fem,
                   child: Image.asset(
-                    'assets/page-1/images/auto-group-t96d.png',
+                    'assets/UI/images/auto-group-t96d.png',
                     width: 452.28*fem,
                     height: 105*fem,
                   ),

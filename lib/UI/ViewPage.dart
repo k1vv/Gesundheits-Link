@@ -21,7 +21,7 @@ class Scene extends StatelessWidget {
           image: DecorationImage (
             fit: BoxFit.cover,
             image: AssetImage (
-              'assets/page-1/images/base-ohb.png',
+              'assets/UI/images/base-ohb.png',
             ),
           ),
         ),
@@ -57,7 +57,7 @@ class Scene extends StatelessWidget {
                                   padding: EdgeInsets.zero,
                                 ),
                                 child: Image.asset(
-                                  'assets/page-1/images/button.png',
+                                  'assets/UI/images/button.png',
                                   width: 65*fem,
                                   height: 65*fem,
                                 ),
@@ -310,7 +310,7 @@ class Scene extends StatelessWidget {
                     width: 24*fem,
                     height: 24*fem,
                     child: Image.asset(
-                      'assets/page-1/images/cycling-track.png',
+                      'assets/UI/images/cycling-track.png',
                       width: 24*fem,
                       height: 24*fem,
                     ),
@@ -335,7 +335,7 @@ class Scene extends StatelessWidget {
                     width: 43*fem,
                     height: 36*fem,
                     child: Image.asset(
-                      'assets/page-1/images/tick-removebg-preview-1.png',
+                      'assets/UI/images/tick-removebg-preview-1.png',
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -345,7 +345,7 @@ class Scene extends StatelessWidget {
                     width: 35.62*fem,
                     height: 28.53*fem,
                     child: Image.asset(
-                      'assets/page-1/images/group.png',
+                      'assets/UI/images/group.png',
                       width: 35.62*fem,
                       height: 28.53*fem,
                     ),
@@ -455,7 +455,7 @@ class Scene extends StatelessWidget {
                                   width: 35.62*fem,
                                   height: 28.53*fem,
                                   child: Image.asset(
-                                    'assets/page-1/images/group-pTT.png',
+                                    'assets/UI/images/group-pTT.png',
                                     width: 35.62*fem,
                                     height: 28.53*fem,
                                   ),
@@ -465,7 +465,7 @@ class Scene extends StatelessWidget {
                                   width: 35.62*fem,
                                   height: 28.53*fem,
                                   child: Image.asset(
-                                    'assets/page-1/images/vector-9Vb.png',
+                                    'assets/UI/images/vector-9Vb.png',
                                     width: 35.62*fem,
                                     height: 28.53*fem,
                                   ),
@@ -478,7 +478,7 @@ class Scene extends StatelessWidget {
                             width: 35.62*fem,
                             height: 28.53*fem,
                             child: Image.asset(
-                              'assets/page-1/images/vector-1kD.png',
+                              'assets/UI/images/vector-1kD.png',
                               width: 35.62*fem,
                               height: 28.53*fem,
                             ),
@@ -496,7 +496,7 @@ class Scene extends StatelessWidget {
                         width: 22.83*fem,
                         height: 24.79*fem,
                         child: Image.asset(
-                          'assets/page-1/images/icon-oDK.png',
+                          'assets/UI/images/icon-oDK.png',
                           width: 22.83*fem,
                           height: 24.79*fem,
                         ),
@@ -533,7 +533,7 @@ class Scene extends StatelessWidget {
                         width: 23*fem,
                         height: 23*fem,
                         child: Image.asset(
-                          'assets/page-1/images/icons-light-shoe-run.png',
+                          'assets/UI/images/icons-light-shoe-run.png',
                           width: 23*fem,
                           height: 23*fem,
                         ),
@@ -570,7 +570,7 @@ class Scene extends StatelessWidget {
                         width: 24*fem,
                         height: 20*fem,
                         child: Image.asset(
-                          'assets/page-1/images/icon-bfw.png',
+                          'assets/UI/images/icon-bfw.png',
                           width: 24*fem,
                           height: 20*fem,
                         ),
@@ -607,7 +607,7 @@ class Scene extends StatelessWidget {
                         width: 43*fem,
                         height: 36*fem,
                         child: Image.asset(
-                          'assets/page-1/images/tick-removebg-preview-7.png',
+                          'assets/UI/images/tick-removebg-preview-7.png',
                           fit: BoxFit.contain,
                         ),
                       ),
@@ -622,7 +622,7 @@ class Scene extends StatelessWidget {
                         width: 43*fem,
                         height: 36*fem,
                         child: Image.asset(
-                          'assets/page-1/images/tick-removebg-preview-6.png',
+                          'assets/UI/images/tick-removebg-preview-6.png',
                           fit: BoxFit.contain,
                         ),
                       ),
@@ -637,7 +637,7 @@ class Scene extends StatelessWidget {
                         width: 43*fem,
                         height: 36*fem,
                         child: Image.asset(
-                          'assets/page-1/images/tick-removebg-preview-5.png',
+                          'assets/UI/images/tick-removebg-preview-5.png',
                           fit: BoxFit.contain,
                         ),
                       ),
@@ -659,7 +659,7 @@ class Scene extends StatelessWidget {
                   width: 428*fem,
                   height: 105*fem,
                   child: Image.asset(
-                    'assets/page-1/images/auto-group-myss.png',
+                    'assets/UI/images/auto-group-myss.png',
                     width: 428*fem,
                     height: 105*fem,
                   ),

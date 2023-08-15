@@ -3,7 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'dart:ui';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:myapp/utils.dart';
-import 'package:myapp/UI/home.dart';
+import 'package:myapp/UI/WelcomePage.dart';
 // import 'package:myapp/UI/steps.dart';
 // import 'package:myapp/UI/map.dart';
 // import 'package:myapp/UI/notifications-bar.dart';

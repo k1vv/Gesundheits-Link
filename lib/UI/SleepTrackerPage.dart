@@ -47,7 +47,7 @@ class Scene extends StatelessWidget {
                               width: 64.36*fem,
                               height: 66.77*fem,
                               child: Image.asset(
-                                'assets/page-1/images/icon-nGH.png',
+                                'assets/UI/images/icon-nGH.png',
                                 width: 64.36*fem,
                                 height: 66.77*fem,
                               ),
@@ -255,7 +255,7 @@ class Scene extends StatelessWidget {
                       image: DecorationImage (
                         fit: BoxFit.cover,
                         image: AssetImage (
-                          'assets/page-1/images/auto-group-2qdw.png',
+                          'assets/UI/images/auto-group-2qdw.png',
                         ),
                       ),
                     ),
@@ -400,7 +400,7 @@ class Scene extends StatelessWidget {
                           width: 42*fem,
                           height: 76*fem,
                           child: Image.asset(
-                            'assets/page-1/images/path-wXX.png',
+                            'assets/UI/images/path-wXX.png',
                             width: 42*fem,
                             height: 76*fem,
                           ),
@@ -513,7 +513,7 @@ class Scene extends StatelessWidget {
                   width: 452.28*fem,
                   height: 105*fem,
                   child: Image.asset(
-                    'assets/page-1/images/auto-group-rnhj.png',
+                    'assets/UI/images/auto-group-rnhj.png',
                     width: 452.28*fem,
                     height: 105*fem,
                   ),

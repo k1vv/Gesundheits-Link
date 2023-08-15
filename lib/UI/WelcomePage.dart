@@ -37,7 +37,7 @@ class Scene extends StatelessWidget {
                     width: 1024*fem,
                     height: 1001*fem,
                     child: Image.asset(
-                      'assets/page-1/images/illustration.png',
+                      'assets/UI/images/illustration.png',
                       width: 1024*fem,
                       height: 1001*fem,
                     ),

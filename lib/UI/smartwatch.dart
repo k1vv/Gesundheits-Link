@@ -182,7 +182,7 @@ class Scene extends StatelessWidget {
                                 width: 71*fem,
                                 height: 67*fem,
                                 child: Image.asset(
-                                  'assets/page-1/images/qr-1.png',
+                                  'assets/UI/images/qr-1.png',
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -239,7 +239,7 @@ class Scene extends StatelessWidget {
                   width: 452.28*fem,
                   height: 105*fem,
                   child: Image.asset(
-                    'assets/page-1/images/auto-group-94mb.png',
+                    'assets/UI/images/auto-group-94mb.png',
                     width: 452.28*fem,
                     height: 105*fem,
                   ),
