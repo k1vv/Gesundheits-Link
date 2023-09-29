@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:myapp/UI/tracklocation_page.dart';
 
-class Maps extends StatefulWidget {
-  const Maps({Key? key}) : super(key: key);
+class ShowMaps extends StatefulWidget {
+  const ShowMaps({Key? key}) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
-  _MapsState createState() => _MapsState();
+  _ShowMapsState createState() => _ShowMapsState();
 }
 
-class _MapsState extends State<Maps> {
+class _ShowMapsState extends State<ShowMaps> {
   bool showError = false;
 
   @override

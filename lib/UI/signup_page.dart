@@ -281,6 +281,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     databaseReference.child('users').child(userId).set(userData).then((_) {
       debugPrint('User added to the database');
+      Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const LogInScreen()));
     }).catchError((error) {
       debugPrint('Error adding user to the database: $error');
     });

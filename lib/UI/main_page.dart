@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/UI/home_page.dart';
 import 'package:myapp/UI/habit_page.dart';
-import 'package:myapp/UI/map.dart';
+import 'package:myapp/UI/maps_page.dart';
 import 'package:myapp/UI/accountsetting_page.dart';
 import 'package:myapp/UI/smartwatch.dart';
 
 class MainPage extends StatefulWidget {
-  const MainPage({Key? key}) : super(key: key);
+  final int initialIndex;
+  const MainPage({Key? key,this.initialIndex = 0}) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -18,11 +19,16 @@ class _MainPageState extends State<MainPage> {
     const HomePage(),
     const Habits(),
     const WatchConnection(),
-    const Maps(),
+    const ShowMaps(),
     const Settings(),
   ];
-
   int currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    currentIndex = widget.initialIndex;
+  }
 
   void onTap(int index) {
     setState(() {

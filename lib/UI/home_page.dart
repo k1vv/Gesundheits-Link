@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:myapp/UI/steps_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -11,6 +13,29 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   DateTime selectedDate = DateTime.now();
+  String profilePictureUrl = '';
+
+  void fetchUserData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DatabaseReference userRef =
+          FirebaseDatabase.instance.ref().child('users').child(user.uid);
+      DatabaseEvent event = await userRef.once();
+      dynamic data = event.snapshot.value;
+
+      if (!mounted) return;
+
+      if (data != null && data is Map) {
+        setState(() {
+          profilePictureUrl = data['profilePictureUrl'] ?? '';
+        });
+      } else {
+        setState(() {
+          
+        });
+      }
+    }
+  }
 
   void _showDatePicker() async {
     final DateTime? pickedDate = await showDatePicker(

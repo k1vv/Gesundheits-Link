@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
             if (user.uid == adminid) {
               return const AdminPage();
             } else {
-              return const MainPage();
+              return const MainPage(initialIndex: 0,);
             }
           } else {
             return const Welcome();

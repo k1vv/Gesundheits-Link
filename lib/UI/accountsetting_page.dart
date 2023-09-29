@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:myapp/UI/login_page.dart';
 import 'package:myapp/UI/welcome_page.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_database/firebase_database.dart';
-
 
 class Settings extends StatefulWidget {
   const Settings({Key? key}) : super(key: key);
@@ -21,6 +21,11 @@ class _SettingsState extends State<Settings> {
   String username = "Loading...";
   String email = "Loading...";
   String password = "******";
+  bool showError = false;
+  bool showError1 = false;
+  bool showError2 = false;
+  bool showError3 = false;
+  bool showError4 = false;
 
   final newUsernameController = TextEditingController();
   final newEmailController = TextEditingController();
@@ -95,6 +100,12 @@ class _SettingsState extends State<Settings> {
               imageFile,
               fit: BoxFit.cover,
             );
+            showError4 = true;
+          });
+          Future.delayed(const Duration(seconds: 5), () {
+            setState(() {
+              showError4 = false;
+            });
           });
           updateProfilePictureUrl(userId, imageUrl);
         }
@@ -171,12 +182,27 @@ class _SettingsState extends State<Settings> {
         setState(() {
           username = newUsername;
         });
-
+        setState(() {
+          showError2 = true;
+        });
+        Future.delayed(const Duration(seconds: 5), () {
+          setState(() {
+            showError2 = false;
+          });
+        });
         debugPrint('Username updated in Firebase Realtime Database');
       }
     } catch (e) {
       if (!mounted) return;
       debugPrint("Username reset failed: $e");
+      setState(() {
+        showError3 = true;
+      });
+      Future.delayed(const Duration(seconds: 5), () {
+        setState(() {
+          showError3 = false;
+        });
+      });
     }
   }
 
@@ -274,6 +300,7 @@ class _SettingsState extends State<Settings> {
               onPressed: () {
                 if (!mounted) return;
                 final newPassword = newPasswordController.text.trim();
+
                 if (newPassword.isNotEmpty) {
                   performPasswordReset(newPassword);
                   Navigator.of(context).pop();
@@ -292,6 +319,14 @@ class _SettingsState extends State<Settings> {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         await user.updatePassword(newPassword);
+        setState(() {
+          showError = true;
+        });
+        Future.delayed(const Duration(seconds: 5), () {
+          setState(() {
+            showError = false;
+          });
+        });
 
         if (!mounted) return;
 
@@ -306,15 +341,37 @@ class _SettingsState extends State<Settings> {
     } catch (e) {
       if (!mounted) return;
       debugPrint("Password reset failed: $e");
+      setState(() {
+        showError1 = true;
+      });
+      Future.delayed(const Duration(seconds: 5), () {
+        setState(() {
+          showError1 = false;
+        });
+      });
+
+      if (e is FirebaseAuthException && e.code == 'requires-recent-login') {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const LogInScreen(
+              requireAuth: true,
+            ),
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SizedBox(
-        child: Center(
+    double baseWidth = 428;
+    double fem = MediaQuery.of(context).size.width / baseWidth;
+    return Stack(
+      children: [
+        Container(
+          color: Colors.white,
+        ),
+        Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -543,9 +600,135 @@ class _SettingsState extends State<Settings> {
             ],
           ),
         ),
-      ),
+        Positioned(
+          left: 110 * fem,
+          top: 610 * fem,
+          child: AnimatedOpacity(
+            opacity: showError ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 500),
+            child: SizedBox(
+              height: 50,
+              width: 180,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Password Change Successful',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 110 * fem,
+          top: 610 * fem,
+          child: AnimatedOpacity(
+            opacity: showError1 ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 500),
+            child: SizedBox(
+              height: 50,
+              width: 180,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Password should be at least 6 characters',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 110 * fem,
+          top: 610 * fem,
+          child: AnimatedOpacity(
+            opacity: showError2 ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 500),
+            child: SizedBox(
+              height: 50,
+              width: 180,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Username Successfully Change',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 110 * fem,
+          top: 610 * fem,
+          child: AnimatedOpacity(
+            opacity: showError3 ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 500),
+            child: SizedBox(
+              height: 50,
+              width: 180,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Username already exist',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 60 * fem,
+          top: 610 * fem,
+          child: AnimatedOpacity(
+            opacity: showError4 ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 500),
+            child: SizedBox(
+              height: 50,
+              width: 260,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Profile Picture Successfully Change Please Reload the page',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
+
   @override
   void dispose() {
     newPasswordController.dispose();
