@@ -353,9 +353,7 @@ class _SettingsState extends State<Settings> {
       if (e is FirebaseAuthException && e.code == 'requires-recent-login') {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => const LogInScreen(
-              requireAuth: true,
-            ),
+            builder: (context) => const LogInScreen(),
           ),
         );
       }

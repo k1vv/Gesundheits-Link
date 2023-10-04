@@ -6,8 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/Widgets/reusable_widgets.dart';
 
 class LogInScreen extends StatefulWidget {
-  final bool requireAuth;
-  const LogInScreen({Key? key, this.requireAuth = false}) : super(key: key);
+  const LogInScreen({Key? key}) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -19,21 +18,6 @@ class _LogInScreenState extends State<LogInScreen> {
   final TextEditingController _emailTextController = TextEditingController();
   bool showError = false;
   bool showError1 = false;
-  bool showError2 = false;
-
-   @override
-  void initState() {
-    super.initState();
-    showError2 = widget.requireAuth;
-    if (showError2) {
-      Future.delayed(const Duration(seconds: 5), () {
-        setState(() {
-          showError2 = false;
-        });
-      });
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -151,31 +135,6 @@ class _LogInScreenState extends State<LogInScreen> {
               ),
             ),
           ),
-          Positioned(
-            left: 110 * fem,
-            top: 610 * fem,
-            child: AnimatedOpacity(
-              opacity: showError2 ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 500), // Set the duration
-              child: SizedBox(
-                height: 50,
-                width: 180,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'You need to Log In again before changing your password.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -197,11 +156,11 @@ class _LogInScreenState extends State<LogInScreen> {
       if (userId == adminid) {
         // ignore: use_build_context_synchronously
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const AdminPage()));
+        MaterialPageRoute(builder: (context) => const AdminPage()));
       } else {
         // ignore: use_build_context_synchronously
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => const MainPage(initialIndex: 0,)));
+        context, MaterialPageRoute(builder: (context) => const MainPage(initialIndex: 0,)));
       }
     } catch (e) {
       debugPrint('Error during login: $e');

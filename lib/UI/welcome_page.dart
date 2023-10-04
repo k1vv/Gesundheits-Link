@@ -49,7 +49,7 @@ class _WelcomeState extends State<Welcome> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => const LogInScreen(requireAuth: false,)));
+                      MaterialPageRoute(builder: (context) => const LogInScreen()));
                     },
                     // ignore: sort_child_properties_last
                     child: const Text(
