@@ -111,7 +111,7 @@ class _CustomHabitsState extends State<CustomHabits> {
               SizedBox(
                 height: 10 * screenHeight / 375,
               ),
-              Container(
+              SizedBox(
                 width: 300 * screenWidth / 375,
                 child: const Text(
                   'Name',
@@ -123,7 +123,7 @@ class _CustomHabitsState extends State<CustomHabits> {
                   ),
                 ),
               ),
-              Container(
+              SizedBox(
                   width: 300 * screenWidth / 375,
                   height: 35 * screenHeight / 375,
                   child: TextField(
@@ -141,7 +141,7 @@ class _CustomHabitsState extends State<CustomHabits> {
                       });
                     },
                   )),
-              Container(
+              SizedBox(
                 width: 300 * screenWidth / 375,
                 child: const Text(
                   'Description',
@@ -174,7 +174,7 @@ class _CustomHabitsState extends State<CustomHabits> {
                   )),
               Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 175 * screenWidth / 375,
                     child: const Text(
                       'Frequency',
@@ -186,7 +186,7 @@ class _CustomHabitsState extends State<CustomHabits> {
                       ),
                     ),
                   ),
-                  Container(
+                  SizedBox(
                       width: 120 * screenWidth / 375,
                       child: ElevatedButton(
                         onPressed: () {
@@ -222,7 +222,7 @@ class _CustomHabitsState extends State<CustomHabits> {
                                         child: const Text("Daily"),
                                       ),
                                     ),
-                                    Container(
+                                    SizedBox(
                                       width: double.infinity,
                                       child: ElevatedButton(
                                         onPressed: () {
@@ -237,7 +237,7 @@ class _CustomHabitsState extends State<CustomHabits> {
                                         child: const Text("Weekly"),
                                       ),
                                     ),
-                                    Container(
+                                    SizedBox(
                                       width: double.infinity,
                                       child: ElevatedButton(
                                         onPressed: () {
@@ -274,7 +274,7 @@ class _CustomHabitsState extends State<CustomHabits> {
               SizedBox(
                 height: 10 * screenHeight / 375,
               ),
-              Container(
+              SizedBox(
                 width: 295 * screenWidth / 375,
                 child: const Text(
                   'Time Range',
@@ -385,7 +385,7 @@ class _CustomHabitsState extends State<CustomHabits> {
       
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 255, 197, 216),
+                    backgroundColor: const Color.fromARGB(255, 255, 197, 216),
                   ),
                   child: const Text(
                     'Confirm',
