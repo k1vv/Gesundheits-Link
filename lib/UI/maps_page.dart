@@ -15,6 +15,8 @@ class _ShowMapsState extends State<ShowMaps> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     double baseWidth = 428;
     double fem = MediaQuery.of(context).size.width / baseWidth;
     return Stack(
@@ -57,8 +59,8 @@ class _ShowMapsState extends State<ShowMaps> {
         Positioned(
           top: 525 * fem,
           child: Container(
-            width: 360,
-            height: 400,
+            width: 375 * screenWidth / 375,
+            height: 400 * screenHeight / 375,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(40),
@@ -88,7 +90,7 @@ class _ShowMapsState extends State<ShowMaps> {
                               child: Image.asset('assets/images/runner.jpg',
                                   fit: BoxFit.cover),
                             ),
-                            const SizedBox(height: 30),
+                            SizedBox(height: 25 * screenHeight / 475),
                             const SizedBox(child: Text('Elapsed Time')),
                             const SizedBox(child: Text('00 : 00 : 00'))
                           ],
