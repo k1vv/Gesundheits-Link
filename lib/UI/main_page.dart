@@ -49,9 +49,11 @@ class _MainPageState extends State<MainPage> {
         ],
       ),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Colors.black
+        decoration: const BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: Color.fromARGB(57, 0, 0, 0)
+            )
           )
         ),
         child: BottomNavigationBar(

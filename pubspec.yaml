@@ -54,6 +54,10 @@ dependencies:
   flutter_polyline_points: ^2.0.0
   flutter_sensors: ^1.0.1
   qr_code_scanner: ^1.0.1
+  wakelock_plus: ^1.1.1
+  flutter_blue_plus: ^1.4.0
+  permission_handler: ^11.0.1
+  get: ^4.6.6
 
 dev_dependencies:
   flutter_test:

@@ -53,6 +53,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     final int currentDayNum = selectedDate.day;
     final String currentDayDay = DateFormat('EEEE').format(selectedDate);
     final String currentYear = DateTime.now().year.toString();
@@ -371,8 +372,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Row(
                       children: [
-                        const SizedBox(
-                          width: 30,
+                        SizedBox(
+                          width: 40 * screenWidth / 375,
                         ),
                         SizedBox(
                           width: 146,
