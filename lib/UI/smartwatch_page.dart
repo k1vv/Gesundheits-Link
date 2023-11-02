@@ -1,49 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class WatchConnection extends StatefulWidget {
   const WatchConnection({Key? key}) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _WatchConnectionState createState() => _WatchConnectionState();
 }
 
 class _WatchConnectionState extends State<WatchConnection> {
-  final FlutterBluePlus flutterBlue = FlutterBluePlus();
-  BluetoothDevice? selectedDevice;
-  
-  Future<void> connectToDevice(String qrCodeData) async {
-  try {
-    // Start scanning for devices
-    FlutterBluePlus.startScan(timeout: Duration(seconds: 4));
-
-    // Listen to scan results and find the desired device
-    FlutterBluePlus.scanResults.listen((List<ScanResult> results) {
-      for (ScanResult result in results) {
-        // Compare the parsed QR code data with the device identifier
-        if (result.device.platformName == qrCodeData) {
-          selectedDevice = result.device;
-          break;
-        }
-      }
-    });
-
-    // Wait for the scanning to complete and connect to the selected device
-    await Future.delayed(Duration(seconds: 4));
-    if (selectedDevice != null) {
-      await selectedDevice!.connect();
-      // You can now interact with the connected device
-      // Don't forget to disconnect when you're done
-    } else {
-      // Device not found
-      print('Watch not found');
-    }
-  } catch (e) {
-    // Handle connection errors
-    print('Error: $e');
-  }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -75,8 +40,7 @@ class _WatchConnectionState extends State<WatchConnection> {
                           backgroundColor: Colors.white,
                         ),
                         onPressed: () {
-                          // Call the function to connect to the Bluetooth device
-                          connectToDevice();
+
                         },
                         child: Column(
                           children: [

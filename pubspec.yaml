@@ -39,7 +39,7 @@ dependencies:
   firebase_auth: ^4.10.0
   firebase_core: ^2.16.0
   cupertino_icons: ^1.0.2
-  google_fonts: 6.1.0
+  google_fonts: ^6.1.0
   intl: ^0.18.1
   firebase_storage: ^11.2.7
   firebase_database: ^10.2.0
@@ -58,6 +58,15 @@ dependencies:
   flutter_blue_plus: ^1.4.0
   permission_handler: ^11.0.1
   get: ^4.6.6
+  flutter_sharing_intent: ^1.1.0
+  receive_sharing_intent: ^1.0.0
+  shelf: ^1.4.1
+  shelf_router: ^1.1.4
+  health: ^8.0.0
+  fl_chart: ^0.40.0
+  webview_flutter: ^2.0.13
+  flutter_xlider: ^3.5.0
+  percent_indicator: ^3.4.0
 
 dev_dependencies:
   flutter_test:

@@ -5,24 +5,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
-class StepsPage extends StatefulWidget {
-  final String currentStep;
-  final int maxStep;
-  final DateTime currentStepDate;
+class HeartRatePage extends StatefulWidget {
+  const HeartRatePage({super.key});
 
-  const StepsPage(
-      {Key? key,
-      required this.currentStep,
-      required this.currentStepDate,
-      required this.maxStep})
-      : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
-  _StepsPageState createState() => _StepsPageState();
+  _HeartRatePage createState() => _HeartRatePage();
 }
 
-class _StepsPageState extends State<StepsPage> {
+class _HeartRatePage extends State<HeartRatePage> {
   String currentSteps = "N/A";
   DateTime currentStepsDate = DateTime.now();
   String flexbarString = "N/A";
@@ -33,46 +25,6 @@ class _StepsPageState extends State<StepsPage> {
   double selectedValue = 0;
   String startTimeText = "00:00";
   String stepsText = "N/A";
-
-  Future<void> fetchDataFromFirebase(int x) async {
-    final today = DateTime.now();
-    String userId = "";
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      userId = user.uid;
-      final databasePath =
-          'health/$userId/steps/${today.year}-${today.month}-${today.day}/$x';
-      DataSnapshot dataSnapshot =
-          (await FirebaseDatabase.instance.ref().child(databasePath).once())
-              .snapshot;
-      if (dataSnapshot.value != null) {
-        int? value = int.tryParse(dataSnapshot.value.toString());
-        setState(() {
-          stepData[x - 1] = value;
-        });
-      }
-    }
-  }
-
-  void fetchData() {
-    flexbarString = widget.currentStep;
-    currentSteps = widget.currentStep;
-    currentStepsDate = widget.currentStepDate;
-    flexBar = widget.maxStep;
-    for (int x = 1; x <= 24; x++) {
-      fetchDataFromFirebase(x);
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    fetchData();
-      if (stepData.isNotEmpty && stepData[0] != null) {
-    startTimeText = '${(stepData[0] ?? 0).toString().padLeft(2, '0')}:00';
-    stepsText = (stepData[0] ?? 0).toString();
-  }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,10 +37,12 @@ class _StepsPageState extends State<StepsPage> {
         barsSpace: 4,
         barRods: [
           BarChartRodData(
-              y: stepData[index]?.toDouble() ?? 0.0,
-              colors: [Colors.blue],
-              borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(5), bottom: Radius.circular(0))),
+            y: stepData[index]?.toDouble() ?? 0.0,
+            colors: [Colors.blue],
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(5), bottom: Radius.circular(0)
+            )
+          ),
         ],
       );
     });
@@ -197,10 +151,10 @@ class _StepsPageState extends State<StepsPage> {
                         drawVerticalLine: false,
                       ),
                       borderData: FlBorderData(
-                        show: true,
-                        border: const Border(
-                          bottom: BorderSide(color: Colors.grey),
-                          left: BorderSide(color: Colors.grey))),
+                          show: true,
+                          border: const Border(
+                              bottom: BorderSide(color: Colors.grey),
+                              left: BorderSide(color: Colors.grey))),
                       minY: 0,
                       maxY: flexBar == 0 ? 5.0 : flexBar * 1.2,
                       barGroups: barGroups,

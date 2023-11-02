@@ -175,7 +175,7 @@ class _TrackLocationState extends State<TrackLocation> {
                                   style: TextStyle(
                                         fontFamily: 'Arial',
                                         fontSize: 12,
-                                        color: Color.fromARGB(110, 0, 0, 0)
+                                        color: Color.fromRGBO(139, 139, 139, 0.427)
                                     ),
                                 ),
                               )
