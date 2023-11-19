@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:myapp/UI/main_page.dart';
+import 'package:myapp/UI/Main/main_page.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,6 +21,7 @@ class _TrackLocationState extends State<TrackLocation> {
   bool showError = false;
   bool isMapExpanded = true;
   String userPace = 'N/A';
+  String distance= "N/A";
   LatLng originalCenter = const LatLng(3.14661, 101.69515);
   bool showWidgets1 = false;
   bool showWidgets2 = false;
@@ -32,16 +33,137 @@ class _TrackLocationState extends State<TrackLocation> {
     color: Colors.blue,
   );
   late Timer paceTimer;
+  late Timer timer;
 
   int secondsElapsed = 0;
   String formattedDuration = '00:00:00';
 
+  void updateDuration() {
+    if(isRunning == true) {
+      setState(() {
+        secondsElapsed++;
+        final hours = secondsElapsed ~/ 3600;
+        final minutes = (secondsElapsed % 3600) ~/ 60;
+        final seconds = secondsElapsed % 60;
+        formattedDuration = "$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
+      });
+    } else {
+      formattedDuration = formattedDuration;
+    }
+  }
+
+  void pauseTimer() {
+    timer.cancel();
+  }
+
+  void resumeTimer() {
+    startTimer();
+  }
+
+  void startTimer() {
+    const oneSecond = Duration(seconds: 1);
+    timer = Timer.periodic(oneSecond, (Timer timer) {
+      if (!isRunning) {
+        timer.cancel();
+      } else {
+        updateDuration();
+      }
+    });
+  }
+
+  void startRunning() async {
+    setState(() {
+      isRunning = true;
+    });
+    Geolocator.getPositionStream().listen((Position position) {
+      updateMapPosition(position);
+    });
+  }
+
+  void stopRunning() {
+    setState(() {
+      isRunning = false;
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const MainPage(
+                    initialIndex: 3,
+                  )));
+    });
+    setState(() {
+      markers.clear();
+      polylinePoints.clear();
+      polyline.points.clear();
+      mapController.move(originalCenter, 10);
+    });
+
+    Geolocator.getPositionStream().listen((Position position) {}).cancel();
+  }
+
+  void updatePace() {
+    final pace = calculatePace(calculateDistance(), secondsElapsed);
+    setState(() {
+      userPace = pace.toString();
+    });
+  }
+
+  void updateMapPosition(Position position) { 
+    final LatLng latLng = LatLng(position.latitude, position.longitude);
+    setState(() {
+      markers.clear();
+      markers.add(
+        Marker(
+          width: 45.0,
+          height: 45.0,
+          point: latLng,
+          builder: (ctx) => Container(
+            color: Colors.transparent,
+            child: Image.asset(
+              'assets/images/running.png',
+              width: 45.0,
+              height: 45.0,
+            ),
+          ),
+        ),
+      );
+      polylinePoints.add(latLng);
+      polyline.points.add(latLng);
+      mapController.move(latLng, 16.10);
+    });
+  }
+
+  double calculateDistance() {
+    double totalDistance = 0;
+    for (int i = 0; i < polylinePoints.length - 1; i++) {
+      totalDistance += Geolocator.distanceBetween(
+        polylinePoints[i].latitude,
+        polylinePoints[i].longitude,
+        polylinePoints[i + 1].latitude,
+        polylinePoints[i + 1].longitude,
+      );
+    }
+    return totalDistance;
+  } 
+
+  String calculatePace(double totalDistance, int totalSeconds) {
+    if (totalDistance <= 0 || totalSeconds <= 0) {
+      return "N/A";
+    }
+
+    double paceInMinutesPerKm = (totalSeconds / 60) / (totalDistance / 1000);
+    int minutes = paceInMinutesPerKm.toInt();
+    int seconds = ((paceInMinutesPerKm - minutes) * 60).toInt();
+
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+  
   @override
   void initState() {
     super.initState();
     mapController = MapController();
     startRunning();
     startTimer();
+    distance = (calculateDistance() / 1000).toStringAsFixed(2);
     paceTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       updatePace();
     });
@@ -129,8 +251,7 @@ class _TrackLocationState extends State<TrackLocation> {
                                 width: 180,
                                 height: 24,
                                 child: Text(
-                                  (calculateDistance() / 1000)
-                                      .toStringAsFixed(2),
+                                  distance,
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                       fontFamily: 'Arial',
@@ -267,6 +388,7 @@ class _TrackLocationState extends State<TrackLocation> {
                               setState(() {
                                 showWidgets2 = !showWidgets2;
                                 showWidgets3 = !showWidgets3;
+                                isRunning = false;
                               });
                             },
                             style: ElevatedButton.styleFrom(
@@ -350,113 +472,9 @@ class _TrackLocationState extends State<TrackLocation> {
       ],
     );
   }
-
-  void startRunning() async {
-    setState(() {
-      isRunning = true;
-    });
-    Geolocator.getPositionStream().listen((Position position) {
-      updateMapPosition(position);
-    });
-  }
-
-  void stopRunning() {
-    setState(() {
-      isRunning = false;
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => const MainPage(
-                    initialIndex: 3,
-                  )));
-    });
-    setState(() {
-      markers.clear();
-      polylinePoints.clear();
-      polyline.points.clear();
-      mapController.move(originalCenter, 10);
-    });
-
-    Geolocator.getPositionStream().listen((Position position) {}).cancel();
-  }
-
-  void updatePace() {
-    final pace = calculatePace(calculateDistance(), secondsElapsed);
-    setState(() {
-      userPace = pace.toString();
-    });
-  }
-
-  void updateMapPosition(Position position) {
-    final LatLng latLng = LatLng(position.latitude, position.longitude);
-    setState(() {
-      markers.clear();
-      markers.add(
-        Marker(
-          width: 45.0,
-          height: 45.0,
-          point: latLng,
-          builder: (ctx) => Container(
-            color: Colors.transparent,
-            child: Image.asset(
-              'assets/images/running.png',
-              width: 45.0,
-              height: 45.0,
-            ),
-          ),
-        ),
-      );
-      polylinePoints.add(latLng);
-      polyline.points.add(latLng);
-      mapController.move(latLng, 16.10);
-    });
-  }
-
-  double calculateDistance() {
-    double totalDistance = 0;
-    for (int i = 0; i < polylinePoints.length - 1; i++) {
-      totalDistance += Geolocator.distanceBetween(
-        polylinePoints[i].latitude,
-        polylinePoints[i].longitude,
-        polylinePoints[i + 1].latitude,
-        polylinePoints[i + 1].longitude,
-      );
-    }
-    return totalDistance;
-  }
-
-  void startTimer() {
-    const oneSecond = Duration(seconds: 1);
-    Timer.periodic(oneSecond, (Timer timer) {
-      if (!isRunning) {
-        timer.cancel();
-      } else {
-        setState(() {
-          secondsElapsed++;
-          final hours = secondsElapsed ~/ 3600;
-          final minutes = (secondsElapsed % 3600) ~/ 60;
-          final seconds = secondsElapsed % 60;
-          formattedDuration =
-              "$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
-        });
-      }
-    });
-  }
-
-  String calculatePace(double totalDistance, int totalSeconds) {
-    if (totalDistance <= 0 || totalSeconds <= 0) {
-      return "N/A";
-    }
-
-    double paceInMinutesPerKm = (totalSeconds / 60) / (totalDistance / 1000);
-    int minutes = paceInMinutesPerKm.toInt();
-    int seconds = ((paceInMinutesPerKm - minutes) * 60).toInt();
-
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
-  }
-
   @override
   void dispose() {
+    timer.cancel(); // Ensure the timer is canceled when the widget is disposed
     stopRunning();
     super.dispose();
   }

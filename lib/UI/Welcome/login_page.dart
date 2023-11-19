@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/UI/main_page.dart';
-import 'package:myapp/UI/admin_page.dart';
-import 'package:myapp/UI/signup_page.dart';
+import 'package:myapp/UI/Main/main_page.dart';
+import 'package:myapp/UI/Admin/admin_page.dart';
+import 'package:myapp/UI/Welcome/signup_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/Widgets/reusable_widgets.dart';
 

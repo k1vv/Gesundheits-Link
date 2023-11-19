@@ -1,14 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:myapp/UI/welcome_page.dart';
-import 'package:myapp/UI/main_page.dart';
-import 'package:myapp/UI/admin_page.dart';
+import 'package:myapp/UI/Welcome/welcome_page.dart';
+import 'package:myapp/UI/Main/main_page.dart';
+import 'package:myapp/UI/Admin/admin_page.dart';
+import 'package:provider/provider.dart';
+import 'package:myapp/UI/Habits/habit_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const MyApp());
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => HabitProvider(), // Initialize your provider here
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

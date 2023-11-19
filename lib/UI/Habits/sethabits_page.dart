@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/UI/main_page.dart';
-import 'package:myapp/UI/customhabits.dart';
+import 'package:myapp/UI/Main/main_page.dart';
+import 'package:myapp/UI/Habits/customhabits.dart';
 
 class SetHabits extends StatefulWidget {
   const SetHabits({super.key});
@@ -10,8 +10,10 @@ class SetHabits extends StatefulWidget {
 }
 
 class _SetHabitsState extends State<SetHabits> {
+
   @override
   Widget build(BuildContext context) {
+
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 

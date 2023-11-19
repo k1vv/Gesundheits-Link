@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/UI/home_page.dart';
-import 'package:myapp/UI/habit_page.dart';
-import 'package:myapp/UI/maps_page.dart';
-import 'package:myapp/UI/accountsetting_page.dart';
-import 'package:myapp/UI/smartwatch_page.dart';
+import 'package:myapp/UI/Main/home_page.dart';
+import 'package:myapp/UI/Main/habit_page.dart';
+import 'package:myapp/UI/Main/maps_page.dart';
+import 'package:myapp/UI/Main/accountsetting_page.dart';
+import 'package:myapp/UI/Main/smartwatch_page.dart';
 
 class MainPage extends StatefulWidget {
   final int initialIndex;

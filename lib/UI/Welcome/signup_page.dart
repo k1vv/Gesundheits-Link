@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/Widgets/reusable_widgets.dart';
-import 'package:myapp/UI/login_page.dart';
+import 'package:myapp/UI/Welcome/login_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
