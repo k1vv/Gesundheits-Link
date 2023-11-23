@@ -32,7 +32,7 @@ static Future<void> scheduleNotifications() async {
         payload: 'Scheduled Notification Payload',
         delay: delay,
       );
-    } else if (now.hour > 19 && habit.timeRange == "Evening" && habit.isStarred == true) {
+    } else if (now.hour < 19 && habit.timeRange == "Evening" && habit.isStarred == true) {
       targetTime = DateTime(now.year, now.month, now.day, 19, 0);
       Duration delay = targetTime.difference(now);
 
@@ -66,18 +66,6 @@ static Future<void> scheduleNotifications() async {
       debugPrint("success");
     } else if (now.hour < 19 && habit.timeRange == "Anytime" && habit.isStarred == true) {
       targetTime = DateTime(now.year, now.month, now.day, 8, 0);
-      Duration delay = targetTime.difference(now);
-
-      await LocalNotifications.showScheduleNotification(
-        title: 'Anytime Message',
-        body: 'You still have unfinished habits',
-        payload: 'Scheduled Notification Payload',
-        delay: delay,
-      );
-      debugPrint("success");
-    }
-    else if (now.hour > 8 && habit.timeRange == "Morning" && habit.isStarred == true) {
-      targetTime = DateTime(now.year, now.month, now.day + 1, 8, 0);
       Duration delay = targetTime.difference(now);
 
       await LocalNotifications.showScheduleNotification(
