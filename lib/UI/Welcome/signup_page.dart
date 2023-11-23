@@ -63,10 +63,10 @@ Future<void> sendVerificationEmail(User user) async {
   try {
     await user.sendEmailVerification();
     // Email sent.
-    print("Verification email sent to ${user.email}");
+    debugPrint("Verification email sent to ${user.email}");
   } catch (e) {
     // An error happened.
-    print("Error sending verification email: $e");
+    debugPrint("Error sending verification email: $e");
   }
 }
 
