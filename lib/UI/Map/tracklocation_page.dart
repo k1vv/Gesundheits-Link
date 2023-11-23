@@ -1,10 +1,16 @@
 import 'dart:async';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:myapp/UI/Main/main_page.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:myapp/UI/Main/main_page.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_foreground_service/flutter_foreground_service.dart';
+
 
 class TrackLocation extends StatefulWidget {
   const TrackLocation({Key? key}) : super(key: key);
@@ -15,28 +21,31 @@ class TrackLocation extends StatefulWidget {
 }
 
 class _TrackLocationState extends State<TrackLocation> {
-  late MapController mapController;
-  List<Marker> markers = [];
+
+  int secondsElapsed = 0;
+  String userPace = 'N/A';
+  String distance= "N/A";
+  String formattedDuration = '00:00:00';
   bool isRunning = false;
   bool showError = false;
   bool isMapExpanded = true;
-  String userPace = 'N/A';
-  String distance= "N/A";
-  LatLng originalCenter = const LatLng(3.14661, 101.69515);
   bool showWidgets1 = false;
   bool showWidgets2 = false;
   bool showWidgets3 = false;
+  List<Marker> markers = [];
   List<LatLng> polylinePoints = [];
+  late Timer timer;
+  late String userId;
+  late Timer paceTimer;
+  late MapController mapController;
+  late DatabaseReference databaseReference;
+  LatLng originalCenter = const LatLng(3.14661, 101.69515);
   Polyline polyline = Polyline(
     points: [],
     strokeWidth: 4,
     color: Colors.blue,
   );
-  late Timer paceTimer;
-  late Timer timer;
 
-  int secondsElapsed = 0;
-  String formattedDuration = '00:00:00';
 
   void updateDuration() {
     if(isRunning == true) {
@@ -50,14 +59,6 @@ class _TrackLocationState extends State<TrackLocation> {
     } else {
       formattedDuration = formattedDuration;
     }
-  }
-
-  void pauseTimer() {
-    timer.cancel();
-  }
-
-  void resumeTimer() {
-    startTimer();
   }
 
   void startTimer() {
@@ -81,14 +82,15 @@ class _TrackLocationState extends State<TrackLocation> {
   }
 
   void stopRunning() {
+    stopForegroundService();
     setState(() {
       isRunning = false;
       Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => const MainPage(
-                    initialIndex: 3,
-                  )));
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MainPage(initialIndex: 3),
+        ),
+      );
     });
     setState(() {
       markers.clear();
@@ -96,8 +98,48 @@ class _TrackLocationState extends State<TrackLocation> {
       polyline.points.clear();
       mapController.move(originalCenter, 10);
     });
-
+  
     Geolocator.getPositionStream().listen((Position position) {}).cancel();
+  
+    // Save data to Firebase
+    saveExerciseDataToFirebase();
+  }
+  
+  void saveExerciseDataToFirebase() {
+
+    String dateToday = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    String hourMinute = DateFormat('HH:mm').format(DateTime.now());
+    String? exerciseId = databaseReference.child('Exercise').child(userId).child(dateToday).push().key;
+
+    Map<String, dynamic> exerciseData = {
+      'hourMinute': hourMinute,
+      'distance': distance,
+      'duration': formattedDuration,
+      'pace': userPace,
+    };
+
+    // Save data to Firebase
+    databaseReference
+        .child('Exercise')
+        .child(userId)
+        .child(dateToday)
+        .child(exerciseId!)
+        .set(exerciseData)
+        .then((_) {
+      debugPrint('Data saved to Firebase');
+    }).catchError((error) {
+      debugPrint('Failed to save data to Firebase: $error');
+    });
+  }
+
+  void startForegroundService() async {
+    ForegroundService().start();
+    debugPrint("Started service");
+  }
+
+  void stopForegroundService() async {
+    ForegroundService().stop();
+    debugPrint("Stopped service");
   }
 
   void updatePace() {
@@ -107,7 +149,11 @@ class _TrackLocationState extends State<TrackLocation> {
     });
   }
 
-  void updateMapPosition(Position position) { 
+  void updateMapPosition(Position position) {
+    if (!isRunning) {
+      return; 
+    }
+
     final LatLng latLng = LatLng(position.latitude, position.longitude);
     setState(() {
       markers.clear();
@@ -160,6 +206,8 @@ class _TrackLocationState extends State<TrackLocation> {
   @override
   void initState() {
     super.initState();
+    WakelockPlus.enable();
+    startForegroundService();
     mapController = MapController();
     startRunning();
     startTimer();
@@ -167,6 +215,8 @@ class _TrackLocationState extends State<TrackLocation> {
     paceTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       updatePace();
     });
+    databaseReference = FirebaseDatabase.instance.ref();
+    userId = FirebaseAuth.instance.currentUser!.uid;
   }
 
   @override
@@ -178,7 +228,7 @@ class _TrackLocationState extends State<TrackLocation> {
             children: [
               SizedBox(
                 height: isMapExpanded ? 650 : 475,
-                width: 360,
+                width: 360,                                                                                                                        
                 child: FlutterMap(
                   mapController: mapController,
                   options: MapOptions(
@@ -385,6 +435,9 @@ class _TrackLocationState extends State<TrackLocation> {
                           height: 60,
                           child: ElevatedButton(
                             onPressed: () {
+
+                            },
+                            onLongPress: () {
                               setState(() {
                                 showWidgets2 = !showWidgets2;
                                 showWidgets3 = !showWidgets3;
@@ -444,7 +497,10 @@ class _TrackLocationState extends State<TrackLocation> {
                               setState(() {
                                 showWidgets3 = !showWidgets3;
                                 showWidgets2 = !showWidgets2;
+                                isRunning = true;
                               });
+                              startTimer();
+                              startRunning();
                             },
                             style: ElevatedButton.styleFrom(
                                 padding: EdgeInsets.zero,
@@ -463,7 +519,7 @@ class _TrackLocationState extends State<TrackLocation> {
                         )
                       ],
                     ),
-                  ),
+                  ),  
                 ],
               ),
             ],
@@ -474,6 +530,8 @@ class _TrackLocationState extends State<TrackLocation> {
   }
   @override
   void dispose() {
+    WakelockPlus.disable();
+    ForegroundService().stop();
     timer.cancel(); // Ensure the timer is canceled when the widget is disposed
     stopRunning();
     super.dispose();

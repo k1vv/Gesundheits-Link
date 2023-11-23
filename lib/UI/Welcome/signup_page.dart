@@ -14,17 +14,101 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _userNameTextController = TextEditingController();
-  final TextEditingController _userEmailTextController =
-      TextEditingController();
-  final TextEditingController _userPasswordTextController =
-      TextEditingController();
-  final TextEditingController _userConfirmPasswordTextController =
-      TextEditingController();
+  final TextEditingController _userEmailTextController = TextEditingController();
+  final TextEditingController _userPasswordTextController = TextEditingController();
+  final TextEditingController _userConfirmPasswordTextController = TextEditingController();
   String errorMessage = '';
   bool showError = false;
   bool showError1 = false;
   bool showError2 = false;
   bool showError3 = false;
+
+  Future<DataSnapshot> checkUsernameExists(String username) async {
+    final databaseReference = FirebaseDatabase.instance.ref();
+    return await databaseReference.child('username').child(username).get();
+  }
+
+Future<void> register() async {
+  final auth = FirebaseAuth.instance;
+  try {
+    final UserCredential userCredential = await auth
+        .createUserWithEmailAndPassword(
+      email: _userEmailTextController.text,
+      password: _userPasswordTextController.text,
+    );
+
+    // Send verification email
+    await sendVerificationEmail(userCredential.user!);
+
+    // Sign out the user after registration (optional)
+    await auth.signOut();
+
+    // Create user in the database
+    createUserInDatabase(userCredential.user!.uid);
+  } catch (e) {
+    setState(() {
+      showError3 = true;
+    });
+
+    // Schedule a callback to hide the error message after 5 seconds
+    Future.delayed(const Duration(seconds: 5), () {
+      setState(() {
+        showError3 = false;
+      });
+    });
+  }
+}
+
+Future<void> sendVerificationEmail(User user) async {
+  try {
+    await user.sendEmailVerification();
+    // Email sent.
+    print("Verification email sent to ${user.email}");
+  } catch (e) {
+    // An error happened.
+    print("Error sending verification email: $e");
+  }
+}
+
+  void createUserInDatabase(String userId) {
+    final databaseReference = FirebaseDatabase.instance.ref();
+
+    Map<String, dynamic> userData = {
+      'username': _userNameTextController.text,
+      'email': _userEmailTextController.text,
+      'password': _userPasswordTextController.text,
+      'gender': 'N/A',
+      'dateofbirth': 'N/A',
+    };
+
+    databaseReference.child('users').child(userId).set(userData).then((_) {
+      debugPrint('User added to the database');
+      Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const LogInScreen()));
+    }).catchError((error) {
+      debugPrint('Error adding user to the database: $error');
+    });
+  }
+
+  Row logInOption() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text("Already have an account?",
+            style: TextStyle(color: Colors.white70)),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const LogInScreen()));
+          },
+          child: const Text(
+            " Log In",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        )
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -235,76 +319,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Future<DataSnapshot> checkUsernameExists(String username) async {
-    final databaseReference = FirebaseDatabase.instance.ref();
-    return await databaseReference.child('username').child(username).get();
-  }
-
-  Future<void> register() async {
-    final auth = FirebaseAuth.instance;
-    try {
-      final UserCredential userCredential =
-          await auth.createUserWithEmailAndPassword(
-        email: _userEmailTextController.text,
-        password: _userPasswordTextController.text,
-      );
-
-      await auth.signOut();
-      final User user = userCredential.user!;
-      createUserInDatabase(user.uid);
-    } catch (e) {
-      setState(() {
-        showError3 = true;
-      });
-      // Schedule a callback to hide the error message after 5 seconds
-      Future.delayed(const Duration(seconds: 5), () {
-        setState(() {
-          showError3 = false;
-        });
-      });
-    }
-  }
-
-  void createUserInDatabase(String userId) {
-    final databaseReference = FirebaseDatabase.instance.ref();
-
-    Map<String, dynamic> userData = {
-      'username': _userNameTextController.text,
-      'email': _userEmailTextController.text,
-      'password': _userPasswordTextController.text,
-      'gender': 'N/A',
-      'dateofbirth': 'N/A',
-    };
-
-    databaseReference.child('users').child(userId).set(userData).then((_) {
-      debugPrint('User added to the database');
-      Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const LogInScreen()));
-    }).catchError((error) {
-      debugPrint('Error adding user to the database: $error');
-    });
-  }
-
-  Row logInOption() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Text("Already have an account?",
-            style: TextStyle(color: Colors.white70)),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const LogInScreen()));
-          },
-          child: const Text(
-            " Log In",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        )
-      ],
     );
   }
 }

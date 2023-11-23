@@ -88,7 +88,7 @@ class _HeartRatePage extends State<HeartRatePage> {
         barRods: [
           BarChartRodData(
             y: heartRateData[index]?.toDouble() ?? 0.0,
-            colors: [Colors.blue],
+            colors: [const Color.fromARGB(255, 255, 96, 120)],
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(5), bottom: Radius.circular(0)
             )
@@ -153,29 +153,6 @@ class _HeartRatePage extends State<HeartRatePage> {
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(children: [
-
-          SizedBox(
-              width: 315 * screenWidth / 375,
-              height: 20 * screenHeight / 375,
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 105 * screenWidth / 375,
-                    child: ElevatedButton(
-                        onPressed: () {}, child: const Text("Day")),
-                  ),
-                  SizedBox(
-                    width: 105 * screenWidth / 375,
-                    child: ElevatedButton(
-                        onPressed: () {}, child: const Text("Week")),
-                  ),
-                  SizedBox(
-                    width: 105 * screenWidth / 375,
-                    child: ElevatedButton(
-                        onPressed: () {}, child: const Text("Month")),
-                  )
-                ],
-              )),
           SizedBox(
             height: 15 * screenHeight / 375,
           ),
@@ -285,6 +262,72 @@ class _HeartRatePage extends State<HeartRatePage> {
                       divisions: 24,
                     ),
                   ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10 * screenHeight / 375,), 
+          Column(
+            children: [ 
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  border: Border.all(width: 1, color: Colors.black),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+          Builder(
+            builder: (context) {
+              try {
+                final intHeartRate = int.parse(currentHeartRate);
+                if (intHeartRate >= 60 && intHeartRate <= 100) {
+                  return const Text(
+                    "Your heart rate is great!",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.green,
+                    ),
+                  );
+                } else if (intHeartRate < 60) {
+                  return const Text(
+                    "Your heart rate is too low. Seek medical attention now.",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.red,
+                    ),
+                  );
+                } else if (intHeartRate > 100) {
+                  return const Text(
+                    "Your heart rate is quite high. You should get some rest.",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.orange,
+                    ),
+                  );
+                }
+              } catch (e) {
+                // Handle the case when currentHeartRate is not a valid integer
+                return const Text(
+                  "No Heart Rate Data",
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey,
+                  ),
+                );
+              }
+
+              // Return a default widget if none of the conditions are met
+              return const Text(
+                "Default message",
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey,
+                ),
+              );
+            },
+          ),
+                  ],
                 ),
               ),
             ],

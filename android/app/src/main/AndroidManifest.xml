@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.gesundheits_link">
 
     <!-- Check whether Health Connect is installed or not -->
@@ -70,8 +71,16 @@
     <uses-permission android:name="android.permission.health.WRITE_RESPIRATORY_RATE"/>
 
 
-    <application android:label="Gesundheits Link"
+    <uses-permission android:minSdkVersion="34" android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />     
+
+    <application 
+        android:label="Gesundheits Link"
+        android:name="${applicationName}"
+        tools:replace="android:label"
         android:icon="@mipmap/ic_launcher">
+        <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <activity android:name=".MainActivity"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
@@ -82,9 +91,19 @@
             <!-- Theme to apply as soon as Flutter begins rendering frames -->
             <meta-data android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
+            <meta-data
+                android:name="com.google.firebase.messaging.default_notification_channel_id"
+                android:value="thisismychannelname"/>
+            <meta-data
+                android:name="flutterEmbedding"
+                android:value="2" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="FLUTTER_NOTIFICATION_CLICK" />
+                <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />

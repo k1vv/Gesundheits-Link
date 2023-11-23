@@ -141,10 +141,13 @@ class _CaloriesPageState extends State<CaloriesPage> {
   void fetchData() {
     fetchGoalFromFirebase();
     flexbarString = widget.currentStep;
-    int x = int.parse(flexbarString);
-    flexbarString = ((x.toDouble() * 0.04).ceil()).toString();
-    barProgress =
-        (double.parse(flexbarString) / double.parse(enteredGoal) * 100) / 100;
+    try {
+      int x = int.parse(flexbarString);
+      flexbarString = ((x.toDouble() * 0.04).ceil()).toString();
+      barProgress = (double.parse(flexbarString) / double.parse(enteredGoal) * 100) / 100;
+    } catch (e) {
+      debugPrint('Error parsing flexbarString: $e');
+    }
     currentSteps = widget.currentStep;
     currentStepsDate = widget.currentStepDate;
     flexBar = widget.maxStep;
@@ -176,7 +179,7 @@ class _CaloriesPageState extends State<CaloriesPage> {
         barRods: [
           BarChartRodData(
               y: stepData[index]?.toDouble() ?? 0.0,
-              colors: [Colors.blue],
+              colors: [const Color.fromARGB(255, 255, 96, 120)],
               borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(5), bottom: Radius.circular(0))),
         ],

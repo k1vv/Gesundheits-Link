@@ -1,6 +1,5 @@
-// habit_provider.dart
 import 'package:flutter/material.dart';
-import 'habit_model.dart';
+import 'package:myapp/UI/Habits/habit_model.dart';
 
 class HabitProvider extends ChangeNotifier {
   List<Habit> _habits = [];
@@ -9,6 +8,16 @@ class HabitProvider extends ChangeNotifier {
 
   void addHabit(Habit habit) {
     _habits.add(habit);
+    notifyListeners();
+  }
+
+  void setHabits(List<Habit> newHabits) {
+    _habits = newHabits;
+    notifyListeners();
+  }
+  
+    void removeHabit(int index) {
+    _habits.removeAt(index);
     notifyListeners();
   }
 

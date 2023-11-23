@@ -2,6 +2,7 @@
 import 'package:flutter/cupertino.dart';
 
 class Habit {
+  final String id;
   final String name;
   final String description;
   final String frequency;
@@ -9,11 +10,13 @@ class Habit {
   final IconData habitIcon;
   final Color iconColor;
   final String timeRange;
-  final DateTime startTime;
+  final String startTime;
+  final DateTime startHabitTime;
   final DateTime endTime;
   bool isStarred;
 
   Habit({
+    required this.id,
     required this.name,
     required this.description,
     required this.isStarred,  
@@ -22,6 +25,7 @@ class Habit {
     required this.timeRange,
     required this.frequency,
     required this.startTime,
+    required this.startHabitTime,
     required this.endTime,
     required this.endHabitTime,
   });

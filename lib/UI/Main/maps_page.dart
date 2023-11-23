@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:myapp/UI/Map/tracklocation_page.dart';
@@ -11,9 +13,53 @@ class ShowMaps extends StatefulWidget {
 }
 
 class _ShowMapsState extends State<ShowMaps> {
-  bool showError = false;
+  
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
 
-    Future<void> _requestLocationPermission() async {
+  bool showError = false;
+  String pace = "N/A";
+  String distance = "N/A";
+  String elapsedTime = "N/A";
+
+  Future<void> fetchExerciseData() async {
+    try {
+      User? user = _auth.currentUser;
+
+      if (user != null) {
+        String userId = user.uid;
+        String dateToday = DateTime.now().toLocal().toString().split(' ')[0];
+
+        DatabaseReference exerciseRef = _databaseReference
+            .child('Exercise')
+            .child(userId)
+            .child(dateToday);
+
+        DatabaseEvent event = await exerciseRef.once();
+
+        if (event.snapshot.value != null) {
+          Map<dynamic, dynamic> exercises =
+              (event.snapshot.value as Map<dynamic, dynamic>);
+
+          exercises.forEach((key, value) {
+            setState(() {
+              pace = value['pace'];
+              distance = value['distance'];
+              elapsedTime = value['duration'];              
+            });
+          });
+        } else {
+          debugPrint('No exercise data for today.');
+        }
+      } else {
+        debugPrint('User not authenticated.');
+      }
+    } catch (error) {
+      debugPrint('Error fetching exercise data: $error');
+    }
+  }
+
+  Future<void> _requestLocationPermission() async {
     final status = await Geolocator.requestPermission();
 
     if (status == LocationPermission.always ||
@@ -34,6 +80,12 @@ class _ShowMapsState extends State<ShowMaps> {
     }
   }
 
+  @override
+  void initState() {
+    super.initState();
+    fetchExerciseData();
+  }
+  
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -84,8 +136,8 @@ class _ShowMapsState extends State<ShowMaps> {
                       ),
                     ), 
                     Text(
-                      "00:00:24", 
-                      style: TextStyle(
+                      elapsedTime, 
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold, 
                         fontSize: 20,
                       ),
@@ -120,7 +172,7 @@ class _ShowMapsState extends State<ShowMaps> {
                   children: [
                     SizedBox(height: 20 * screenHeight / 375),
                     const Text(
-                      "Your Progress Today", 
+                      "Your Last Exercise", 
                       style: TextStyle(
                         fontFamily: 'Arial', 
                         fontWeight: FontWeight.bold,
@@ -137,7 +189,7 @@ class _ShowMapsState extends State<ShowMaps> {
                       ),
                     ),
                     Text(
-                      "12.5KM/20KM",
+                      "$distance KM/20 KM",
                        style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16, 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/UI/Main/main_page.dart';
 import 'package:myapp/UI/Admin/admin_page.dart';
+import 'package:myapp/UI/Welcome/forgotpassword_page.dart';
 import 'package:myapp/UI/Welcome/signup_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/Widgets/reusable_widgets.dart';
@@ -14,10 +15,70 @@ class LogInScreen extends StatefulWidget {
 }
 
 class _LogInScreenState extends State<LogInScreen> {
+  
   final TextEditingController _passwordTextController = TextEditingController();
   final TextEditingController _emailTextController = TextEditingController();
   bool showError = false;
   bool showError1 = false;
+
+  Future<void> login() async {
+    final auth = FirebaseAuth.instance;
+    try {
+      final UserCredential userCredential =
+          await auth.signInWithEmailAndPassword(
+        email: _emailTextController.text,
+        password: _passwordTextController.text,
+      );
+
+      final User user = userCredential.user!;
+      final String userId = user.uid;
+      const String adminid = "q38Pju8MufZvgKSF2AqyJYZYGqF2";
+
+      if (userId == adminid) {
+        // ignore: use_build_context_synchronously
+        Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const AdminPage()));
+      } else {
+        // ignore: use_build_context_synchronously
+        Navigator.push(
+        context, MaterialPageRoute(builder: (context) => const MainPage(initialIndex: 0,)));
+      }
+    } catch (e) {
+      debugPrint('Error during login: $e');
+      setState(() {
+        showError1 = true;
+      });
+
+      Future.delayed(const Duration(seconds: 5), () {
+        setState(() {
+          showError1 = false;
+        });
+      });
+    }
+  }
+
+  Row signUpOption() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const SizedBox(
+          height: 30,
+        ),
+        const Text("Don't have an account? ",
+            style: TextStyle(color: Colors.white70)),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const SignUpScreen()));
+          },
+          child: const Text(
+            " Sign Up",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        )
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +111,16 @@ class _LogInScreenState extends State<LogInScreen> {
                   ),
                   reusableTextField("Enter Password", Icons.lock_outline, true,
                       _passwordTextController),
+                  const SizedBox(height: 20,),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => ForgotPasswordPage()));
+                    },
+                    child: const Text(
+                      "Forgot Your Password"
+                    ),
+                  ),
                   Padding(
                     padding: EdgeInsets.fromLTRB(
                         20, MediaQuery.of(context).size.height * 0.2, 10, 0),
@@ -137,65 +208,6 @@ class _LogInScreenState extends State<LogInScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Future<void> login() async {
-    final auth = FirebaseAuth.instance;
-    try {
-      final UserCredential userCredential =
-          await auth.signInWithEmailAndPassword(
-        email: _emailTextController.text,
-        password: _passwordTextController.text,
-      );
-
-      final User user = userCredential.user!;
-      final String userId = user.uid;
-      const String adminid = "q38Pju8MufZvgKSF2AqyJYZYGqF2";
-
-      if (userId == adminid) {
-        // ignore: use_build_context_synchronously
-        Navigator.push(context,
-        MaterialPageRoute(builder: (context) => const AdminPage()));
-      } else {
-        // ignore: use_build_context_synchronously
-        Navigator.push(
-        context, MaterialPageRoute(builder: (context) => const MainPage(initialIndex: 0,)));
-      }
-    } catch (e) {
-      debugPrint('Error during login: $e');
-      setState(() {
-        showError1 = true;
-      });
-
-      Future.delayed(const Duration(seconds: 5), () {
-        setState(() {
-          showError1 = false;
-        });
-      });
-    }
-  }
-
-  Row signUpOption() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const SizedBox(
-          height: 30,
-        ),
-        const Text("Don't have an account? ",
-            style: TextStyle(color: Colors.white70)),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const SignUpScreen()));
-          },
-          child: const Text(
-            " Sign Up",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        )
-      ],
     );
   }
 }

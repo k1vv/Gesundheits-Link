@@ -86,7 +86,7 @@ class _BloodOxygenPage extends State<BloodOxygenPage> {
         barRods: [
           BarChartRodData(
             y: bloodOxygenData[index]?.toDouble() ?? 0.0,
-            colors: [Colors.blue],
+            colors: [const Color.fromARGB(255, 255, 96, 120)],
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(5), bottom: Radius.circular(0)
             )
@@ -151,29 +151,6 @@ class _BloodOxygenPage extends State<BloodOxygenPage> {
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(children: [
-
-          SizedBox(
-              width: 315 * screenWidth / 375,
-              height: 20 * screenHeight / 375,
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 105 * screenWidth / 375,
-                    child: ElevatedButton(
-                        onPressed: () {}, child: const Text("Day")),
-                  ),
-                  SizedBox(
-                    width: 105 * screenWidth / 375,
-                    child: ElevatedButton(
-                        onPressed: () {}, child: const Text("Week")),
-                  ),
-                  SizedBox(
-                    width: 105 * screenWidth / 375,
-                    child: ElevatedButton(
-                        onPressed: () {}, child: const Text("Month")),
-                  )
-                ],
-              )),
           SizedBox(
             height: 15 * screenHeight / 375,
           ),
@@ -260,8 +237,8 @@ class _BloodOxygenPage extends State<BloodOxygenPage> {
                       inactiveTrackColor: Colors.transparent,
                       thumbColor: Colors.transparent,
                       overlayColor: Colors.transparent,
-                      trackHeight: 250 * screenHeight / 375, // Adjust the height of the slider
-                      thumbShape: SliderComponentShape.noThumb, // Adjust the size of the thumb
+                      trackHeight: 250 * screenHeight / 375,
+                      thumbShape: SliderComponentShape.noThumb, 
                     ),
                     child: Slider(
                       value: selectedValue,
@@ -287,6 +264,68 @@ class _BloodOxygenPage extends State<BloodOxygenPage> {
               ),
             ],
           ),
+                    Column(
+            children: [ 
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  border: Border.all(width: 1, color: Colors.black),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    Builder(
+                      builder: (context) {
+                        try {
+                          final doubleBloodOxygen = int.parse(currentBloodOxygen);
+                          if (doubleBloodOxygen >= 95 && doubleBloodOxygen <= 100) {
+                            return const Text(
+                              "Your Blood Oxygen Level is great",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.green,
+                              ),
+                            );
+                          } else if (doubleBloodOxygen < 95) {
+                            return const Text(
+                              "Your Blood Oxygen Level is Low. You may want to see a doctor",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.red,
+                              ),
+                            );
+                          } else if (doubleBloodOxygen > 100) {
+                            return const Text(
+                              "Time to die.",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.orange,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          return const Text(
+                            "No Blood Oxygen Data",
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                            ),
+                          );
+                        }
+                        return const Text(
+                          "Default message",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          )
         ]),
       ),
     );

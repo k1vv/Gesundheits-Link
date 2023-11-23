@@ -8,8 +8,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/UI/Health/calories_page.dart';
 import 'package:myapp/UI/Health/heartrate_page.dart';
 import 'package:myapp/UI/Health/bloodoxygen_page.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:myapp/UI/Health/sleeptracking_page.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class HomePage extends StatefulWidget {
@@ -50,6 +50,7 @@ class _HomePageState extends State<HomePage> {
   int? maxStep;
   int? maxHeartRate;
   int? maxBloodOxygen;
+  String _profilePictureUrl = "";
 
   // ignore: prefer_final_fields
   List<HealthDataPoint> _healthDataList = [];
@@ -69,36 +70,13 @@ class _HomePageState extends State<HomePage> {
 
   HealthFactory health = HealthFactory(useHealthConnectIfAvailable: true);
 
-  Future<void> authorize() async {
-    try {
-      await Permission.activityRecognition.request();
-      await Permission.location.request();
 
-      bool? hasPermissions =
-          await health.hasPermissions(types, permissions: permissions);
-      hasPermissions = false;
-      bool authorized = false;
-
-      if (!hasPermissions) {
-        authorized =
-            await health.requestAuthorization(types, permissions: permissions);
-      }
-      if (mounted) {
-        setState(() {
-          _state =
-              (authorized) ? AppState.AUTHORIZED : AppState.AUTH_NOT_GRANTED;
-        });
-      }
-    } catch (error) {
-      debugPrint("Exception in authorize: $error");
-    }
-  }
 
   Future<void> biggestStep() async {
     final today = DateTime.now();
     String userId = "";
     User? user = FirebaseAuth.instance.currentUser;
-    List<int> stepDataList = List.filled(24, 0); // Initialize with 24 zeros.
+    List<int> stepDataList = List.filled(24, 0);
 
     if (user != null) {
       userId = user.uid;
@@ -112,7 +90,7 @@ class _HomePageState extends State<HomePage> {
         if (dataSnapshot.value != null) {
           int? value = int.tryParse(dataSnapshot.value.toString());
           if (value != null) {
-            stepDataList[x] = value; // Store the step data in the list.
+            stepDataList[x] = value;
           }
         }
       }
@@ -187,20 +165,18 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> fetchStepData() async {
+  Future<void> fetchStepData(DateTime selectedDate) async {                                 // Only one that works when changing the date of the data being fetched
     setState(() => _state = AppState.FETCHING_DATA);
     User? user = FirebaseAuth.instance.currentUser;
-
-    final now = DateTime.now();
-    final yesterday = DateTime(now.year, now.month, now.day);
 
     _healthDataList.clear();
 
     try {
-      List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(yesterday, now, types);
+      List<HealthDataPoint> healthData = await health.getHealthDataFromTypes(
+        selectedDate,
+        selectedDate.add(const Duration(days: 1)),types,
+      );
 
-      // Fetch and process steps data
       if (types.contains(HealthDataType.STEPS)) {
         for (HealthDataPoint dataPoint in healthData) {
           if (dataPoint.type == HealthDataType.STEPS) {
@@ -228,7 +204,6 @@ class _HomePageState extends State<HomePage> {
     } catch (error) {
       debugPrint("Exception in getHealthDataFromTypes: $error");
     }
-    // Call biggestStep and update maxStep
     await biggestStep();
   }
 
@@ -503,23 +478,48 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         selectedDate = pickedDate;
       });
+      await fetchStepData(selectedDate);
+    }
+  }
+
+  Future<void> _fetchProfilePictureUrl() async {
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    final DatabaseReference database = FirebaseDatabase.instance.ref();
+    User? user = auth.currentUser;
+
+    if (user != null) {
+      try {
+        DatabaseEvent event = await database.child('users').child(user.uid).once();
+        DataSnapshot snapshot = event.snapshot;
+        if (snapshot.value != null && snapshot.value is Map<dynamic, dynamic>) {
+          Map<dynamic, dynamic> values = snapshot.value as Map<dynamic, dynamic>;
+          setState(() {
+            _profilePictureUrl = values['profilePictureUrl'] ?? "";
+          });
+        }
+      } catch (error) {
+        debugPrint("Error fetching profile picture: $error");
+      }
     }
   }
 
   @override
   void initState() {
     super.initState();
-    authorize();
-    fetchStepData();
+    setState(() {
+      selectedDate = DateTime.now();
+    });
+    fetchStepData(selectedDate);
     fetchHeartRateData();
     fetchSleepDeepData();
     fetchBloodOxygenData();
+    _fetchProfilePictureUrl();
   }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final screenHeight = MediaQuery.of(context).size.height;  
 
     final int currentDayNum = selectedDate.day;
     final String currentDayDay = DateFormat('EEEE').format(selectedDate);
@@ -529,7 +529,6 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: SingleChildScrollView(
-        // Wrap the content with SingleChildScrollView
         child: Column(
           children: [
             Container(
@@ -541,15 +540,35 @@ class _HomePageState extends State<HomePage> {
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.person,
-                    size: 20,
-                    color: Colors.black,
+                  Container(
+                    width: 45,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color.fromARGB(73, 248, 203, 198),
+                      border: Border.all(
+                        color: const Color.fromARGB(73, 248, 203, 198),
+                        width: 1.0,
+                      ),
+                    ),
+                    child: ClipOval(
+                      child: _profilePictureUrl.isNotEmpty
+                          ? Image.network(
+                              _profilePictureUrl,
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                            )
+                          : const Icon(
+                              Icons.person,
+                              size: 30,
+                              color: Colors.black,
+                            ),
+                    ),
                   ),
-                  const SizedBox(
-                    width: 30,
+                  SizedBox(
+                    width: 150 * screenWidth / 375,
                   ),
-                  Expanded(child: Container()),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

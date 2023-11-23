@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:myapp/UI/Main/main_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/UI/Habits/habit_model.dart';
 import 'package:myapp/UI/Habits/habit_provider.dart';
 import 'package:myapp/UI/Habits/sethabits_page.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
@@ -45,6 +47,82 @@ class _CustomHabitsState extends State<CustomHabits> {
   List<String> previousTags = ["test", "test2", "test3"];
   String selectedTag = '';
   List<Widget> selectedTagWidgets = [];
+  
+  Future<void> createSaveHabit() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    String habitName = _nameTextController.text;
+    String habitDescription = _descriptionTextController.text;
+
+    if (user != null) {
+      String userId = user.uid;
+      final databaseReference = FirebaseDatabase.instance.ref();
+      final databasePath = 'Habits/$userId/';
+
+      if (habitName.isNotEmpty) {
+        // Generate a custom habit ID
+        String customHabitId = await generateCustomHabitId(databaseReference.child(databasePath));
+
+          Habit newHabit = Habit(
+            id: customHabitId,
+            name: habitName,
+            description: habitDescription,
+            habitIcon: selectedIcon,
+            iconColor: selectedColor,
+            timeRange: timeRange,
+            frequency: options,
+            startTime: startDate,
+            startHabitTime: startDateTime,
+            endTime: endDateTime,
+            endHabitTime: endDate,
+            isStarred: false                            
+          );
+
+        // ignore: use_build_context_synchronously
+        HabitProvider habitProvider = Provider.of<HabitProvider>(context, listen: false);
+        habitProvider.addHabit(newHabit);
+
+        databaseReference.child(databasePath).child(customHabitId).set({
+          "id": newHabit.id,
+          "name": newHabit.name,
+          "description": newHabit.description,
+          "isStarred": newHabit.isStarred,
+          "habitIcon": newHabit.habitIcon.toString(),
+          "iconColor": newHabit.iconColor.value,
+          "timeRange": newHabit.timeRange,
+          "frequency": newHabit.frequency,
+          "startTime": newHabit.startTime,
+          "startTimeDate": newHabit.startHabitTime.toIso8601String(),
+          "endTime": newHabit.endTime.toIso8601String(),
+          "endHabitTime": newHabit.endHabitTime,
+        });
+
+        // ignore: use_build_context_synchronously
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const MainPage(initialIndex: 1,)));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a habit name.')));
+      }
+    } else {
+      debugPrint("Error saving habits to firebase");
+    }
+  }
+
+  Future<String> generateCustomHabitId(DatabaseReference reference) async {
+    String baseId = 'HB';
+    int counter = 1;
+    String customHabitId = '$baseId${counter.toString().padLeft(3, '0')}';
+
+    while (await checkIfIdExists(reference, customHabitId)) {
+      counter++;
+      customHabitId = '$baseId${counter.toString().padLeft(3, '0')}';
+    }
+    return customHabitId;
+  }
+
+  Future<bool> checkIfIdExists(DatabaseReference reference, String habitId) async {
+    DatabaseEvent event = await reference.child(habitId).once();
+    DataSnapshot snapshot = event.snapshot;
+    return snapshot.value != null;
+  }
   
   _openIconPicker() async {
     IconData? icon = await FlutterIconPicker.showIconPicker(
@@ -123,67 +201,66 @@ class _CustomHabitsState extends State<CustomHabits> {
     });
   }
 
-void showTagDialog() {
-  TextEditingController tagController = TextEditingController();
-  tagController.text = selectedTag;
+  void showTagDialog() {
+    TextEditingController tagController = TextEditingController();
+    tagController.text = selectedTag;
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Choose or enter your tag'),
-        content: Column(
-          children: [
-            TextFormField(
-              controller: tagController,
-              decoration: const InputDecoration(labelText: 'Enter your tag'),
-            ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              value: selectedTag,
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedTag = newValue!;
-                });
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Choose or enter your tag'),
+          content: Column(
+            children: [
+              TextFormField(
+                controller: tagController,
+                decoration: const InputDecoration(labelText: 'Enter your tag'),
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: selectedTag,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedTag = newValue!;
+                  });
+                },
+                items: previousTags.map((String tag) {
+                  return DropdownMenuItem<String>(
+                    value: tag, // Make sure each value is unique
+                    child: Text(tag),
+                  );
+                }).toList(),
+                decoration: const InputDecoration(labelText: 'Choose tag'),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                // Add the new tag to the list if it's not already present
+                String newTag = tagController.text.trim();
+                if (newTag.isNotEmpty && !previousTags.contains(newTag)) {
+                  setState(() {
+                    previousTags.add(newTag);
+                    selectedTag = newTag;
+                  });
+                }
+                Navigator.of(context).pop();
               },
-              items: previousTags.map((String tag) {
-                return DropdownMenuItem<String>(
-                  value: tag, // Make sure each value is unique
-                  child: Text(tag),
-                );
-              }).toList(),
-              decoration: const InputDecoration(labelText: 'Choose tag'),
+              child: const Text('Save'),
             ),
-            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
           ],
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              // Add the new tag to the list if it's not already present
-              String newTag = tagController.text.trim();
-              if (newTag.isNotEmpty && !previousTags.contains(newTag)) {
-                setState(() {
-                  previousTags.add(newTag);
-                  selectedTag = newTag;
-                });
-              }
-              Navigator.of(context).pop();
-            },
-            child: const Text('Save'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
+        );
+      },
+    );
+  }
 
   @override
   void initState() { 
@@ -849,31 +926,7 @@ void showTagDialog() {
                 height: 20 * screenHeight / 375,
                 child: ElevatedButton(
                   onPressed: () {
-                    String habitName = _nameTextController.text;
-                    String habitDescription = _descriptionTextController.text;
-                    if (habitName.isNotEmpty) {
-                      Habit newHabit = Habit(
-                        name: habitName,
-                        description: habitDescription,
-                        habitIcon: selectedIcon,
-                        iconColor: selectedColor,
-                        timeRange: timeRange,
-                        frequency: options,
-                        startTime: startDateTime,   
-                        endTime: endDateTime,
-                        endHabitTime: endDate,
-                        isStarred: false                            
-                      );
-
-                      HabitProvider habitProvider = Provider.of<HabitProvider>(context, listen: false);
-                      habitProvider.addHabit(newHabit);
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const MainPage(initialIndex: 2,)),);                          
-                    } else {
-                      // Show an error message or handle the case where the habit name is empty
-                      // You can use a SnackBar or AlertDialog to display an error message
-                      // For simplicity, showing a SnackBar in this example
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a habit name.')));
-                    }  
+                    createSaveHabit();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 255, 197, 216),
