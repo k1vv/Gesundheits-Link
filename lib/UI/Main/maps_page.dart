@@ -22,42 +22,61 @@ class _ShowMapsState extends State<ShowMaps> {
   String distance = "N/A";
   String elapsedTime = "N/A";
 
-  Future<void> fetchExerciseData() async {
-    try {
-      User? user = _auth.currentUser;
+Future<void> fetchExerciseData() async {
+  final today = DateTime.now();
+  try {
+    User? user = _auth.currentUser;
 
-      if (user != null) {
-        String userId = user.uid;
-        String dateToday = DateTime.now().toLocal().toString().split(' ')[0];
+    if (user != null) {
+      String userId = user.uid;
+      String databasePath = 'Exercise/$userId/${today.year}-${today.month}-${today.day}';
 
-        DatabaseReference exerciseRef = _databaseReference
-            .child('Exercise')
-            .child(userId)
-            .child(dateToday);
+      DatabaseReference exerciseRef = _databaseReference.child(databasePath);
 
-        DatabaseEvent event = await exerciseRef.once();
+      DatabaseEvent event = await exerciseRef.once();
 
-        if (event.snapshot.value != null) {
-          Map<dynamic, dynamic> exercises =
-              (event.snapshot.value as Map<dynamic, dynamic>);
+      if (event.snapshot.value != null) {
+        Map<dynamic, dynamic> exercises =
+            (event.snapshot.value as Map<dynamic, dynamic>);
 
-          exercises.forEach((key, value) {
-            setState(() {
-              pace = value['pace'];
-              distance = value['distance'];
-              elapsedTime = value['duration'];              
-            });
-          });
-        } else {
-          debugPrint('No exercise data for today.');
-        }
+        // Initialize variables to store the latest exercise data
+        String latestExerciseId = "";
+        double latestPace = 0.0;
+        double latestDistance = 0.0;
+        int latestElapsedTime = 0;
+
+        exercises.forEach((key, value) {
+          // Extract timestamp from the exercise key (assuming it's a valid DateTime string)
+          DateTime exerciseTimestamp = DateTime.parse(key);
+
+          // Check if the exercise is from today
+          if (exerciseTimestamp.isBefore(today.add(const Duration(days: 1)))) {
+            // Check if this exercise has a later timestamp than the current latest
+            if (exerciseTimestamp.isAfter(DateTime.parse(latestExerciseId))) {
+              latestExerciseId = key;
+              latestPace = value['pace'];
+              latestDistance = value['distance'];
+              latestElapsedTime = value['duration'];
+            }
+          }
+        });
+
+        // Update state with the latest exercise data
+        setState(() {
+          pace = latestPace.toString();
+          distance = latestDistance.toString();
+          elapsedTime = latestElapsedTime.toString();
+        });
       } else {
-        debugPrint('User not authenticated.');
+        debugPrint('No exercise data for today.');
       }
-    } catch (error) {
-      debugPrint('Error fetching exercise data: $error');
+    } else {
+      debugPrint('User not authenticated.');
     }
+  } catch (error) {
+    debugPrint('Error fetching exercise data: $error');
   }
+}
 
   Future<void> _requestLocationPermission() async {
     final status = await Geolocator.requestPermission();

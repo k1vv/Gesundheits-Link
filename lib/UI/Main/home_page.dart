@@ -10,7 +10,6 @@ import 'package:myapp/UI/Health/heartrate_page.dart';
 import 'package:myapp/UI/Health/bloodoxygen_page.dart';
 import 'package:myapp/UI/Health/sleeptracking_page.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);

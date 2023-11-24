@@ -12,17 +12,17 @@ static Future<void> scheduleNotifications() async {
   DateTime targetTime;
 
   for (Habit habit in habits) {
-    if (now.hour < 8 && habit.timeRange == "Morning" && habit.isStarred == true) {
+    if (now.hour < 8 && habit.timeRange == "Morning" && habit.isStarred == false) {
       targetTime = DateTime(now.year, now.month, now.day, 8, 0);
       Duration delay = targetTime.difference(now);
 
-      await LocalNotifications.showScheduleNotification(
+      LocalNotifications.showScheduleNotification(
         title: 'Morning Reminder',
         body: 'You still have unfinished habits',
         payload: 'Scheduled Notification Payload',
         delay: delay,
       );
-    } else if (now.hour < 13 && habit.timeRange == "Afternoon" && habit.isStarred == true) {
+    } else if (now.hour < 13 && habit.timeRange == "Afternoon" && habit.isStarred == false) {
       targetTime = DateTime(now.year, now.month, now.day, 13, 0);
       Duration delay = targetTime.difference(now);
 
@@ -32,7 +32,7 @@ static Future<void> scheduleNotifications() async {
         payload: 'Scheduled Notification Payload',
         delay: delay,
       );
-    } else if (now.hour < 19 && habit.timeRange == "Evening" && habit.isStarred == true) {
+    } else if (now.hour < 19 && habit.timeRange == "Evening" && habit.isStarred == false) {
       targetTime = DateTime(now.year, now.month, now.day, 19, 0);
       Duration delay = targetTime.difference(now);
 
@@ -42,7 +42,7 @@ static Future<void> scheduleNotifications() async {
         payload: 'Scheduled Notification Payload',
         delay: delay,
       );
-    } else if (now.hour < 8 && habit.timeRange == "Anytime" && habit.isStarred == true) {
+    } else if (now.hour < 8 && habit.timeRange == "Anytime" && habit.isStarred == false) {
       targetTime = DateTime(now.year, now.month, now.day, 8, 0);
       Duration delay = targetTime.difference(now);
 
@@ -53,7 +53,7 @@ static Future<void> scheduleNotifications() async {
         delay: delay,
       );
       debugPrint("success");
-    } else if (now.hour < 13 && habit.timeRange == "Anytime" && habit.isStarred == true) {
+    } else if (now.hour < 13 && habit.timeRange == "Anytime" && habit.isStarred == false) {
       targetTime = DateTime(now.year, now.month, now.day, 8, 0);
       Duration delay = targetTime.difference(now);
 
@@ -64,7 +64,7 @@ static Future<void> scheduleNotifications() async {
         delay: delay,
       );
       debugPrint("success");
-    } else if (now.hour < 19 && habit.timeRange == "Anytime" && habit.isStarred == true) {
+    } else if (now.hour < 19 && habit.timeRange == "Anytime" && habit.isStarred == false) {
       targetTime = DateTime(now.year, now.month, now.day, 8, 0);
       Duration delay = targetTime.difference(now);
 
@@ -75,7 +75,9 @@ static Future<void> scheduleNotifications() async {
         delay: delay,
       );
       debugPrint("success");
-    }
+    } else if (now.hour > 19) {
+      continue;
+    } 
   }
 }
 

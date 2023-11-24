@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:myapp/UI/Main/main_page.dart';
 import 'package:myapp/UI/Welcome/login_page.dart';
 import 'package:myapp/UI/Welcome/welcome_page.dart';
 import 'package:image_picker/image_picker.dart';
@@ -100,16 +101,13 @@ class _SettingsState extends State<Settings> {
           setState(() {
             currentImage = Image.file(
               imageFile,
-              fit: BoxFit.cover,
+              fit: BoxFit.cover,   
             );
-            showError4 = true;
-          });
-          Future.delayed(const Duration(seconds: 5), () {
-            setState(() {
-              showError4 = false;
-            });
           });
           updateProfilePictureUrl(userId, imageUrl);
+          Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (BuildContext context) => const MainPage(initialIndex: 4,)),
+          );
         }
       }
     }
