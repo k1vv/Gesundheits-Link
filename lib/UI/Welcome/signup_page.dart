@@ -308,7 +308,7 @@ Future<void> sendVerificationEmail(User user) async {
                   ),
                   child: const Center(
                     child: Text(
-                      'Unsucessful Registration',
+                      'Unsucessful Registration: Invalid Email',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white),
                     ),
