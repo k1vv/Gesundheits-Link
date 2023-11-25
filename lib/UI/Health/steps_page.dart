@@ -37,11 +37,12 @@ class _StepsPageState extends State<StepsPage> {
   String startTimeText = "00:00";
   List<int?> stepData = List.filled(24, null);
   String stepsText = "N/A";
+  int y = DateTime.now().hour;
 
   @override
   void initState() {
     super.initState();
-    // Use Future to ensure fetchGoalFromFirebase completes before moving to fetchData
+    fetchSumData();
     Future<void> fetchDataAndGoal() async {
       await fetchGoalFromFirebase();
       fetchData();
@@ -50,9 +51,50 @@ class _StepsPageState extends State<StepsPage> {
         stepsText = (stepData[0] ?? 0).toString();
       }
     }
+   fetchDataAndGoal();
+  }
 
-  fetchDataAndGoal();
-}
+  Future<void> fetchCurrentData(int y) async {
+    final today = DateTime.now();
+    String userId = "";
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      userId = user.uid;
+      String databasePath = 'health/$userId/steps/${today.year}-${today.month}-${today.day}/$y';
+      DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+      if (dataSnapshot.value != null) {
+        setState(() {
+          y = dataSnapshot.value as int;
+          flexbarString = y.toString();
+        });
+      debugPrint(flexbarString);
+      }
+    }
+  }
+
+  Future<void> fetchSumData() async {
+    final today = DateTime.now();
+    String userId = "";
+    User? user = FirebaseAuth.instance.currentUser;
+  
+    if (user != null) {
+      userId = user.uid;
+      String databasePath = 'health/$userId/steps/${today.year}-${today.month}-${today.day}/';
+      DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+      if (dataSnapshot.value is Map) {
+        Map<String, dynamic> dataMap = Map<String, dynamic>.from(dataSnapshot.value as Map<dynamic, dynamic>);
+        int totalSteps = 0;
+        dataMap.forEach((timestamp, steps) {
+          if (steps is num) {
+            totalSteps += steps.toInt();
+          }
+        });
+        debugPrint('Total steps for today: $totalSteps');
+      }
+    }
+  }
+
   Future<void> fetchDataFromFirebase(int x) async {
     final today = DateTime.now();
     String userId = "";
@@ -118,6 +160,7 @@ class _StepsPageState extends State<StepsPage> {
       flexBar = widget.maxStep;
 
       int goal = int.parse(enteredGoal);
+      fetchCurrentData(y);
 
       if (goal != 0) {
         barProgress = (double.parse(flexbarString) / goal) * 100 / 100;
@@ -197,10 +240,8 @@ class _StepsPageState extends State<StepsPage> {
             TextButton(
               onPressed: () async {
                 enteredGoal = goalController.text;
-
                 await saveGoalToFirebase(enteredGoal);
                 barProgress = (double.parse(flexbarString) / int.parse(enteredGoal) * 100) / 100;
-
                 // ignore: use_build_context_synchronously
                 Navigator.of(context).pop();
               },
