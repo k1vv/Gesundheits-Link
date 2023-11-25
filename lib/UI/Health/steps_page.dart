@@ -54,6 +54,38 @@ class _StepsPageState extends State<StepsPage> {
    fetchDataAndGoal();
   }
 
+  void fetchData() {
+    flexbarString = widget.currentStep;
+    if (isNumeric(flexbarString)) {
+      currentSteps = widget.currentStep;
+      currentStepsDate = widget.currentStepDate;
+      flexBar = widget.maxStep;
+
+      int goal = int.parse(enteredGoal);
+      fetchCurrentData(y);
+
+      if (goal != 0) {
+        barProgress = (double.parse(flexbarString) / goal) * 100 / 100;
+      } else {
+        debugPrint("Error: enteredGoal is zero");
+      }
+
+      for (int x = 1; x <= 24; x++) {
+        fetchDataFromFirebase(x);
+      }
+    } else {
+      debugPrint("Error: flexbarString is not a valid numeric string");
+    }
+  }
+  
+  bool isNumeric(String s) {
+    // ignore: unnecessary_null_comparison
+    if (s == null) {
+      return false;
+    }
+    return double.tryParse(s) != null;
+  }
+  
   Future<void> fetchCurrentData(int y) async {
     final today = DateTime.now();
     String userId = "";
@@ -152,38 +184,6 @@ class _StepsPageState extends State<StepsPage> {
     }
   }
 
-  void fetchData() {
-    flexbarString = widget.currentStep;
-    if (isNumeric(flexbarString)) {
-      currentSteps = widget.currentStep;
-      currentStepsDate = widget.currentStepDate;
-      flexBar = widget.maxStep;
-
-      int goal = int.parse(enteredGoal);
-      fetchCurrentData(y);
-
-      if (goal != 0) {
-        barProgress = (double.parse(flexbarString) / goal) * 100 / 100;
-      } else {
-        debugPrint("Error: enteredGoal is zero");
-      }
-
-      for (int x = 1; x <= 24; x++) {
-        fetchDataFromFirebase(x);
-      }
-    } else {
-      debugPrint("Error: flexbarString is not a valid numeric string");
-    }
-  }
-  
-  bool isNumeric(String s) {
-    // ignore: unnecessary_null_comparison
-    if (s == null) {
-      return false;
-    }
-    return double.tryParse(s) != null;
-  }
-
   Future<void> saveGoalToFirebase(String goal) async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -252,9 +252,6 @@ class _StepsPageState extends State<StepsPage> {
       },
     );
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
