@@ -69,8 +69,6 @@ class _HomePageState extends State<HomePage> {
 
   HealthFactory health = HealthFactory(useHealthConnectIfAvailable: true);
 
-
-
   Future<void> biggestStep() async {
     final today = DateTime.now();
     String userId = "";

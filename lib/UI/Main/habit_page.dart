@@ -20,6 +20,7 @@ class _HabitsState extends State<Habits> {
 
   late int selectedHabitIndex;
   late DatabaseReference _databaseReference;
+  late Map<dynamic, dynamic> habitData;
 
   Future<void> _updateIsStarredInDatabase(String habitId, bool isStarred) async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -55,22 +56,22 @@ class _HabitsState extends State<Habits> {
             List<Habit> fetchedHabits = [];
 
             habitsData.forEach((key, value) {
-              Habit habit = Habit(
-                id: value['id'],
-                name: value['name'],
-                description: value['description'],
-                isStarred: value['isStarred'],
-                habitIcon: _parseIconData(value['habitIcon']),
-                iconColor: Color(value['iconColor']),
-                timeRange: value['timeRange'],
-                frequency: value['frequency'],
-                startTime: value['startTime'],
-                startHabitTime: DateTime.parse(value['startTimeDate']),
-                endTime: DateTime.parse(value['endTime']),
-                endHabitTime: value['endHabitTime'],
-              );
-              fetchedHabits.add(habit);
-            });
+  Habit habit = Habit(
+    id: value['id'],
+    name: value['name'],
+    description: value['description'],
+    isStarred: value['isStarred'],
+    habitIcon: _parseIconData(value['habitIcon']),
+    iconColor: Color(value['iconColor']),
+    timeRange: value['timeRange'],
+    frequency: value['frequency'],
+    startTime: value['startTime'],
+    startHabitTime: DateTime.parse(value['startTimeDate']),
+    endTime: DateTime.parse(value['endTime']),
+    endHabitTime: value['endHabitTime'],
+  );
+  fetchedHabits.add(habit);
+});
 
             // ignore: use_build_context_synchronously
             HabitProvider habitProvider = Provider.of<HabitProvider>(context, listen: false);
@@ -87,17 +88,18 @@ class _HabitsState extends State<Habits> {
     }
   }
 
-  IconData _parseIconData(String iconString) {
-    final regex = RegExp(r'U\+(\w+)');
-    final match = regex.firstMatch(iconString);
-    if (match != null) {
-      final codePoint = int.parse(match.group(1)!, radix: 16);
-      return IconData(codePoint, fontFamily: 'MaterialIcons');
-    } else {
-      debugPrint('Invalid iconString format: $iconString');
-      return Icons.error;
-    }
+IconData _parseIconData(String iconString) {
+  final regex = RegExp(r'U\+(\w+)');
+  final match = regex.firstMatch(iconString);
+  if (match != null) {
+    final codePoint = int.parse(match.group(1)!, radix: 16);
+    return IconData(codePoint, fontFamily: 'MaterialIcons');
+  } else {
+    debugPrint('Invalid iconString format: $iconString');
+    return Icons.error;
   }
+}
+
 
   void _showDeleteConfirmationDialog(Habit habit, int index) {
     showDialog(
@@ -233,7 +235,6 @@ Widget build(BuildContext context) {
               ),
             ],
           ),
-          // Use a ListView.builder to dynamically build the habit list
           habits.isNotEmpty
               ? Container(
                   padding: EdgeInsets.only(
@@ -279,7 +280,7 @@ Widget build(BuildContext context) {
                                         width: 30 * screenWidth / 375,
                                         height: 30 * screenHeight / 375,
                                         child: Icon(
-                                          habit.habitIcon,
+                                          habit.habitIcon,  
                                           color: habit.iconColor,
                                         ),
                                       ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/UI/Habits/notification_scheduler.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/UI/Main/main_page.dart';
 import 'package:myapp/UI/Admin/admin_page.dart';
@@ -8,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/UI/Habits/notification.dart';
 import 'package:myapp/UI/Welcome/welcome_page.dart';
 import 'package:myapp/UI/Habits/habit_provider.dart';
-
+import 'package:myapp/UI/Habits/notification_scheduler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -294,62 +294,7 @@ class _StepsPageState extends State<StepsPage> {
       body: SingleChildScrollView(
         child: Column(children: [
           SizedBox(height: 10 * screenHeight / 375,),
-          SizedBox(
-              width: 315 * screenWidth / 375,
-              height: 20 * screenHeight / 375,
-              child: Row(               
-                children: [
-                  SizedBox(
-                    width: 105 * screenWidth / 375,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(47, 255, 96, 120),
-                        shadowColor: const Color.fromARGB(150, 255, 96, 120),
-                        foregroundColor: const Color.fromARGB(150, 255, 96, 120), 
-                        surfaceTintColor: const Color.fromARGB(150, 255, 96, 120),
-                        elevation: 0,                       
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          selectedDataRange = "Day";
-                        });
-                      }, 
-                      child: const Text(
-                        "Day", 
-                        style: TextStyle(
-                          color: Colors.deepPurple,
-                        ),
-                      )
-                    ),
-                  ),
-                  SizedBox(
-                    width: 105 * screenWidth / 375,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 0, 
-                        shadowColor: Colors.white, 
-                        backgroundColor: Colors.white, 
-                        surfaceTintColor: Colors.white, 
-                        foregroundColor: Colors.white
-                      ),
-                        onPressed: () {
-                          setState(() {
-                            selectedDataRange = "Week";
-                          });
-                        }, child: const Text("Week", style: TextStyle(color: Colors.deepPurple),)),
-                  ),
-                  SizedBox(
-                    width: 105 * screenWidth / 375,
-                    child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            selectedDataRange = "Week";
-                            fetchData();
-                          });
-                        }, child: const Text("Month")),
-                  )
-                ],
-              )),
+
           SizedBox(
             height: 15 * screenHeight / 375,
           ),

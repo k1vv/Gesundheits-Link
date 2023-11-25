@@ -244,28 +244,6 @@ class _CaloriesPageState extends State<CaloriesPage> {
       body: SingleChildScrollView(
         child: Column(children: [
           SizedBox(
-              width: 315 * screenWidth / 375,
-              height: 20 * screenHeight / 375,
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 105 * screenWidth / 375,
-                    child: ElevatedButton(
-                        onPressed: () {}, child: const Text("Day")),
-                  ),
-                  SizedBox(
-                    width: 105 * screenWidth / 375,
-                    child: ElevatedButton(
-                        onPressed: () {}, child: const Text("Week")),
-                  ),
-                  SizedBox(
-                    width: 105 * screenWidth / 375,
-                    child: ElevatedButton(
-                        onPressed: () {}, child: const Text("Month")),
-                  )
-                ],
-              )),
-          SizedBox(
             height: 15 * screenHeight / 375,
           ),
           SizedBox(

@@ -130,15 +130,17 @@ static Future<List<Habit>> _fetchHabits() async {
   return [];
 }
 
-  static IconData _parseIconData(String iconString) {
-    final regex = RegExp(r'U\+(\w+)');
-    final match = regex.firstMatch(iconString);
-    if (match != null) {
-      final codePoint = int.parse(match.group(1)!, radix: 16);
-      return IconData(codePoint, fontFamily: 'MaterialIcons');
-    } else {
-      debugPrint('Invalid iconString format: $iconString');
-      return Icons.error;
-    }
+static const String defaultFontFamily = 'MaterialIcons';
+
+static IconData _parseIconData(String iconString) {
+  final regex = RegExp(r'U\+(\w+)');
+  final match = regex.firstMatch(iconString);
+  if (match != null) {
+    final codePoint = int.parse(match.group(1)!, radix: 16);
+    return IconData(codePoint, fontFamily: defaultFontFamily);
+  } else {
+    debugPrint('Invalid iconString format: $iconString');
+    return Icons.error;
   }
+}
 }
