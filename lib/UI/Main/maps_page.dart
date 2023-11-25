@@ -13,70 +13,42 @@ class ShowMaps extends StatefulWidget {
 }
 
 class _ShowMapsState extends State<ShowMaps> {
-  
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
 
   bool showError = false;
   String pace = "N/A";
   String distance = "N/A";
   String elapsedTime = "N/A";
 
-Future<void> fetchExerciseData() async {
-  final today = DateTime.now();
-  try {
-    User? user = _auth.currentUser;
+  Future<void> fetchLatestExerciseData() async {
+    try {
+      final today = DateTime.now();
+      String userId = "";
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        userId = user.uid;
+        String databasePath = 'Exercise/$userId/${today.year}-${today.month}-${today.day}';
 
-    if (user != null) {
-      String userId = user.uid;
-      String databasePath = 'Exercise/$userId/${today.year}-${today.month}-${today.day}';
+        DatabaseEvent event = await FirebaseDatabase.instance
+            .ref()
+            .child(databasePath)
+            .orderByChild('hourMinute')
+            .limitToLast(1)
+            .once();
 
-      DatabaseReference exerciseRef = _databaseReference.child(databasePath);
-
-      DatabaseEvent event = await exerciseRef.once();
-
-      if (event.snapshot.value != null) {
-        Map<dynamic, dynamic> exercises =
-            (event.snapshot.value as Map<dynamic, dynamic>);
-
-        // Initialize variables to store the latest exercise data
-        String latestExerciseId = "";
-        double latestPace = 0.0;
-        double latestDistance = 0.0;
-        int latestElapsedTime = 0;
-
-        exercises.forEach((key, value) {
-          // Extract timestamp from the exercise key (assuming it's a valid DateTime string)
-          DateTime exerciseTimestamp = DateTime.parse(key);
-
-          // Check if the exercise is from today
-          if (exerciseTimestamp.isBefore(today.add(const Duration(days: 1)))) {
-            // Check if this exercise has a later timestamp than the current latest
-            if (exerciseTimestamp.isAfter(DateTime.parse(latestExerciseId))) {
-              latestExerciseId = key;
-              latestPace = value['pace'];
-              latestDistance = value['distance'];
-              latestElapsedTime = value['duration'];
-            }
-          }
-        });
-
-        // Update state with the latest exercise data
-        setState(() {
-          pace = latestPace.toString();
-          distance = latestDistance.toString();
-          elapsedTime = latestElapsedTime.toString();
-        });
-      } else {
-        debugPrint('No exercise data for today.');
+        var snapshotValue = event.snapshot.value;
+        if (snapshotValue != null && snapshotValue is Map) {
+          var latestExercise = snapshotValue.entries.first.value;    
+          setState(() {
+            pace = latestExercise['pace'];
+            distance = latestExercise['distance'];
+            elapsedTime = latestExercise['duration'];
+          });        
+        }
       }
-    } else {
-      debugPrint('User not authenticated.');
+    } catch (error) {
+      debugPrint('Failed to fetch data from Firebase: $error');
     }
-  } catch (error) {
-    debugPrint('Error fetching exercise data: $error');
   }
-}
 
   Future<void> _requestLocationPermission() async {
     final status = await Geolocator.requestPermission();
@@ -102,8 +74,8 @@ Future<void> fetchExerciseData() async {
   @override
   void initState() {
     super.initState();
-    fetchExerciseData();
-  }
+    fetchLatestExerciseData();
+  } 
   
   @override
   Widget build(BuildContext context) {

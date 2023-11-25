@@ -10,6 +10,7 @@ import 'package:myapp/UI/Health/heartrate_page.dart';
 import 'package:myapp/UI/Health/bloodoxygen_page.dart';
 import 'package:myapp/UI/Health/sleeptracking_page.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -63,11 +64,38 @@ class _HomePageState extends State<HomePage> {
     HealthDataType.STEPS,
     HealthDataType.BLOOD_OXYGEN,
     HealthDataType.SLEEP_SESSION,
+    HealthDataType.SLEEP_DEEP
   ];
 
-  final permissions = types.map((e) => HealthDataAccess.READ).toList();
+  final permissions = types.map((e) => HealthDataAccess.READ_WRITE).toList();
 
   HealthFactory health = HealthFactory(useHealthConnectIfAvailable: true);
+
+  Future authorize() async {
+
+    await Permission.activityRecognition.request();
+    await Permission.location.request();
+
+    // Check if we have permission
+    bool? hasPermissions = await health.hasPermissions(types, permissions: permissions);
+
+
+    hasPermissions = false;
+
+    bool authorized = false;
+    if (!hasPermissions) {
+      try {
+        authorized =
+            await health.requestAuthorization(types, permissions: permissions);
+      } catch (error) {
+        debugPrint("Exception in authorize: $error");
+      }
+    }
+
+    setState(() => _state =
+        (authorized) ? AppState.AUTHORIZED : AppState.AUTH_NOT_GRANTED);
+  }
+
 
   Future<void> biggestStep() async {
     final today = DateTime.now();
@@ -162,7 +190,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> fetchStepData(DateTime selectedDate) async {                                 // Only one that works when changing the date of the data being fetched
+  Future<void> fetchStepData(DateTime selectedDate) async {                            // Only one that works when changing the date of the data being fetched
     setState(() => _state = AppState.FETCHING_DATA);
     User? user = FirebaseAuth.instance.currentUser;
 
@@ -505,8 +533,10 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     setState(() {
       selectedDate = DateTime.now();
+      selectedDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+      fetchStepData(selectedDate);
     });
-    fetchStepData(selectedDate);
+    
     fetchHeartRateData();
     fetchSleepDeepData();
     fetchBloodOxygenData();
@@ -591,7 +621,9 @@ class _HomePageState extends State<HomePage> {
                         heroTag: 'btn2',
                         backgroundColor:
                             const Color.fromARGB(255, 255, 241, 245),
-                        onPressed: () {},
+                        onPressed: () {
+                          authorize();
+                        },
                         shape: const CircleBorder(),
                         child: const Icon(
                           Icons.notifications_none_rounded,

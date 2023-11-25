@@ -108,7 +108,7 @@ class _TrackLocationState extends State<TrackLocation> {
   void saveExerciseDataToFirebase() {
 
     String dateToday = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    String hourMinute = DateFormat('HH:mm').format(DateTime.now());
+    String hourMinute = DateFormat('HH.mm').format(DateTime.now());
     String? exerciseId = databaseReference.child('Exercise').child(userId).child(dateToday).push().key;
 
     Map<String, dynamic> exerciseData = {

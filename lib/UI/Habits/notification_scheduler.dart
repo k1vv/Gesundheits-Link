@@ -26,7 +26,7 @@ static Future<void> scheduleNotifications() async {
       targetTime = DateTime(now.year, now.month, now.day, 13, 0);
       Duration delay = targetTime.difference(now);
 
-      await LocalNotifications.showScheduleNotification(
+      LocalNotifications.showScheduleNotification(
         title: 'Afternoon Reminder',
         body: 'You still have unfinished habits',
         payload: 'Scheduled Notification Payload',
@@ -36,7 +36,7 @@ static Future<void> scheduleNotifications() async {
       targetTime = DateTime(now.year, now.month, now.day, 19, 0);
       Duration delay = targetTime.difference(now);
 
-      await LocalNotifications.showScheduleNotification(
+      LocalNotifications.showScheduleNotification(
         title: 'Evening Reminder',
         body: 'You still have unfinished habits',
         payload: 'Scheduled Notification Payload',
@@ -46,7 +46,7 @@ static Future<void> scheduleNotifications() async {
       targetTime = DateTime(now.year, now.month, now.day, 8, 0);
       Duration delay = targetTime.difference(now);
 
-      await LocalNotifications.showScheduleNotification(
+      LocalNotifications.showScheduleNotification(
         title: 'Anytime Message',
         body: 'You still have unfinished habits',
         payload: 'Scheduled Notification Payload',
@@ -57,7 +57,7 @@ static Future<void> scheduleNotifications() async {
       targetTime = DateTime(now.year, now.month, now.day, 8, 0);
       Duration delay = targetTime.difference(now);
 
-      await LocalNotifications.showScheduleNotification(
+      LocalNotifications.showScheduleNotification(
         title: 'Anytime Message',
         body: 'You still have unfinished habits',
         payload: 'Scheduled Notification Payload',
@@ -68,7 +68,7 @@ static Future<void> scheduleNotifications() async {
       targetTime = DateTime(now.year, now.month, now.day, 8, 0);
       Duration delay = targetTime.difference(now);
 
-      await LocalNotifications.showScheduleNotification(
+      LocalNotifications.showScheduleNotification(
         title: 'Anytime Message',
         body: 'You still have unfinished habits',
         payload: 'Scheduled Notification Payload',
