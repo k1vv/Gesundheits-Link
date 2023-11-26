@@ -21,7 +21,7 @@ class HomePage extends StatefulWidget {
 }
 
 enum AppState {
-  DATA_NOT_FETCHED,
+  DATA_NOT_FETCHED, 
   FETCHING_DATA,
   DATA_READY,
   NO_DATA,
@@ -53,8 +53,11 @@ class _HomePageState extends State<HomePage> {
   int? maxBloodOxygen;
   String _profilePictureUrl = "";
 
+  // ignore: prefer_final_fields
   List<HealthDataPoint> _healthDataList = [];
+  // ignore: unused_field
   AppState _state = AppState.DATA_NOT_FETCHED;
+  // ignore: unused_field
   int _nofSteps = 0;
 
   static const types = dataTypesAndroid;
@@ -445,9 +448,8 @@ class _HomePageState extends State<HomePage> {
     final databaseReference = FirebaseDatabase.instance.ref();
     final today = DateTime.now();
 
-    final currentHour = today.hour;
     final databasePath =
-        'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/$currentHour';
+        'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/total';
 
     try {
       int sleepData = int.parse(currentSleep);
