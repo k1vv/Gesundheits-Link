@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/UI/Health/calories_page.dart';
 import 'package:myapp/UI/Health/heartrate_page.dart';
 import 'package:myapp/UI/Health/bloodoxygen_page.dart';
+import 'package:myapp/UI/Main/utils.dart';
 import 'package:myapp/UI/Health/sleeptracking_page.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -52,20 +53,11 @@ class _HomePageState extends State<HomePage> {
   int? maxBloodOxygen;
   String _profilePictureUrl = "";
 
-  // ignore: prefer_final_fields
   List<HealthDataPoint> _healthDataList = [];
-  // ignore: unused_field
   AppState _state = AppState.DATA_NOT_FETCHED;
-  // ignore: unused_field, prefer_final_fields
   int _nofSteps = 0;
 
-  static final types = [
-    HealthDataType.HEART_RATE,
-    HealthDataType.STEPS,
-    HealthDataType.BLOOD_OXYGEN,
-    HealthDataType.SLEEP_SESSION,
-    HealthDataType.SLEEP_DEEP
-  ];
+  static const types = dataTypesAndroid;
 
   final permissions = types.map((e) => HealthDataAccess.READ_WRITE).toList();
 
@@ -76,10 +68,7 @@ class _HomePageState extends State<HomePage> {
     await Permission.activityRecognition.request();
     await Permission.location.request();
 
-    // Check if we have permission
     bool? hasPermissions = await health.hasPermissions(types, permissions: permissions);
-
-
     hasPermissions = false;
 
     bool authorized = false;
@@ -91,7 +80,6 @@ class _HomePageState extends State<HomePage> {
         debugPrint("Exception in authorize: $error");
       }
     }
-
     setState(() => _state =
         (authorized) ? AppState.AUTHORIZED : AppState.AUTH_NOT_GRANTED);
   }
