@@ -267,9 +267,11 @@ class _HomePageState extends State<HomePage> {
         for (HealthDataPoint dataPoint in healthData) {
           if (dataPoint.type == HealthDataType.SLEEP_SESSION) {
             currentSleep = dataPoint.value.toString();
+            String dateFrom = dataPoint.dateFrom.toString();
+            String dateTo = dataPoint.dateTo.toString();
 
             if (user != null) {
-              saveSleepData(user.uid, currentHeartRate);
+              saveSleepData(user.uid, currentSleep, dateFrom, dateTo);
             }
           }
         }
@@ -444,17 +446,21 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> saveSleepData(String userId, String sleep,) async {
+  Future<void> saveSleepData(String userId, String sleep, String dateFrom, String dateTo) async {
     final databaseReference = FirebaseDatabase.instance.ref();
     final today = DateTime.now();
-
+  
     final databasePath =
-        'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/total';
-
+        'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/';
+  
     try {
-      int sleepData = int.parse(currentSleep);
-
-      await databaseReference.child(databasePath).set(sleepData);
+      int sleepData = int.parse(sleep);
+  
+      // Save sleep data, dateFrom, and dateTo to Firebase
+      await databaseReference.child('$databasePath/total').set(sleepData);
+      await databaseReference.child('$databasePath/dateFrom').set(dateFrom);
+      await databaseReference.child('$databasePath/dateTo').set(dateTo);
+  
       debugPrint('Sleep data saved to Firebase at $databasePath');
     } catch (error) {
       debugPrint('Error saving Sleep data to Firebase: $error');

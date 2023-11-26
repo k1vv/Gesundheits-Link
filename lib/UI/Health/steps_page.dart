@@ -203,15 +203,17 @@ class _StepsPageState extends State<StepsPage> {
 
       DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
 
-      if (dataSnapshot.value != null) {
-        setState(() {
-          enteredGoal = dataSnapshot.value.toString();
-        });
-      } else {
-        // Set enteredGoal to 10000 if there is no goal in the database
-        setState(() {
-          enteredGoal = '10000';
-        });
+      if (mounted) {
+        if (dataSnapshot.value != null) {
+          setState(() {
+            enteredGoal = dataSnapshot.value.toString();
+          });
+        } else {
+          // Set enteredGoal to 10000 if there is no goal in the database
+          setState(() {
+            enteredGoal = '10000';
+          });
+        }
       }
     }
   }
