@@ -8,6 +8,7 @@
   "client": [
     {
       "client_info": {
+<<<<<<< HEAD
         "mobilesdk_app_id": "1:339671344192:android:edfef72f663a57af42aba5",
         "android_client_info": {
           "package_name": "com.example.admin_2"
@@ -66,6 +67,8 @@
     },
     {
       "client_info": {
+=======
+>>>>>>> 699419a5a0b75e76718d28d3febf3fe2a7377adc
         "mobilesdk_app_id": "1:339671344192:android:20c0274f82d44eb642aba5",
         "android_client_info": {
           "package_name": "com.example.gesundheits_link"
@@ -92,6 +95,7 @@
           ]
         }
       }
+<<<<<<< HEAD
     },
     {
       "client_info": {
@@ -150,6 +154,8 @@
           ]
         }
       }
+=======
+>>>>>>> 699419a5a0b75e76718d28d3febf3fe2a7377adc
     }
   ],
   "configuration_version": "1"

@@ -90,12 +90,21 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
+<<<<<<< HEAD
             VALUE "FileDescription", "admin_example" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "admin_example" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2023 com.example. All rights reserved." "\0"
             VALUE "OriginalFilename", "admin_example.exe" "\0"
             VALUE "ProductName", "admin_example" "\0"
+=======
+            VALUE "FileDescription", "gesundheits_link" "\0"
+            VALUE "FileVersion", VERSION_AS_STRING "\0"
+            VALUE "InternalName", "gesundheits_link" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2023 com.example. All rights reserved." "\0"
+            VALUE "OriginalFilename", "gesundheits_link.exe" "\0"
+            VALUE "ProductName", "gesundheits_link" "\0"
+>>>>>>> 699419a5a0b75e76718d28d3febf3fe2a7377adc
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

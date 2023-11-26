@@ -1,3 +1,8 @@
 {
+<<<<<<< HEAD
     "java.compile.nullAnalysis.mode": "automatic"
+=======
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "cmake.sourceDirectory": "C:/Users/quint/OneDrive/Documents/GitHub/Gesundheits-Link/linux"
+>>>>>>> 699419a5a0b75e76718d28d3febf3fe2a7377adc
 }

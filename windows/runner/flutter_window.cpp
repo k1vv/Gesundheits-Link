@@ -31,11 +31,14 @@ bool FlutterWindow::OnCreate() {
     this->Show();
   });
 
+<<<<<<< HEAD
   // Flutter can complete the first frame before the "show window" callback is
   // registered. The following call ensures a frame is pending to ensure the
   // window is shown. It is a no-op if the first frame hasn't completed yet.
   flutter_controller_->ForceRedraw();
 
+=======
+>>>>>>> 699419a5a0b75e76718d28d3febf3fe2a7377adc
   return true;
 }
 

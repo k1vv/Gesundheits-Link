@@ -77,7 +77,11 @@ class Win32Window {
   // OS callback called by message pump. Handles the WM_NCCREATE message which
   // is passed when the non-client area is being created and enables automatic
   // non-client DPI scaling so that the non-client area automatically
+<<<<<<< HEAD
   // responds to changes in DPI. All other messages are handled by
+=======
+  // responsponds to changes in DPI. All other messages are handled by
+>>>>>>> 699419a5a0b75e76718d28d3febf3fe2a7377adc
   // MessageHandler.
   static LRESULT CALLBACK WndProc(HWND const window,
                                   UINT const message,

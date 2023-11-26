@@ -47,17 +47,28 @@ std::string Utf8FromUtf16(const wchar_t* utf16_string) {
   }
   int target_length = ::WideCharToMultiByte(
       CP_UTF8, WC_ERR_INVALID_CHARS, utf16_string,
+<<<<<<< HEAD
       -1, nullptr, 0, nullptr, nullptr)
     -1; // remove the trailing null character
   int input_length = (int)wcslen(utf16_string);
   std::string utf8_string;
   if (target_length <= 0 || target_length > utf8_string.max_size()) {
+=======
+      -1, nullptr, 0, nullptr, nullptr);
+  std::string utf8_string;
+  if (target_length == 0 || target_length > utf8_string.max_size()) {
+>>>>>>> 699419a5a0b75e76718d28d3febf3fe2a7377adc
     return utf8_string;
   }
   utf8_string.resize(target_length);
   int converted_length = ::WideCharToMultiByte(
       CP_UTF8, WC_ERR_INVALID_CHARS, utf16_string,
+<<<<<<< HEAD
       input_length, utf8_string.data(), target_length, nullptr, nullptr);
+=======
+      -1, utf8_string.data(),
+      target_length, nullptr, nullptr);
+>>>>>>> 699419a5a0b75e76718d28d3febf3fe2a7377adc
   if (converted_length == 0) {
     return std::string();
   }

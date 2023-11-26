@@ -1,9 +1,14 @@
 buildscript {
+<<<<<<< HEAD
     ext.kotlin_version = '1.9.20'
+=======
+    ext.kotlin_version = '1.7.10'
+>>>>>>> 699419a5a0b75e76718d28d3febf3fe2a7377adc
     repositories {
         google()
         mavenCentral()
     }
+<<<<<<< HEAD
 
     dependencies {
         classpath 'com.google.gms:google-services:4.4.0'
@@ -11,6 +16,18 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
 
+=======
+    ext {
+        compileSdkVersion   = 34                // or latest
+        targetSdkVersion    = 31                // or latest
+        appCompatVersion    = "1.4.2"           // or latest
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.2.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.gms:google-services:4.3.10'
+>>>>>>> 699419a5a0b75e76718d28d3febf3fe2a7377adc
     }
 }
 
@@ -18,6 +35,12 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+<<<<<<< HEAD
+=======
+        maven {
+            url "${project(':background_fetch').projectDir}/libs"
+        }
+>>>>>>> 699419a5a0b75e76718d28d3febf3fe2a7377adc
     }
 }
 

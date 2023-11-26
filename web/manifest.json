@@ -1,6 +1,11 @@
 {
+<<<<<<< HEAD
     "name": "admin_example",
     "short_name": "admin_example",
+=======
+    "name": "gesundheits_link",
+    "short_name": "gesundheits_link",
+>>>>>>> 699419a5a0b75e76718d28d3febf3fe2a7377adc
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
