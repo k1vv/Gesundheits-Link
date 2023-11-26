@@ -96,7 +96,6 @@ class _HomePageState extends State<HomePage> {
         (authorized) ? AppState.AUTHORIZED : AppState.AUTH_NOT_GRANTED);
   }
 
-
   Future<void> biggestStep() async {
     final today = DateTime.now();
     String userId = "";

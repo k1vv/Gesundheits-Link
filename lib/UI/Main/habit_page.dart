@@ -56,22 +56,22 @@ class _HabitsState extends State<Habits> {
             List<Habit> fetchedHabits = [];
 
             habitsData.forEach((key, value) {
-  Habit habit = Habit(
-    id: value['id'],
-    name: value['name'],
-    description: value['description'],
-    isStarred: value['isStarred'],
-    habitIcon: _parseIconData(value['habitIcon']),
-    iconColor: Color(value['iconColor']),
-    timeRange: value['timeRange'],
-    frequency: value['frequency'],
-    startTime: value['startTime'],
-    startHabitTime: DateTime.parse(value['startTimeDate']),
-    endTime: DateTime.parse(value['endTime']),
-    endHabitTime: value['endHabitTime'],
-  );
-  fetchedHabits.add(habit);
-});
+              Habit habit = Habit(
+                id: value['id'],
+                name: value['name'],
+                description: value['description'],
+                isStarred: value['isStarred'],
+                habitIcon: _parseIconData(value['habitIcon']),
+                iconColor: Color(value['iconColor']),
+                timeRange: value['timeRange'],
+                frequency: value['frequency'],
+                startTime: value['startTime'],
+                startHabitTime: DateTime.parse(value['startTimeDate']),
+                endTime: DateTime.parse(value['endTime']),
+                endHabitTime: value['endHabitTime'],
+              );
+              fetchedHabits.add(habit);
+            });
 
             // ignore: use_build_context_synchronously
             HabitProvider habitProvider = Provider.of<HabitProvider>(context, listen: false);
