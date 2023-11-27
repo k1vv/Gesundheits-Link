@@ -206,96 +206,95 @@ class _SettingsState extends State<Settings> {
     }
   }
 
-void resetEmail() {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Reset Email'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: newEmailController,
-              decoration: const InputDecoration(
-                labelText: 'New Email',
+  void resetEmail() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Reset Email'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: newEmailController,
+                decoration: const InputDecoration(
+                  labelText: 'New Email',
+                ),
               ),
+              TextFormField(
+                controller: passwordController, // Add a TextEditingController for the password
+                decoration: const InputDecoration(
+                  labelText: 'Current Password',
+                ),
+                obscureText: true, // This makes the input hidden (for password)
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                if (!mounted) return;
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
             ),
-            TextFormField(
-              controller: passwordController, // Add a TextEditingController for the password
-              decoration: const InputDecoration(
-                labelText: 'Current Password',
-              ),
-              obscureText: true, // This makes the input hidden (for password)
+            TextButton(
+              onPressed: () {
+                if (!mounted) return;
+                final newEmail = newEmailController.text.trim();
+                final password = passwordController.text.trim(); // Get the user's current password
+                if (newEmail.isNotEmpty && password.isNotEmpty) {
+                  performEmailReset(newEmail, password); // Pass the password to the function
+                  Navigator.of(context).pop();
+                }
+              },
+              child: const Text('Reset'),
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              if (!mounted) return;
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
+        );
+      },
+    );
+  }
+
+  void performEmailReset(String newEmail, String password) async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Reauthenticate the user before updating email
+        AuthCredential credential = EmailAuthProvider.credential(email: user.email!, password: password);
+        await user.reauthenticateWithCredential(credential);
+  
+        // Update email in Firebase Authentication
+        await user.updateEmail(newEmail);
+  
+        // Optionally update email in Realtime Database
+        DatabaseReference userRef = FirebaseDatabase.instance.ref().child('users').child(user.uid);
+        await userRef.update({'email': newEmail});
+  
+        if (!mounted) return;
+  
+        setState(() {
+          email = newEmail;
+        });
+  
+        // Display a success message or navigate to a new screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Email updated successfully'),
           ),
-          TextButton(
-            onPressed: () {
-              if (!mounted) return;
-              final newEmail = newEmailController.text.trim();
-              final password = passwordController.text.trim(); // Get the user's current password
-              if (newEmail.isNotEmpty && password.isNotEmpty) {
-                performEmailReset(newEmail, password); // Pass the password to the function
-                Navigator.of(context).pop();
-              }
-            },
-            child: const Text('Reset'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-
-void performEmailReset(String newEmail, String password) async {
-  try {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      // Reauthenticate the user before updating email
-      AuthCredential credential = EmailAuthProvider.credential(email: user.email!, password: password);
-      await user.reauthenticateWithCredential(credential);
-
-      // Update email in Firebase Authentication
-      await user.updateEmail(newEmail);
-
-      // Optionally update email in Realtime Database
-      DatabaseReference userRef = FirebaseDatabase.instance.ref().child('users').child(user.uid);
-      await userRef.update({'email': newEmail});
-
+        );
+      }
+    } catch (e) {
       if (!mounted) return;
-
-      setState(() {
-        email = newEmail;
-      });
-
-      // Display a success message or navigate to a new screen
+      debugPrint("Email reset failed: $e");
+      // Handle and display error message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Email updated successfully'),
+        SnackBar(
+          content: Text('Email reset failed: $e'),
         ),
       );
     }
-  } catch (e) {
-    if (!mounted) return;
-    debugPrint("Email reset failed: $e");
-    // Handle and display error message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Email reset failed: $e'),
-      ),
-    );
   }
-}
 
   void resetPassword() {
     showDialog(

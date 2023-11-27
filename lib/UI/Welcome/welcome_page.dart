@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:health/health.dart';
+import 'package:myapp/UI/Main/home_page.dart';
+import 'package:myapp/UI/Main/utils.dart';
 import 'package:myapp/UI/Welcome/login_page.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 
 class Welcome extends StatefulWidget {
@@ -11,6 +15,47 @@ class Welcome extends StatefulWidget {
 }
 
 class _WelcomeState extends State<Welcome> {
+
+    // ignore: prefer_final_fields
+  List<HealthDataPoint> _healthDataList = [];
+  // ignore: unused_field
+  AppState _state = AppState.DATA_NOT_FETCHED;
+  // ignore: unused_field
+  int _nofSteps = 0;
+
+  static const types = dataTypesAndroid;
+
+  final permissions = types.map((e) => HealthDataAccess.READ_WRITE).toList();
+
+  HealthFactory health = HealthFactory(useHealthConnectIfAvailable: true);
+
+  Future authorize() async {
+
+    await Permission.activityRecognition.request();
+    await Permission.location.request();
+
+    bool? hasPermissions = await health.hasPermissions(types, permissions: permissions);
+    hasPermissions = false;
+
+    bool authorized = false;
+    if (!hasPermissions) {
+      try {
+        authorized =
+            await health.requestAuthorization(types, permissions: permissions);
+      } catch (error) {
+        debugPrint("Exception in authorize: $error");
+      }
+    }
+    setState(() => _state =
+        (authorized) ? AppState.AUTHORIZED : AppState.AUTH_NOT_GRANTED);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    authorize();
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(

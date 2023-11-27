@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/UI/Main/main_page.dart';
 import 'package:myapp/UI/Admin/admin_page.dart';
@@ -48,15 +49,37 @@ class MyApp extends StatelessWidget {
           const adminid = "q38Pju8MufZvgKSF2AqyJYZYGqF2";
           if (user != null) {
             if (user.uid == adminid) {
-              return const AdminPage();
+              return AdminPage();
             } else {
+              
+              requestNotificationPermissions();
               return const MainPage(initialIndex: 0,);
             }
           } else {
+            requestNotificationPermissions();
             return const Welcome();
           }
         },
       ),
+    );
+  }
+    void requestNotificationPermissions() async {
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    final AndroidNotificationDetails androidPlatformChannelSpecifics = const AndroidNotificationDetails(
+      'your_channel_id',
+      'Your channel name',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    final NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+    );
+    await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(alert: true, badge: true, sound: true);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Permission Granted',
+      'You can now receive notifications!',
+      platformChannelSpecifics,
     );
   }
 }

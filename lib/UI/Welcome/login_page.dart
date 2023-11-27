@@ -37,7 +37,7 @@ class _LogInScreenState extends State<LogInScreen> {
       if (userId == adminid) {
         // ignore: use_build_context_synchronously
         Navigator.push(context,
-        MaterialPageRoute(builder: (context) => const AdminPage()));
+        MaterialPageRoute(builder: (context) => AdminPage()));
       } else {
         // ignore: use_build_context_synchronously
         Navigator.push(
