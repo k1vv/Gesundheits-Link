@@ -75,12 +75,6 @@ class MyApp extends StatelessWidget {
       android: androidPlatformChannelSpecifics,
     );
     await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(alert: true, badge: true, sound: true);
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      'Permission Granted',
-      'You can now receive notifications!',
-      platformChannelSpecifics,
-    );
   }
 }
 
