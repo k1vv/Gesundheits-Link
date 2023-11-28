@@ -23,6 +23,7 @@ class TrackLocation extends StatefulWidget {
 class _TrackLocationState extends State<TrackLocation> {
 
   int secondsElapsed = 0;
+  late DatabaseReference caloriesRef;
   String userPace = 'N/A';
   String distance= "N/A";
   String formattedDuration = '00:00:00';
@@ -34,6 +35,7 @@ class _TrackLocationState extends State<TrackLocation> {
   bool showWidgets3 = false;
   List<Marker> markers = [];
   List<LatLng> polylinePoints = [];
+  String caloriesText = "00";
   late Timer timer;
   late String userId;
   late Timer paceTimer;
@@ -45,6 +47,8 @@ class _TrackLocationState extends State<TrackLocation> {
     strokeWidth: 4,
     color: Colors.blue,
   );
+
+  double totalDistance = 0;
 
 
   void updateDuration() {
@@ -116,6 +120,7 @@ class _TrackLocationState extends State<TrackLocation> {
       'distance': distance,
       'duration': formattedDuration,
       'pace': userPace,
+      'calories': caloriesText
     };
 
     // Save data to Firebase
@@ -151,7 +156,7 @@ class _TrackLocationState extends State<TrackLocation> {
 
   void updateMapPosition(Position position) {
     if (!isRunning) {
-      return; 
+      return;
     }
 
     final LatLng latLng = LatLng(position.latitude, position.longitude);
@@ -175,6 +180,17 @@ class _TrackLocationState extends State<TrackLocation> {
       polylinePoints.add(latLng);
       polyline.points.add(latLng);
       mapController.move(latLng, 16.10);
+
+      // Update total distance
+      if (polylinePoints.length > 1) {
+        totalDistance += Geolocator.distanceBetween(
+          polylinePoints[polylinePoints.length - 2].latitude,
+          polylinePoints[polylinePoints.length - 2].longitude,
+          latLng.latitude,
+          latLng.longitude,
+        );
+        distance = (totalDistance / 1000).toStringAsFixed(2);
+      }
     });
   }
 
@@ -202,6 +218,15 @@ class _TrackLocationState extends State<TrackLocation> {
 
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
+    void updateCalories(dynamic caloriesValue) {
+    // Assuming caloriesValue is a double, round it to an integer
+    int roundedCalories = caloriesValue?.round() ?? 0;
+
+    // Update the Text widget with the new value
+    setState(() {
+      caloriesText = roundedCalories.toString();
+    });
+  }
   
   @override
   void initState() {
@@ -217,6 +242,20 @@ class _TrackLocationState extends State<TrackLocation> {
     });
     databaseReference = FirebaseDatabase.instance.ref();
     userId = FirebaseAuth.instance.currentUser!.uid;
+
+
+    caloriesRef = databaseReference.child('SmartWatch/1/ExerciseSessions/002/Calories');
+
+    // Set up the listener
+    caloriesRef.onValue.listen((DatabaseEvent event) {
+      // This callback will be triggered whenever the "Calories" field changes
+
+      // Access the new value
+      dynamic caloriesValue = event.snapshot.value;
+
+      // Update the UI with the new value
+      updateCalories(caloriesValue);
+    });
   }
 
   @override
@@ -360,23 +399,23 @@ class _TrackLocationState extends State<TrackLocation> {
                     children: [
                       Visibility(
                           visible: showWidgets1,
-                          child: const Column(
+                          child: Column(
                             children: [
-                            SizedBox(height: 30,),
+                            const SizedBox(height: 30,),
                               SizedBox(
                                 width: 180,
                                 height: 24,
                                 child: Text(
-                                  '00',
+                                  caloriesText,
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       fontFamily: 'Arial',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 20,
                                       color: Colors.black)
                                 ),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 width: 180,
                                 height: 50,
                                 child: Text(

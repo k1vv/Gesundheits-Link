@@ -1,6 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_iconpicker/flutter_iconpicker.dart';
+import 'package:myapp/UI/Habits/habit_model.dart';
+import 'package:myapp/UI/Habits/habit_provider.dart';
 import 'package:myapp/UI/Main/main_page.dart';
 import 'package:myapp/UI/Habits/customhabits.dart';
+import 'package:provider/provider.dart';
 
 class SetHabits extends StatefulWidget {
   const SetHabits({super.key});
@@ -10,6 +16,100 @@ class SetHabits extends StatefulWidget {
 }
 
 class _SetHabitsState extends State<SetHabits> {
+  IconData selectedIcon = Icons.sports_gymnastics;
+  MaterialColor selectedColor = Colors.blue;
+    Future<void> createSaveHabit() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    String habitName = "Exercise";
+    String habitDescription = "Your Daily Exercise";
+    DateTime startDateTime = DateTime.now();
+    DateTime endDateTime = DateTime.now();
+    DateTime yesterdayDateTime = endDateTime.subtract(Duration(days: 1));
+    
+
+    if (user != null) {
+      String userId = user.uid;
+      final databaseReference = FirebaseDatabase.instance.ref();
+      final databasePath = 'Habits/$userId/';
+
+      if (habitName.isNotEmpty) {
+        // Generate a custom habit ID
+        String customHabitId = await generateCustomHabitId(databaseReference.child(databasePath));
+
+          Habit newHabit = Habit(
+            id: customHabitId,
+            name: habitName,
+            description: habitDescription,
+            habitIcon: selectedIcon,
+            iconColor: selectedColor,
+            timeRange: "Evening",
+            frequency: "Daily",
+            startTime: "28-11-2023",
+            startHabitTime: startDateTime,
+            endTime: yesterdayDateTime,
+            endHabitTime: "27-11-2023",
+            isStarred: false                            
+          );
+
+        // ignore: use_build_context_synchronously
+        HabitProvider habitProvider = Provider.of<HabitProvider>(context, listen: false);
+        habitProvider.addHabit(newHabit);
+
+        databaseReference.child(databasePath).child(customHabitId).set({
+          "id": newHabit.id,
+          "name": newHabit.name,
+          "description": newHabit.description,
+          "isStarred": newHabit.isStarred,
+          "habitIcon": newHabit.habitIcon.toString(),
+          "iconColor": newHabit.iconColor.value,
+          "timeRange": newHabit.timeRange,
+          "frequency": newHabit.frequency,
+          "startTime": newHabit.startTime,
+          "startTimeDate": newHabit.startHabitTime.toIso8601String(),
+          "endTime": newHabit.endTime.toIso8601String(),
+          "endHabitTime": newHabit.endHabitTime,
+        });
+
+        // ignore: use_build_context_synchronously
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const MainPage(initialIndex: 1,)));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a habit name.')));
+      }
+    } else {
+      debugPrint("Error saving habits to firebase");
+    }
+  }
+
+    Future<String> generateCustomHabitId(DatabaseReference reference) async {
+    String baseId = 'HB';
+    int counter = 1;
+    String customHabitId = '$baseId${counter.toString().padLeft(3, '0')}';
+
+    while (await checkIfIdExists(reference, customHabitId)) {
+      counter++;
+      customHabitId = '$baseId${counter.toString().padLeft(3, '0')}';
+    }
+    return customHabitId;
+  }
+
+    Future<bool> checkIfIdExists(DatabaseReference reference, String habitId) async {
+    DatabaseEvent event = await reference.child(habitId).once();
+    DataSnapshot snapshot = event.snapshot;
+    return snapshot.value != null;
+  }
+  
+  _openIconPicker() async {
+    IconData? icon = await FlutterIconPicker.showIconPicker(
+      context,
+      iconPackModes: [IconPack.cupertino, IconPack.lineAwesomeIcons, IconPack.fontAwesomeIcons, IconPack.material],
+    );
+
+    if (icon != null) {
+      setState(() {
+        selectedIcon = icon;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -202,11 +302,16 @@ class _SetHabitsState extends State<SetHabits> {
                         ),
                       ),
                       SizedBox(width: 125 * screenWidth / 375,),
-                      ClipOval(
-                        child: Image.asset(
-                          'assets/images/pluss.png',
-                          width: 35 * screenWidth / 375, 
-                          height: 35 * screenHeight / 375, 
+                      GestureDetector(
+                        onTap: () {
+                          createSaveHabit();
+                        },
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/pluss.png',
+                            width: 35 * screenWidth / 375, 
+                            height: 35 * screenHeight / 375, 
+                          ),
                         ),
                       )
                     ],

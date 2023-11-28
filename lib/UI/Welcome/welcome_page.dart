@@ -16,11 +16,11 @@ class Welcome extends StatefulWidget {
 
 class _WelcomeState extends State<Welcome> {
 
-    // ignore: prefer_final_fields
+    // ignore: prefer_final_fields, unused_field
   List<HealthDataPoint> _healthDataList = [];
   // ignore: unused_field
   AppState _state = AppState.DATA_NOT_FETCHED;
-  // ignore: unused_field
+  // ignore: unused_field, prefer_final_fields
   int _nofSteps = 0;
 
   static const types = dataTypesAndroid;

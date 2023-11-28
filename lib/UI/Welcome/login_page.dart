@@ -32,12 +32,12 @@ class _LogInScreenState extends State<LogInScreen> {
 
       final User user = userCredential.user!;
       final String userId = user.uid;
-      const String adminid = "q38Pju8MufZvgKSF2AqyJYZYGqF2";
+      const String adminid = "xhtAad07b9TI1eszEGSegP3BTrx1";
 
       if (userId == adminid) {
         // ignore: use_build_context_synchronously
         Navigator.push(context,
-        MaterialPageRoute(builder: (context) => AdminPage()));
+        MaterialPageRoute(builder: (context) => const AdminPage()));
       } else {
         // ignore: use_build_context_synchronously
         Navigator.push(

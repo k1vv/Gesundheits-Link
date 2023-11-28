@@ -222,17 +222,19 @@ class _HomePageState extends State<HomePage> {
     await biggestStep();
   }
 
-  Future<void> fetchHeartRateData() async {
+  Future<void> fetchHeartRateData(DateTime selectedDate) async {
     setState(() => _state = AppState.FETCHING_DATA);
     User? user = FirebaseAuth.instance.currentUser;
 
-    final now = DateTime.now();
-    final yesterday = DateTime(now.year, now.month, now.day);
     _healthDataList.clear();
 
     try {
       List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(yesterday, now, types);
+          await health.getHealthDataFromTypes(
+            selectedDate,
+            selectedDate.add(const Duration(days: 1)),
+            types,
+          );
 
       if (types.contains(HealthDataType.HEART_RATE)) {
         for (HealthDataPoint dataPoint in healthData) {
@@ -251,17 +253,19 @@ class _HomePageState extends State<HomePage> {
     await biggestHeartRate();
   }
 
-  Future<void> fetchSleepDeepData() async {
+  Future<void> fetchSleepDeepData(DateTime selectedDate) async {
     setState(() => _state = AppState.FETCHING_DATA);
     User? user = FirebaseAuth.instance.currentUser;
 
-    final now = DateTime.now();
-    final yesterday = DateTime(now.year, now.month, now.day);
     _healthDataList.clear();
 
     try {
       List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(yesterday, now, types);
+          await health.getHealthDataFromTypes(
+            selectedDate,
+            selectedDate.add(const Duration(days: 1)),
+            types,
+          );
 
       if (types.contains(HealthDataType.SLEEP_SESSION)) {
         for (HealthDataPoint dataPoint in healthData) {
@@ -281,22 +285,24 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> fetchBloodOxygenData() async {
+  Future<void> fetchBloodOxygenData(DateTime selectedDate) async {
     setState(() => _state = AppState.FETCHING_DATA);
     User? user = FirebaseAuth.instance.currentUser;
 
-    final now = DateTime.now();
-    final yesterday = DateTime(now.year, now.month, now.day);
     _healthDataList.clear();
 
     try {
       List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(yesterday, now, types);
+          await health.getHealthDataFromTypes(
+            selectedDate,
+            selectedDate.add(const Duration(days: 1)),
+            types,
+          );
 
       if (types.contains(HealthDataType.BLOOD_OXYGEN)) {
         for (HealthDataPoint dataPoint in healthData) {
           if (dataPoint.type == HealthDataType.BLOOD_OXYGEN) {
-            currentBloodOxygen = dataPoint.value.toString();
+            currentBloodOxygen = dataPoint.value.toString() + "%";
             if (user != null) {
               saveBloodOxygenData(user.uid, currentBloodOxygen);
             }
@@ -499,6 +505,9 @@ class _HomePageState extends State<HomePage> {
         selectedDate = pickedDate;
       });
       await fetchStepData(selectedDate);
+      await fetchHeartRateData(selectedDate);
+      await fetchBloodOxygenData(selectedDate);
+      await fetchSleepDeepData(selectedDate);
     }
   }
 
@@ -525,17 +534,17 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    super.initState();
-    setState(() {
-      selectedDate = DateTime.now();
-      selectedDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
-      fetchStepData(selectedDate);
-    });
-    
-    fetchHeartRateData();
-    fetchSleepDeepData();
-    fetchBloodOxygenData();
-    _fetchProfilePictureUrl();
+//   super.initState();
+//    setState(() {
+//      selectedDate = DateTime.now();
+//      selectedDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+//      fetchStepData(selectedDate);
+//    });
+//    
+//    fetchHeartRateData();
+//    fetchSleepDeepData();
+//    fetchBloodOxygenData();
+//    _fetchProfilePictureUrl();
   }
 
   @override
@@ -589,7 +598,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   SizedBox(
-                    width: 150 * screenWidth / 375,
+                    width: 215 * screenWidth / 375,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -611,26 +620,12 @@ class _HomePageState extends State<HomePage> {
                         height: 10,
                         width: 20,
                       ),
-                      FloatingActionButton(
-                        elevation: 0,
-                        heroTag: 'btn2',
-                        backgroundColor:
-                            const Color.fromARGB(255, 255, 241, 245),
-                        onPressed: () {
-                          authorize();
-                        },
-                        shape: const CircleBorder(),
-                        child: const Icon(
-                          Icons.notifications_none_rounded,
-                          size: 20,
-                          color: Colors.black,
-                        ),
-                      ),
                     ],
                   ),
                 ],
               ),
             ),
+            SizedBox(height: 10 * screenHeight / 375,),
             SizedBox(
               width: 290 * screenWidth / 375,
               child: Text(
@@ -957,7 +952,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     SizedBox(height: 16 * screenHeight / 375),
                                     Text(
-                                      "$currentBloodOxygen%",
+                                      currentBloodOxygen,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
@@ -1042,202 +1037,6 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     const Text(
                                       'Sleep Session',
-                                      style: TextStyle(
-                                        fontStyle: FontStyle.italic,
-                                        fontSize: 10,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 5 * screenHeight / 375),
-                    SizedBox(
-                      width: 300 * screenWidth / 375,
-                      height: 62 * screenHeight / 375,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          elevation: 0,
-                          shadowColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            side: const BorderSide(
-                              color: Color.fromARGB(50, 158, 158, 158),
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                SizedBox(height: 10 * screenHeight / 375),
-                                Row(
-                                  children: [
-                                    const Text(
-                                      'Body Measurements',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 11,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    SizedBox(width: 1 * screenWidth / 375),
-                                    Image(
-                                      image: const AssetImage(
-                                          'assets/images/pressure.png'),
-                                      width: 20 * screenWidth / 375,
-                                      height: 10 * screenHeight / 375,
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 16 * screenHeight / 375),
-                                Text(
-                                  currentBloodOxygen,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                const Text(
-                                  'SpO2',
-                                  style: TextStyle(
-                                    fontStyle: FontStyle.italic,
-                                    fontSize: 10,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 7 * screenHeight / 375),
-                    Row(
-                      children: [
-                        SizedBox(width: 38 * screenWidth / 375),
-                        SizedBox(
-                          width: 145 * screenWidth / 375,
-                          height: 62 * screenHeight / 375,
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              elevation: 0,
-                              shadowColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                side: const BorderSide(
-                                  color: Color.fromARGB(50, 158, 158, 158),
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    SizedBox(height: 10 * screenHeight / 375),
-                                    const Row(
-                                      children: [
-                                        Text(
-                                          'BMR Calculator',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 11,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 16 * screenHeight / 375),
-                                    Text(
-                                      currentBMR,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    const Text(
-                                      'Basal Metabolic Rate',
-                                      style: TextStyle(
-                                        fontStyle: FontStyle.italic,
-                                        fontSize: 10,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10 * screenWidth / 375),
-                        SizedBox(
-                          width: 145 * screenWidth / 375,
-                          height: 62 * screenHeight / 375,
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              elevation: 0,
-                              shadowColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                side: const BorderSide(
-                                  color: Color.fromARGB(50, 158, 158, 158),
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    SizedBox(height: 10 * screenHeight / 375),
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'BMI Calculator',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 11,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        SizedBox(width: 1 * screenWidth / 375),
-                                        Image(
-                                          image: const AssetImage(
-                                              'assets/images/pressure.png'),
-                                          width: 20 * screenWidth / 375,
-                                          height: 10 * screenHeight / 375,
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 14 * screenHeight / 375),
-                                    Text(
-                                      currentBMI,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    const Text(
-                                      'Body Mass Index',
                                       style: TextStyle(
                                         fontStyle: FontStyle.italic,
                                         fontSize: 10,

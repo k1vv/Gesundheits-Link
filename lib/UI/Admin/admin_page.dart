@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:health/health.dart';
@@ -9,6 +11,7 @@ class AdminPage extends StatefulWidget {
   const AdminPage({Key? key}) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _AdminPageState createState() => _AdminPageState();
 }
 
@@ -31,8 +34,10 @@ class _AdminPageState extends State<AdminPage> {
   String steps = "";
   DateTime selectedDate = DateTime.now();
 
+  // ignore: prefer_final_fields
   List<HealthDataPoint> _healthDataList = [];
   int? _stepCount; // New variable to store step count
+  // ignore: unused_field
   AppState _state = AppState.DATA_NOT_FETCHED;
 
   static const types = dataTypesAndroid;

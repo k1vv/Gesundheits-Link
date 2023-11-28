@@ -757,6 +757,7 @@ class _CustomHabitsState extends State<CustomHabits> {
                       padding: EdgeInsets.zero,
                       child: ElevatedButton(
                         onPressed: () {
+                          changeColor(4);
                           setState(() {
                               timeRange = "Evening";
                             });

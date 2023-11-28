@@ -5,42 +5,54 @@ import 'package:myapp/UI/Welcome/login_page.dart';
 import 'package:myapp/UI/Welcome/welcome_page.dart';
 
 class AdminSettingPage2 extends StatefulWidget {
-  const AdminSettingPage2({super.key});
+  const AdminSettingPage2({Key? key}) : super(key: key);
 
   @override
   State<AdminSettingPage2> createState() => _AdminSettingPageState();
 }
 
 class _AdminSettingPageState extends State<AdminSettingPage2> {
-
   bool isObscurePassword = true;
   String username = "";
   String email = "";
   String profilePictureUrl = "";
   String password = "";
+  bool isLoading = true; // Added
 
-  
   void fetchUserData() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      DatabaseReference userRef = FirebaseDatabase.instance.ref().child('users').child(user.uid);
-      DatabaseEvent event = await userRef.once();
-      dynamic data = event.snapshot.value;
+    setState(() {
+      isLoading = true;
+    });
 
-      if (!mounted) return;
-      if (data != null && data is Map) {
-        setState(() {
-          username = data['username'] ?? "No Username Found";
-          email = data['email'] ?? "No Email Found";
-          password = data['password'] ?? "No Password Found";
-          profilePictureUrl = data['profilePictureUrl'] ?? '';
-        });
-      } else {
-        setState(() {
-          username = "No Data Found";
-          email = "No Data Found";
-        });
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        DatabaseReference userRef = FirebaseDatabase.instance.ref().child('users').child(user.uid);
+        DatabaseEvent event = await userRef.once();
+        dynamic data = event.snapshot.value;
+
+        if (!mounted) return;
+        if (data != null && data is Map) {
+          setState(() {
+            username = data['username'] ?? "No Username Found";
+            email = data['email'] ?? "No Email Found";
+            password = data['password'] ?? "No Password Found";
+            profilePictureUrl = data['profilePictureUrl'] ?? '';
+          });
+        } else {
+          setState(() {
+            username = "No Data Found";
+            email = "No Data Found";
+          });
+        }
       }
+    } catch (e) {
+      // Handle errors...
+
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -51,7 +63,6 @@ class _AdminSettingPageState extends State<AdminSettingPage2> {
         await user.updatePassword(newPassword);
 
         // Show SnackBar for success
-        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Password updated successfully'),
@@ -60,13 +71,11 @@ class _AdminSettingPageState extends State<AdminSettingPage2> {
         );
 
         // Update user password in Firebase Database
-        DatabaseReference userRef =
-            FirebaseDatabase.instance.ref().child('users').child(user.uid);
+        DatabaseReference userRef = FirebaseDatabase.instance.ref().child('users').child(user.uid);
         await userRef.update({'password': newPassword});
       }
     } catch (e) {
       // Show SnackBar for error
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Password reset failed: $e'),
@@ -75,7 +84,6 @@ class _AdminSettingPageState extends State<AdminSettingPage2> {
       );
 
       if (e is FirebaseAuthException && e.code == 'requires-recent-login') {
-        // ignore: use_build_context_synchronously
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => const LogInScreen(),
@@ -171,6 +179,11 @@ class _AdminSettingPageState extends State<AdminSettingPage2> {
               buildTextField(email, 'Enter your Email', false, false),
               buildTextField("*******", 'Change your password', true, true),
               const SizedBox(height: 30),
+              // Loading indicator
+              if (isLoading)
+                const Center(
+                  child: CircularProgressIndicator(),
+                ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -179,7 +192,7 @@ class _AdminSettingPageState extends State<AdminSettingPage2> {
                       FirebaseAuth.instance.signOut();
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const Welcome()),
+                        MaterialPageRoute(builder: (context) => const LogInScreen()),
                       );
                     },
                     style: OutlinedButton.styleFrom(
@@ -197,23 +210,17 @@ class _AdminSettingPageState extends State<AdminSettingPage2> {
                       ),
                     ),
                   ),
-                  ElevatedButton(onPressed: (){
-                    performPasswordReset(password);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.pink,
-                    padding: const EdgeInsets.symmetric(horizontal:50),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
-            
-                  ),
-                  child: const Text("SAVE", style: TextStyle(
-                    fontSize: 15,
-                    letterSpacing: 2,
-                    color: Colors.white
-
-                  ))
-                  
-              )
+                  ElevatedButton(
+                    onPressed: () {
+                      performPasswordReset(password);
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.pink,
+                        padding: const EdgeInsets.symmetric(horizontal: 50),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20))),
+                    child: const Text("SAVE", style: TextStyle(fontSize: 15, letterSpacing: 2, color: Colors.white)),
+                  )
                 ],
               ),
             ],
@@ -222,7 +229,6 @@ class _AdminSettingPageState extends State<AdminSettingPage2> {
       ),
     );
   }
-
   Widget buildTextField(String labelText, String placeholder, bool isPasswordTextField, bool isEditable) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 30),

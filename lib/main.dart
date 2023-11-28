@@ -19,7 +19,7 @@ void main() async {
 
   runApp(
     ChangeNotifierProvider(
-      create: (context) => HabitProvider(), // Initialize your provider here
+      create: (context) => HabitProvider(),
       child: const MyApp(),
     ),
   );
@@ -46,10 +46,10 @@ class MyApp extends StatelessWidget {
             );
           }
           final User? user = snapshot.data;
-          const adminid = "q38Pju8MufZvgKSF2AqyJYZYGqF2";
+          const adminid = "xhtAad07b9TI1eszEGSegP3BTrx1";
           if (user != null) {
             if (user.uid == adminid) {
-              return AdminPage();
+              return const AdminPage();
             } else {
               
               requestNotificationPermissions();
@@ -65,12 +65,14 @@ class MyApp extends StatelessWidget {
   }
     void requestNotificationPermissions() async {
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    // ignore: prefer_const_declarations
     final AndroidNotificationDetails androidPlatformChannelSpecifics = const AndroidNotificationDetails(
       'your_channel_id',
       'Your channel name',
       importance: Importance.high,
       priority: Priority.high,
     );
+    // ignore: unused_local_variable
     final NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
     );

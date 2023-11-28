@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:myapp/UI/Main/main_page.dart';
 import 'package:myapp/UI/Welcome/login_page.dart';
-import 'package:myapp/UI/Welcome/welcome_page.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -613,7 +612,7 @@ class _SettingsState extends State<Settings> {
                       FirebaseAuth.instance.signOut();
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const Welcome()),
+                        MaterialPageRoute(builder: (context) => const LogInScreen()),
                       );
                     },
                     child: const Text(

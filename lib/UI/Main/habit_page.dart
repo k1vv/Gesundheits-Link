@@ -40,22 +40,27 @@ class _HabitsState extends State<Habits> {
     }
   }
 
-  void _fetchHabits() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      String userId = user.uid;
-      final databasePath = 'Habits/$userId/';
+void _fetchHabits() async {
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    String userId = user.uid;
+    final databasePath = 'Habits/$userId/';
 
-      try {
-        DatabaseEvent event = await _databaseReference.child(databasePath).once();
-        DataSnapshot snapshot = event.snapshot;
+    try {
+      DatabaseEvent event = await _databaseReference.child(databasePath).once();
+      DataSnapshot snapshot = event.snapshot;
 
-        if (snapshot.value != null) {
-          if (snapshot.value is Map<dynamic, dynamic>) {
-            Map<dynamic, dynamic> habitsData = snapshot.value! as Map<dynamic, dynamic>;
-            List<Habit> fetchedHabits = [];
+      if (snapshot.value != null) {
+        if (snapshot.value is Map<dynamic, dynamic>) {
+          Map<dynamic, dynamic> habitsData = snapshot.value! as Map<dynamic, dynamic>;
+          List<Habit> fetchedHabits = [];
 
-            habitsData.forEach((key, value) {
+          habitsData.forEach((key, value) {
+            // Parse the "27-11-2023" string into a DateTime object
+            DateTime startTime = DateTime.parse(value['startTimeDate']);
+
+            // Check if startTime is greater than DateTime.now()
+            if (startTime.isBefore(DateTime.now())) {
               Habit habit = Habit(
                 id: value['id'],
                 name: value['name'],
@@ -66,27 +71,29 @@ class _HabitsState extends State<Habits> {
                 timeRange: value['timeRange'],
                 frequency: value['frequency'],
                 startTime: value['startTime'],
-                startHabitTime: DateTime.parse(value['startTimeDate']),
+                startHabitTime: startTime,
                 endTime: DateTime.parse(value['endTime']),
                 endHabitTime: value['endHabitTime'],
               );
               fetchedHabits.add(habit);
-            });
+            }
+          });
 
-            // ignore: use_build_context_synchronously
-            HabitProvider habitProvider = Provider.of<HabitProvider>(context, listen: false);
-            habitProvider.setHabits(fetchedHabits);
-          } else {
-            debugPrint("Data is not in the expected format");
-          }
+          // ignore: use_build_context_synchronously
+          HabitProvider habitProvider = Provider.of<HabitProvider>(context, listen: false);
+          habitProvider.setHabits(fetchedHabits);
         } else {
-          debugPrint("Snapshot value is null");
+          debugPrint("Data is not in the expected format");
         }
-      } catch (error) {
-        debugPrint("Error fetching habits: $error");
+      } else {
+        debugPrint("Snapshot value is null");
       }
+    } catch (error) {
+      debugPrint("Error fetching habits: $error");
     }
   }
+}
+
 
 IconData _parseIconData(String iconString) {
   final regex = RegExp(r'U\+(\w+)');

@@ -310,26 +310,25 @@ class _SleepPage extends State<SleepPage> {
                     ),
                     child: Slider(
                       value: selectedValue,
-onChanged: (value) {
-  setState(() {
-    selectedValue = value;
-    if (sleepDataList.isNotEmpty && selectedValue.isFinite) {
-      final index = selectedValue.toInt() - 1;
-      if (index >= 0 && index < sleepDataList.length && sleepDataList[index] != null) {
-        startTimeText = getDayOfWeek(index + 1);
-        stepsText = formatDuration(sleepDataList[index] ?? 0);
+                      onChanged: (value) {
+                        setState(() {
+                          selectedValue = value;
+                          if (sleepDataList.isNotEmpty && selectedValue.isFinite) {
+                            final index = selectedValue.toInt() - 1;
+                            // ignore: unnecessary_null_comparison
+                            if (index >= 0 && index < sleepDataList.length && sleepDataList[index] != null) {
+                              startTimeText = getDayOfWeek(index + 1);
+                              stepsText = formatDuration(sleepDataList[index]);
 
-        // Check if the index is within bounds before accessing the list elements
-        if (index < dateFromlist.length && index < dateTolist.length) {
-          dateFrom = dateFromlist[index];
-          dateTo = dateTolist[index];
-        }
-      }
-    }
-  });
-},
-
-
+                              // Check if the index is within bounds before accessing the list elements
+                              if (index < dateFromlist.length && index < dateTolist.length) {
+                                dateFrom = dateFromlist[index];
+                                dateTo = dateTolist[index];
+                              }
+                            }
+                          }
+                        });
+                      },
                       min: 0,
                       max: 7,
                       divisions: 7,

@@ -18,6 +18,7 @@ class _ShowMapsState extends State<ShowMaps> {
   String pace = "N/A";
   String distance = "N/A";
   String elapsedTime = "N/A";
+  String calories = "N/A";
 
   Future<void> fetchLatestExerciseData() async {
     try {
@@ -42,6 +43,8 @@ class _ShowMapsState extends State<ShowMaps> {
             pace = latestExercise['pace'];
             distance = latestExercise['distance'];
             elapsedTime = latestExercise['duration'];
+            calories = latestExercise['calories'];
+
           });        
         }
       }
@@ -197,7 +200,7 @@ class _ShowMapsState extends State<ShowMaps> {
                       ),
                     ),
                     Text(
-                      "2400 kcal",
+                      "$calories kcal",
                        style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16, 
