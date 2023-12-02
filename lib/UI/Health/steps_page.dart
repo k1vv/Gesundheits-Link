@@ -1,4 +1,7 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:myapp/UI/Main/main_page.dart';
@@ -7,16 +10,8 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 class StepsPage extends StatefulWidget {
-  const StepsPage(
-      {Key? key,
-      required this.currentStep,
-      required this.currentStepDate,
-      required this.maxStep})
-      : super(key: key);
 
-  final String currentStep;
-  final DateTime currentStepDate;
-  final int maxStep;
+  const StepsPage({Key? key,}) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -24,171 +19,373 @@ class StepsPage extends StatefulWidget {
 }
 
 class _StepsPageState extends State<StepsPage> {
-  double barProgress = 0;
-  int biggestStepValue = 0;
-  String currentSteps = "N/A";
-  DateTime currentStepsDate = DateTime.now();
-  String enteredGoal = "10000";
-  int flexBar = 0;
-  String flexbarString = "N/A";
-  double maxValue = 0;
-  String selectedDataRange = "Day";
-  double selectedValue = 0;
-  String startTimeText = "00:00";
-  List<int?> stepData = List.filled(24, null);
+
+  List<double?> stepsData = List.generate(24, (index) => 0.0);
+  List<double?> stepsWeeklyData = List.generate(7, (index) => 0.0);
+
+  List<double?> stepsMonthlyData = List.generate(
+    DateTime(DateTime.now().year, DateTime.now().month + 1, 0).day,
+    (index) => 0.0,
+  );
+
+  List<BarChartGroupData> barGroups = [];
+
+  String selectedOption = "Daily";
+
   String stepsText = "N/A";
-  int y = DateTime.now().hour;
+  String enteredGoal = "2500";
+  String startTimeText = "00:00";
+  String totalstepsBurn = "N/A";
 
-  @override
-  void initState() {
-    super.initState();
-    fetchSumData();
-    Future<void> fetchDataAndGoal() async {
-      await fetchGoalFromFirebase();
-      fetchData();
-      if (stepData.isNotEmpty && stepData[0] != null) {
-        startTimeText = '${(stepData[0] ?? 0).toString().padLeft(2, '0')}:00';
-        stepsText = (stepData[0] ?? 0).toString();
-      }
-    }
-   fetchDataAndGoal();
-  }
+  double barProgress = 0;
+  double selectedValue = 0;
+  double biggeststeps = 0;
 
-  void fetchData() {
-    flexbarString = widget.currentStep;
-    if (isNumeric(flexbarString)) {
-      currentSteps = widget.currentStep;
-      currentStepsDate = widget.currentStepDate;
-      flexBar = widget.maxStep;
+  String stepsLatest = "N/A";
+  String latestTime = "N/A";
 
-      int goal = int.parse(enteredGoal);
-      fetchCurrentData(y);
+  bool isLoading = false;
 
-      if (goal != 0) {
-        barProgress = (double.parse(flexbarString) / goal) * 100 / 100;
-      } else {
-        debugPrint("Error: enteredGoal is zero");
-      }
-
-      for (int x = 1; x <= 24; x++) {
-        fetchDataFromFirebase(x);
-      }
-    } else {
-      debugPrint("Error: flexbarString is not a valid numeric string");
-    }
-  }
+  // Fetch Daily steps Data //
   
-  bool isNumeric(String s) {
-    // ignore: unnecessary_null_comparison
-    if (s == null) {
-      return false;
-    }
-    return double.tryParse(s) != null;
-  }
-  
-  Future<void> fetchCurrentData(int y) async {
+  Future<void> fetchTotalstepsData() async {
     final today = DateTime.now();
-    String userId = "";
     User? user = FirebaseAuth.instance.currentUser;
 
+    String userId = "";
+    double stepsTotal = 0;
+  
     if (user != null) {
       userId = user.uid;
-      String databasePath = 'health/$userId/steps/${today.year}-${today.month}-${today.day}/$y';
-      DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
-      if (dataSnapshot.value != null) {
+      for (int i = 1; i <= 23 ; i++) {
+        String databasePath = 'health/$userId/steps/${today.year}-${today.month}-${today.day}/$i';
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+
+        if(dataSnapshot.value != null) {
+          double steps = double.parse(dataSnapshot.value.toString());
+          stepsTotal += steps;
+        }     
+      }
+      if(mounted) {
         setState(() {
-          y = dataSnapshot.value as int;
-          flexbarString = y.toString();
+          totalstepsBurn = stepsTotal.toInt().toString();
         });
-      debugPrint(flexbarString);
+      }   
+      debugPrint("Total steps Burn: $stepsTotal");  
+    }
+  }
+
+  Future<void> fetchstepsDailyData() async {
+    final today = DateTime.now();
+    String userId = "";
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      userId = user.uid;
+
+      for (int i = 1; i <= 23; i++) {
+        final databasePath = 'health/$userId/steps/${today.year}-${today.month}-${today.day}/$i';
+
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+        if (dataSnapshot.value != null) {
+          double? value = double.parse(dataSnapshot.value.toString());
+          if (mounted) {
+            setState(() {
+              stepsData[i] = value;
+            });
+          }       
+        }
+      }
+      if(mounted) {
+        setState(() {
+          barGroups = List.generate(24, (index) {
+           return BarChartGroupData(
+             x: index,
+             barsSpace: 4,
+             barRods: [
+               BarChartRodData(
+                 y: index < stepsData.length ? (stepsData[index]?.toDouble() ?? 0.0) : 0.0,
+                 colors: [const Color.fromARGB(255, 255, 96, 120)],
+                 borderRadius: const BorderRadius.vertical(
+                   top: Radius.circular(5), bottom: Radius.circular(0)
+                 )
+               ),
+             ],
+           );
+          });
+        });
       }
     }
   }
 
-  Future<void> fetchSumData() async {
+  Future<void> getBiggeststeps() async {
     final today = DateTime.now();
-    String userId = "";
     User? user = FirebaseAuth.instance.currentUser;
-  
+
+    String userId = "";
+
     if (user != null) {
       userId = user.uid;
-      String databasePath = 'health/$userId/steps/${today.year}-${today.month}-${today.day}/';
-      DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
-      if (dataSnapshot.value is Map) {
-        Map<String, dynamic> dataMap = Map<String, dynamic>.from(dataSnapshot.value as Map<dynamic, dynamic>);
-        int totalSteps = 0;
-        dataMap.forEach((timestamp, steps) {
-          if (steps is num) {
-            totalSteps += steps.toInt();
+
+      double maxsteps = 0;
+
+      for (int i = 1; i <= 23; i++) {
+        String databasePath = 'health/$userId/steps/${today.year}-${today.month}-${today.day}/$i';
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+
+        if (dataSnapshot.value != null) {
+          double steps = double.parse(dataSnapshot.value.toString());
+
+          if (steps > maxsteps) {
+            maxsteps = steps;
           }
-        });
-        debugPrint('Total steps for today: $totalSteps');
+        }
       }
+      
+      if(mounted) {
+        setState(() {
+          biggeststeps = maxsteps;
+        });
+      }
+      debugPrint('Maximum steps: $maxsteps');
     }
   }
 
-  Future<void> fetchDataFromFirebase(int x) async {
+  Future<void> getLateststeps() async {
+    final today = DateTime.now();
+    User? user = FirebaseAuth.instance.currentUser;
+
+    String userId = "";
+
+    if (user != null) {
+      userId = user.uid;
+
+      for (int i = 23; i >= 0; i--) {
+        String databasePath = 'health/$userId/steps/${today.year}-${today.month}-${today.day}/$i';
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+
+        if (dataSnapshot.value != null) {
+          double steps = double.parse(dataSnapshot.value.toString());
+          if(steps > 0) {
+            if(mounted) {
+              setState(() {
+                stepsLatest = steps.toInt().toString();
+                latestTime = i.toString();
+
+                startTimeText = '${latestTime.padLeft(2, '0')}:00';
+                stepsText = stepsLatest;
+              });
+            }
+            break;
+          }
+        }
+      }
+
+      debugPrint('Latest steps: $stepsLatest');
+    }
+  }
+
+  // Fetch Daily steps Data //
+
+  // Fetch Weekly steps Data //
+
+  Future<void> fetchstepsWeeklyData() async {
     final today = DateTime.now();
     String userId = "";
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       userId = user.uid;
-      String databasePath = 'health/$userId';
-      
-      // Update the databasePath based on the selected data range.
-      if (selectedDataRange == "Day") {
-        databasePath += '/steps/${today.year}-${today.month}-${today.day}/$x';
-      } else if (selectedDataRange == "Week") {
-        DateTime currentDate = today;
-        DateTime monday = currentDate.subtract(Duration(days: currentDate.weekday - 1)); // Get the previous Monday
 
-        Map<String, int> dailyStepSum = {}; // A map to store the daily step sum
+      double totalsteps = 0;
+      DateTime startOfWeek = today.subtract(Duration(days: today.weekday - 1));
 
-        for (int i = 0; i < 7; i++) {
-          DateTime nextDay = monday.add(Duration(days: i));
-          String formattedDate = "${nextDay.year}-${nextDay.month}-${nextDay.day}";
-          String databasePath = 'health/$userId/steps/$formattedDate';
+      for (int i = 0; i < 7; i++) {
+        double maxsteps = 0; 
+        DateTime currentDate = startOfWeek.add(Duration(days: i));
 
+        for (int j = 1; j <= 23; j++) {
+          String databasePath = 'health/$userId/steps/${currentDate.year}-${currentDate.month}-${currentDate.day}/$j';
           DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
 
-          int sum = 0;
           if (dataSnapshot.value != null) {
-              // Loop through the hours and calculate the sum
-            for (int hour = 0; hour < 24; hour++) {
-              Object? value = dataSnapshot.child(hour.toString()).value;
-              if (value != null) {
-                sum += (value as int);
-              }
+            double steps = double.parse(dataSnapshot.value.toString());
+            totalsteps += steps;
+            if (steps != maxsteps) {
+              maxsteps += steps;
             }
           }
-          dailyStepSum[formattedDate] = sum;
-          debugPrint("this is $sum");
         }
-        // Now, dailyStepSum contains the daily step sum for each day of the week (Monday to Sunday)
-        // You can use this map as needed.
-      } else if (selectedDataRange == "Month") {
-        // Logic to fetch data for the current month.
-        // You may need to calculate the start and end dates for the month.
-        // Update databasePath accordingly.
+        if(mounted) {
+          setState(() {
+            stepsWeeklyData[i] = maxsteps;
+          });
+        }
+        debugPrint("maxsteps: $maxsteps %$i");
       }
 
-      DataSnapshot dataSnapshot =
-          (await FirebaseDatabase.instance.ref().child(databasePath).once())
-              .snapshot;
-      if (dataSnapshot.value != null) {
-        int? value = int.tryParse(dataSnapshot.value.toString());
+      findBiggestWeeklysteps();
+      if(mounted) {
         setState(() {
-          stepData[x - 1] = value;
+          totalstepsBurn = totalsteps.toInt().toString();
+          barGroups = List.generate(7, (index) {
+            return BarChartGroupData(
+              x: index,
+              barsSpace: 4,
+              barRods: [
+                BarChartRodData(
+                  y: index < stepsWeeklyData.length
+                      ? (stepsWeeklyData[index]?.toDouble() ?? 0.0)
+                      : 0.0,
+                  colors: [const Color.fromARGB(255, 255, 96, 120)],
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(5),
+                    bottom: Radius.circular(0),
+                  ),
+                ),
+              ],
+            );
+          });
         });
       }
     }
   }
+
+  Future<void> findBiggestWeeklysteps() async {
+    double? maxsteps = 0;
+    int index = 0;
+
+    for (int i = 0; i < stepsWeeklyData.length; i++) {
+      double? steps = stepsWeeklyData[i];
+
+      if (steps! > maxsteps!) {
+        maxsteps = steps;
+        index = i;
+      }
+    }
+
+    if (mounted) {
+
+        final today = DateTime.now();
+        final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+        final selectedDate = startOfWeek.add(Duration(days: index));
+
+        final formatter = DateFormat('EEE, MMM dd');
+        startTimeText = formatter.format(selectedDate);
+
+      setState(() {
+        biggeststeps = double.parse(maxsteps.toString());
+        stepsText = biggeststeps.toInt().toString();
+      });
+    }
+  }
+
+  // Fetch Weekly steps Data //
+
+  // Fetch Monthly steps Data //
+
+  Future<void> fetchstepsMonthlyData() async {
+    final today = DateTime.now();
+    String userId = "";
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      userId = user.uid;
+
+      double totalsteps = 0;
+      DateTime startOfMonth = DateTime(today.year, today.month, 1);
+
+      for (int i = 0; i < DateTime(today.year, today.month + 1, 0).day; i++) {
+        double maxsteps = 0;
+        DateTime currentDate = startOfMonth.add(Duration(days: i));
+
+        for (int j = 1; j <= 23; j++) {
+          String databasePath =
+              'health/$userId/steps/${currentDate.year}-${currentDate.month}-${currentDate.day}/$j';
+          DataSnapshot dataSnapshot = (await FirebaseDatabase.instance
+                  .ref()
+                  .child(databasePath)
+                  .once())
+              .snapshot;
+
+          if (dataSnapshot.value != null) {
+            double steps =
+                double.parse(dataSnapshot.value.toString());
+            totalsteps += steps;
+            if (steps != maxsteps) {
+              maxsteps += steps;
+            }
+          }
+        }
+        if (mounted) {
+          setState(() {
+            stepsMonthlyData[i] = maxsteps;
+          });
+        }
+        debugPrint("maxsteps monthly: $maxsteps %$i");
+      }
+      findBiggestMonthlysteps();
+      if (mounted) {
+        setState(() {
+          totalstepsBurn = totalsteps.toInt().toString();
+          barGroups = List.generate(
+            DateTime(today.year, today.month + 1, 0).day,
+            (index) {
+              return BarChartGroupData(
+                x: index,
+                barsSpace: 4,
+                barRods: [
+                  BarChartRodData(
+                    y: index < stepsMonthlyData.length
+                        ? (stepsMonthlyData[index]?.toDouble() ?? 0.0)
+                        : 0.0,
+                    colors: [const Color.fromARGB(255, 255, 96, 120)],
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(5),
+                      bottom: Radius.circular(0),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        });
+      }
+    }
+  }
+
+  Future<void> findBiggestMonthlysteps() async {
+    double? maxsteps = 0;
+    int index = 0;
+
+    for (int i = 0; i < stepsMonthlyData.length; i++) {
+      double? steps = stepsMonthlyData[i];
+
+      if (steps! > maxsteps!) {
+        maxsteps = steps;
+        index = i;
+      }
+    }
+
+    if (mounted) {
+
+        final today = DateTime.now();
+        final selectedDate = DateTime(today.year, today.month, index + 1);
+
+        final formatter = DateFormat('EEE, MMM dd');
+        startTimeText = formatter.format(selectedDate);
+
+      setState(() {
+        biggeststeps = double.parse(maxsteps.toString());
+        stepsText = biggeststeps.toInt().toString();
+      });
+    }
+  }
+
+  // Fetch Monthly steps Data //
 
   Future<void> saveGoalToFirebase(String goal) async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       String userId = user.uid;
-      String databasePath = 'health/$userId/health_goal/step_goal';
+      String databasePath = 'health/$userId/health_goal/calorie_goal';
 
       // Save the goal to Firebase
       await FirebaseDatabase.instance.ref().child(databasePath).set(goal);
@@ -202,16 +399,16 @@ class _StepsPageState extends State<StepsPage> {
       String databasePath = 'health/$userId/health_goal/step_goal';
 
       DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
-
-      if (mounted) {
-        if (dataSnapshot.value != null) {
+      if (dataSnapshot.value != null) {
+        if(mounted) {
+        setState(() {
+          enteredGoal = dataSnapshot.value.toString();
+        });
+        }
+      } else {
+        if(mounted) {
           setState(() {
-            enteredGoal = dataSnapshot.value.toString();
-          });
-        } else {
-          // Set enteredGoal to 10000 if there is no goal in the database
-          setState(() {
-            enteredGoal = '10000';
+            enteredGoal = '2500';
           });
         }
       }
@@ -235,16 +432,17 @@ class _StepsPageState extends State<StepsPage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); 
+                Navigator.of(context).pop();
               },
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () async {
                 enteredGoal = goalController.text;
+
                 await saveGoalToFirebase(enteredGoal);
-                barProgress = (double.parse(flexbarString) / int.parse(enteredGoal) * 100) / 100;
-                // ignore: use_build_context_synchronously
+                barProgress = (double.parse(totalstepsBurn) / int.parse(enteredGoal) * 100) / 100;
+
                 Navigator.of(context).pop();
               },
               child: const Text('Set Goal'),
@@ -255,27 +453,64 @@ class _StepsPageState extends State<StepsPage> {
     );
   }
 
+  Future<void> getTodaysData () async {
+
+    await getLateststeps();
+    await getBiggeststeps();
+    await fetchGoalFromFirebase();
+    await fetchstepsDailyData();
+    await fetchTotalstepsData();
+
+    if(mounted) {
+      setState(() {
+        barProgress = (double.parse(totalstepsBurn) / int.parse(enteredGoal) * 100) / 100;
+      });
+    }
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    if (isLoading) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            contentPadding: const EdgeInsets.all(0),
+            // ignore: sized_box_for_whitespace
+            content: Container(
+              width: 100,
+              height: 100,
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    getTodaysData();
+    
+    int latestIndex = stepsData.lastIndexWhere((steps) => steps != null);
+
+    if (latestIndex != -1) {
+      startTimeText = '${(stepsData[latestIndex] ?? 0).toString().padLeft(2, '0')}:00';
+      stepsText = (stepsData[latestIndex] ?? 0).toString();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
-    List<BarChartGroupData> barGroups = List.generate(24, (index) {
-      return BarChartGroupData(
-        x: index + 1,
-        barsSpace: 4,
-        barRods: [
-          BarChartRodData(
-            y: stepData[index]?.toDouble() ?? 0.0,
-            colors: [const Color.fromARGB(255, 255, 96, 120)],
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(5),
-              bottom: Radius.circular(0),
-            ),
-          ),
-        ],
-      );
-    });
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -333,8 +568,20 @@ class _StepsPageState extends State<StepsPage> {
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(children: [
-          SizedBox(height: 10 * screenHeight / 375,),
+          SizedBox(height: 15 * screenWidth / 375,),
+          Row(
+            children: [
+              SizedBox(width: 75 * screenWidth / 375,),
 
+              buildOption("Daily"),
+              SizedBox(width: 3 * screenWidth / 375,),
+              buildOption("Weekly"),
+              SizedBox(width: 3 * screenWidth / 375,),
+              buildOption("Monthly"),
+
+              SizedBox(width: 75 * screenWidth / 375,),
+            ],
+          ),
           SizedBox(
             height: 15 * screenHeight / 375,
           ),
@@ -344,26 +591,23 @@ class _StepsPageState extends State<StepsPage> {
             ),
           ),
           SizedBox(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  child: Text(
-                    stepsText,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold, 
-                      fontSize: 21
-                    ),
-                  ),
+              child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                child: Text(
+                  stepsText,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 21),
                 ),
-                const SizedBox(
-                  child: Text(
-                    " steps",
-                  ),
-                )
-              ],
-            )
-          ),
+              ),
+              const SizedBox(
+                child: Text(
+                  " steps",
+                ),
+              )
+            ],
+          )),
           Stack(
             children: [
               Container(
@@ -387,12 +631,13 @@ class _StepsPageState extends State<StepsPage> {
                             topTitles: SideTitles(showTitles: false),
                             rightTitles: SideTitles(
                               showTitles: true,
-                              getTextStyles: (context, value) => const TextStyle(
+                              getTextStyles: (context, value) =>
+                                  const TextStyle(
                                 fontSize: 12,
                                 color: Color.fromARGB(71, 0, 0, 0),
                               ),
                               margin: 10,
-                              textDirection: TextDirection.ltr,
+
                             ),
                           ),
                           gridData: FlGridData(
@@ -401,12 +646,12 @@ class _StepsPageState extends State<StepsPage> {
                             drawVerticalLine: false,
                           ),
                           borderData: FlBorderData(
-                            show: true,
-                            border: const Border(
-                              bottom: BorderSide(color: Colors.grey),
-                              left: BorderSide(color: Colors.grey))),
+                              show: true,
+                              border: const Border(
+                                  bottom: BorderSide(color: Colors.grey),
+                                  left: BorderSide(color: Colors.grey))),
                           minY: 0,
-                          maxY: flexBar == 0 ? 5.0 : flexBar * 1.2,
+                          maxY: biggeststeps == 0 ? 5.0 : biggeststeps * 1.2,
                           barGroups: barGroups,
                         ),
                       ),
@@ -425,27 +670,58 @@ class _StepsPageState extends State<StepsPage> {
                       inactiveTrackColor: Colors.transparent,
                       thumbColor: Colors.transparent,
                       overlayColor: Colors.transparent,
-                      trackHeight: 250 * screenHeight / 375, // Adjust the height of the slider
-                      thumbShape: SliderComponentShape.noThumb, // Adjust the size of the thumb
+                      trackHeight: 250 * screenHeight / 375,
+                      thumbShape: SliderComponentShape.noThumb,
                     ),
                     child: Slider(
                       value: selectedValue,
                       onChanged: (value) {
-                        setState(() {
-                          selectedValue = value;
-                          if (stepData.isNotEmpty) {
-                            final index = selectedValue.toInt() - 1;
-                            if (index >= 0 && index < stepData.length && stepData[index] != null) {
-                              final selectedHour = (index + 1).toString().padLeft(2, '0');
-                              startTimeText = '$selectedHour:00';
-                              stepsText = (stepData[index] ?? 0).toString();
+                        if(mounted) {
+                          setState(() {
+                            selectedValue = value;
+
+                            if (selectedOption == 'Weekly') {
+                              final today = DateTime.now();
+                              final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+                              final selectedDate = startOfWeek.add(Duration(days: value.toInt()));
+
+                              final formatter = DateFormat('EEE, MMM dd');
+                              startTimeText = formatter.format(selectedDate);
+                              stepsText = (stepsWeeklyData[value.toInt() % 7] ?? 0).toInt().toString();
+                            } else if (selectedOption == 'Daily') {
+                              if (stepsData.isNotEmpty) {
+                                final index = value.toInt();
+                                if (index >= 0 &&
+                                    index < stepsData.length &&
+                                    stepsData[index] != null) {
+                                  final selectedHour = (index).toString().padLeft(2, '0');
+                                  startTimeText = '$selectedHour:00';
+                                  stepsText = (stepsData[index] ?? 0).toInt().toString();
+                                }
+                              }
+                            } else if (selectedOption == 'Monthly') {
+                              if (stepsMonthlyData.isNotEmpty) {
+                                final index = value.toInt();
+                                if (index >= 0 &&
+                                    index < stepsMonthlyData.length &&
+                                    stepsMonthlyData[index] != null) {
+
+                                  final today = DateTime.now();
+                                  final selectedDate = DateTime(today.year, today.month, index + 1);
+
+
+                                  final formatter = DateFormat('EEE, MMM dd');
+                                  startTimeText = formatter.format(selectedDate);
+                                  stepsText = (stepsMonthlyData[index] ?? 0).toInt().toString();
+                                }
+                              }
                             }
-                          }
-                        });
+                          });
+                        }
                       },
-                      min: 0,
-                      max: 24,
-                      divisions: 24,
+                      min: selectedOption == 'Weekly' ? 0 : 0,
+                      max: selectedOption == 'Weekly' ? 6 : (selectedOption == 'Monthly' ? stepsMonthlyData.length.toDouble() - 1 : 24),
+                      divisions: selectedOption == 'Weekly' ? 6 : (selectedOption == 'Monthly' ? stepsMonthlyData.length - 1 : 24),
                     ),
                   ),
                 ),
@@ -456,7 +732,6 @@ class _StepsPageState extends State<StepsPage> {
           Container(
             padding: const EdgeInsets.all(10),
             width: 350 * screenWidth / 375,
-            height: 70 * screenHeight / 375,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               color: Colors.white,
@@ -465,52 +740,87 @@ class _StepsPageState extends State<StepsPage> {
               children: [
                 SizedBox(
                   child: Text(
-                    flexbarString,
+                    totalstepsBurn,
                     style: const TextStyle(
                         fontWeight: FontWeight.bold, fontSize: 21),
                   ),
                 ),
-                const SizedBox(
-                  child: Text("Todays Total Steps"),
-                ),
-                SizedBox(height: 5 * screenHeight / 375,), 
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(50),
-                  child: LinearPercentIndicator(
-                    lineHeight: 30,
-                    percent: barProgress, 
-                    progressColor: Colors.pink,
-                    backgroundColor: Colors.pink.shade100,
+                SizedBox(
+                  child: Text(
+                    selectedOption == 'Daily'
+                        ? "Today's Total ActiveSteps "
+                        : selectedOption == 'Weekly'
+                            ? "This Week's Total Steps "
+                            : "This Month's Total Steps ",
                   ),
                 ),
-                Row(
-                  children: [
-                    SizedBox(width: 5 * screenWidth / 375),
-                    const Text("0", style: TextStyle(color: Colors.grey),),
-                    SizedBox(width: 182 * screenWidth / 375,),
-                    SizedBox(
-                      width: 134 * screenWidth / 375,
-                      height: 15 * screenHeight / 375,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          elevation: 0,
-                          shadowColor: const Color.fromARGB(33, 158, 158, 158), 
-                          backgroundColor: const Color.fromARGB(33, 158, 158, 158),  
-                          foregroundColor: const Color.fromARGB(33, 158, 158, 158), 
-                          surfaceTintColor: const Color.fromARGB(33, 158, 158, 158)
+                SizedBox(height: 10 * screenHeight / 375,),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 241, 241, 241), 
+                    borderRadius: BorderRadius.circular(20)
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        "Today's Progress",
+                        style: TextStyle(
+                          fontFamily: 'Arial', 
+                          fontWeight: FontWeight.bold, 
+                          fontSize: 18,
+                          decoration: TextDecoration.underline,
+                          decorationColor: Color.fromARGB(255, 145, 146, 146), 
+                          decorationStyle: TextDecorationStyle.solid,
                         ),
-                        onPressed: () {
-                          _showGoalDialog(context);
-                        },  
-                        child: Text(
-                          "Target: $enteredGoal",
-                          style: const TextStyle(
-                            color: Colors.grey
-                          ),
-                        )
                       ),
-                    )
-                  ],
+                      SizedBox(height: 10 * screenHeight / 375,),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: LinearPercentIndicator(
+                          lineHeight: 25,
+                          percent: barProgress,
+                          progressColor: Colors.pink,
+                          backgroundColor: Colors.pink.shade100,
+                        ),
+                      ),
+                      SizedBox(height: 2 * screenHeight / 375,),
+                      Row(
+                        children: [
+                          SizedBox(width: 5 * screenWidth / 375),
+                          const Text(
+                            "0",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                          SizedBox(
+                            width: 164 * screenWidth / 375,
+                          ),
+                          SizedBox(
+                            width: 134 * screenWidth / 375,
+                            height: 15 * screenHeight / 375,
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                    elevation: 0,
+                                    shadowColor:
+                                        const Color.fromARGB(33, 158, 158, 158),
+                                    backgroundColor:
+                                        const Color.fromARGB(33, 158, 158, 158),
+                                    foregroundColor:
+                                        const Color.fromARGB(33, 158, 158, 158),
+                                    surfaceTintColor:
+                                        const Color.fromARGB(33, 158, 158, 158)),
+                                onPressed: () {
+                                  _showGoalDialog(context);
+                                },
+                                child: Text(
+                                  "Target: $enteredGoal",
+                                  style: const TextStyle(color: Colors.grey),
+                                )),
+                          )
+                        ],
+                      )
+                    ],
+                  ),
                 )
               ],
             ),
@@ -519,4 +829,89 @@ class _StepsPageState extends State<StepsPage> {
       ),
     );
   }
+  Widget buildOption(String option) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () async {
+          if(mounted) {
+            setState(() {
+              selectedOption = option;
+            });
+          }
+          if(selectedOption == "Daily") {
+            if(mounted) {
+              setState(() {
+                isLoading = true;     
+              });
+            }
+            showLoadingDialog(context);
+
+              await getLateststeps();
+              await getBiggeststeps();
+              await fetchstepsDailyData();
+              await fetchTotalstepsData();
+
+            if(mounted) {
+              setState(() {
+                isLoading = false;     
+              });
+            }
+            showLoadingDialog(context);
+
+          } else if (selectedOption == "Weekly") {
+            if(mounted) {
+              setState(() {
+                isLoading = true;     
+              });
+            }
+            showLoadingDialog(context);
+
+            await fetchstepsWeeklyData();
+
+            if(mounted) {
+              setState(() {
+                isLoading = false;     
+              });
+            }
+            showLoadingDialog(context);
+          }
+
+          else if (selectedOption == "Monthly") {
+            if(mounted) {
+              setState(() {
+                isLoading = true;     
+              });
+            }
+            showLoadingDialog(context);
+
+            await fetchstepsMonthlyData();
+
+            if(mounted) {
+              setState(() {
+                isLoading = false;     
+              });
+            }
+            showLoadingDialog(context);
+          }
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 1000),
+          decoration: BoxDecoration(
+            color: option == selectedOption ? const Color.fromARGB(255, 255, 96, 120) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: Center(
+            child: Text(
+              option,
+              style: TextStyle(
+                color: option == selectedOption ? Colors.white : Colors.black,
+                fontWeight: FontWeight.bold, 
+                fontSize: 16
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  } 
 }

@@ -1,4 +1,4 @@
-// ignore_for_file: constant_identifier_names
+// ignore_for_file: constant_identifier_names, unused_field, prefer_final_fields
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:health/health.dart';
@@ -8,7 +8,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/UI/Health/calories_page.dart';
 import 'package:myapp/UI/Health/heartrate_page.dart';
 import 'package:myapp/UI/Health/bloodoxygen_page.dart';
-import 'package:myapp/UI/Main/utils.dart';
 import 'package:myapp/UI/Health/sleeptracking_page.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -36,44 +35,70 @@ enum AppState {
 
 class _HomePageState extends State<HomePage> {
 
+  int _nofSteps = 0;
+  static final  types = [
+    HealthDataType.SLEEP_AWAKE,
+    HealthDataType.SLEEP_DEEP,
+    HealthDataType.SLEEP_REM,
+    HealthDataType.SLEEP_LIGHT,
+    HealthDataType.SLEEP_SESSION,
+    HealthDataType.STEPS, 
+    HealthDataType.HEART_RATE, 
+    HealthDataType.BLOOD_OXYGEN
+   ];
+  List<HealthDataPoint> _healthDataList = [];
+  AppState _state = AppState.DATA_NOT_FETCHED;
+  HealthFactory health = HealthFactory(useHealthConnectIfAvailable: true);
+  final permissions = types.map((e) => HealthDataAccess.READ_WRITE).toList();
+
+  String currentSteps = "N/A";
+  String currentSleepRem = "N/A";
+  String currentSleepDeep = "N/A";
+  String currentHeartRate = "N/A";
+  String currentSleepInBed = "N/A";
+  String currentSleepLight = "N/A";
+  String currentCalorieBurn = "N/A";
+  String currentBloodOxygen = "N/A";
+  String currentSleepSession = "N/A";
+
   DateTime selectedDate = DateTime.now();
   DateTime firstDataPointDate = DateTime.now();
-  String profilePictureUrl = '';
-  String currentSteps = "N/A";
-  String currentHeartRate = "N/A";
-  String currentBloodOxygen = "N/A";
-  String currentBloodPressure = "N/A";
-  String currentSleep = "N/A";
-  String currentCalorieBurn = "N/A";
-  String currentBMR = "N/A";
-  String currentBMI = "N/A";
-  List<int?> stepData = List.filled(24, null);
+
   int? maxStep;
   int? maxHeartRate;
   int? maxBloodOxygen;
+
+  String profilePictureUrl = '';
+  String currentBloodPressure = "N/A";
+  String currentSleep = "N/A";
+  String currentBMR = "N/A";
+  String currentBMI = "N/A";
+  String bloodOxygenSource = "";
+  String heartRateSource = "";
+  List<int?> stepData = List.filled(24, null);
+
   String _profilePictureUrl = "";
 
-  // ignore: prefer_final_fields
-  List<HealthDataPoint> _healthDataList = [];
-  // ignore: unused_field
-  AppState _state = AppState.DATA_NOT_FETCHED;
-  // ignore: unused_field
-  int _nofSteps = 0;
+  // UI Usage Variable //
 
-  static const types = dataTypesAndroid;
+  String sleepTotalRightNow = "N/A";
+  String stepsTotalRightNow = "N/A";
+  String heartRateRightNow = "N/A";
+  String bloodOxygenRightNow = "N/A";
+  String caloriesburnRightNow = "N/A";
 
-  final permissions = types.map((e) => HealthDataAccess.READ_WRITE).toList();
+  // UI Usage Variable //
 
-  HealthFactory health = HealthFactory(useHealthConnectIfAvailable: true);
+  // Health Connect Permission //
 
   Future authorize() async {
-
     await Permission.activityRecognition.request();
     await Permission.location.request();
 
-    bool? hasPermissions = await health.hasPermissions(types, permissions: permissions);
-    hasPermissions = false;
 
+    bool? hasPermissions = await health.hasPermissions(types, permissions: permissions);
+
+    hasPermissions = false;
     bool authorized = false;
     if (!hasPermissions) {
       try {
@@ -83,104 +108,16 @@ class _HomePageState extends State<HomePage> {
         debugPrint("Exception in authorize: $error");
       }
     }
+
     setState(() => _state =
         (authorized) ? AppState.AUTHORIZED : AppState.AUTH_NOT_GRANTED);
   }
 
-  Future<void> biggestStep() async {
-    final today = DateTime.now();
-    String userId = "";
-    User? user = FirebaseAuth.instance.currentUser;
-    List<int> stepDataList = List.filled(24, 0);
+  // Health Connect Permission //
 
-    if (user != null) {
-      userId = user.uid;
+  // Data fetch from health connect //
 
-      for (int x = 0; x < 24; x++) {
-        final databasePath =
-            'health/$userId/steps/${today.year}-${today.month}-${today.day}/$x';
-        DataSnapshot dataSnapshot =
-            (await FirebaseDatabase.instance.ref().child(databasePath).once())
-                .snapshot;
-        if (dataSnapshot.value != null) {
-          int? value = int.tryParse(dataSnapshot.value.toString());
-          if (value != null) {
-            stepDataList[x] = value;
-          }
-        }
-      }
-      int? newMaxStep = stepDataList.reduce((a, b) => a > b ? a : b);
-      if (mounted) {
-        setState(() {
-          maxStep = newMaxStep;
-        });
-      }
-    }
-  }
-
-  Future<void> biggestHeartRate() async {
-    final today = DateTime.now();
-    String userId = "";
-    User? user = FirebaseAuth.instance.currentUser;
-    List<int> heartRateDataList = List.filled(24, 0); // Initialize with 24 zeros.
-
-    if (user != null) {
-      userId = user.uid;
-
-      for (int x = 0; x < 24; x++) {
-        final databasePath =
-            'health/$userId/heart_rate/${today.year}-${today.month}-${today.day}/$x';
-        DataSnapshot dataSnapshot =
-            (await FirebaseDatabase.instance.ref().child(databasePath).once())
-                .snapshot;
-        if (dataSnapshot.value != null) {
-          int? value = int.tryParse(dataSnapshot.value.toString());
-          if (value != null) {
-            heartRateDataList[x] = value; // Store the step data in the list.
-          }
-        }
-      }
-      int? newMaxHeartRate = heartRateDataList.reduce((a, b) => a > b ? a : b);
-      if (mounted) {
-        setState(() {
-          maxHeartRate = newMaxHeartRate;
-        });
-      }
-    }
-  }
-
-  Future<void> biggestBloodOxygen() async {
-    final today = DateTime.now();
-    String userId = "";
-    User? user = FirebaseAuth.instance.currentUser;
-    List<int> bloodOxygenDataList = List.filled(24, 0); // Initialize with 24 zeros.
-
-    if (user != null) {
-      userId = user.uid;
-
-      for (int x = 0; x < 24; x++) {
-        final databasePath =
-            'health/$userId/blood_oxygen/${today.year}-${today.month}-${today.day}/$x';
-        DataSnapshot dataSnapshot =
-            (await FirebaseDatabase.instance.ref().child(databasePath).once())
-                .snapshot;
-        if (dataSnapshot.value != null) {
-          int? value = int.tryParse(dataSnapshot.value.toString());
-          if (value != null) {
-            bloodOxygenDataList[x] = value; // Store the step data in the list.
-          }
-        }
-      }
-      int? newMaxBloodOxygen = bloodOxygenDataList.reduce((a, b) => a > b ? a : b);
-      if (mounted) {
-        setState(() {
-          maxBloodOxygen = newMaxBloodOxygen;
-        });
-      }
-    }
-  }
-
-  Future<void> fetchStepData(DateTime selectedDate) async {                            // Only one that works when changing the date of the data being fetched
+  Future<void> fetchStep(DateTime selectedDate) async {                            
     setState(() => _state = AppState.FETCHING_DATA);
     User? user = FirebaseAuth.instance.currentUser;
 
@@ -191,38 +128,28 @@ class _HomePageState extends State<HomePage> {
         selectedDate,
         selectedDate.add(const Duration(days: 1)),types,
       );
-
       if (types.contains(HealthDataType.STEPS)) {
         for (HealthDataPoint dataPoint in healthData) {
           if (dataPoint.type == HealthDataType.STEPS) {
             currentSteps = dataPoint.value.toString();
             int? stepnow = int.tryParse(currentSteps);
-            firstDataPointDate = dataPoint.dateTo;
-            double y = 0.04;
-            double? x = double.tryParse(currentSteps);
-            if (x != null) {
-              double curStep = x * y;
-              currentCalorieBurn = curStep.ceil().toString();
-              if (user != null) {
-                saveCaloriesData(user.uid, currentCalorieBurn);
-              }
-            }
+
+
             if (user != null) {
-              saveStepsData(user.uid, stepnow!, firstDataPointDate);
+              saveSteps(user.uid, stepnow!);
+              saveCalories(user.uid, stepnow);
             }
             break;
           }
         }
       }
-      _healthDataList.addAll(
-          (healthData.length < 100) ? healthData : healthData.sublist(0, 100));
+      _healthDataList.addAll((healthData.length < 100) ? healthData : healthData.sublist(0, 100));
     } catch (error) {
       debugPrint("Exception in getHealthDataFromTypes: $error");
     }
-    await biggestStep();
   }
 
-  Future<void> fetchHeartRateData(DateTime selectedDate) async {
+  Future<void> fetchHeartRate(DateTime selectedDate) async {
     setState(() => _state = AppState.FETCHING_DATA);
     User? user = FirebaseAuth.instance.currentUser;
 
@@ -240,42 +167,10 @@ class _HomePageState extends State<HomePage> {
         for (HealthDataPoint dataPoint in healthData) {
           if (dataPoint.type == HealthDataType.HEART_RATE) {
             currentHeartRate = dataPoint.value.toString();
+            heartRateSource = dataPoint.sourceName.toString();
 
             if (user != null) {
-              saveHeartRateData(user.uid, currentHeartRate);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      debugPrint("Exception in getHealthDataFromTypes: $error");
-    }
-    await biggestHeartRate();
-  }
-
-  Future<void> fetchSleepDeepData(DateTime selectedDate) async {
-    setState(() => _state = AppState.FETCHING_DATA);
-    User? user = FirebaseAuth.instance.currentUser;
-
-    _healthDataList.clear();
-
-    try {
-      List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(
-            selectedDate,
-            selectedDate.add(const Duration(days: 1)),
-            types,
-          );
-
-      if (types.contains(HealthDataType.SLEEP_SESSION)) {
-        for (HealthDataPoint dataPoint in healthData) {
-          if (dataPoint.type == HealthDataType.SLEEP_SESSION) {
-            currentSleep = dataPoint.value.toString();
-            String dateFrom = dataPoint.dateFrom.toString();
-            String dateTo = dataPoint.dateTo.toString();
-
-            if (user != null) {
-              saveSleepData(user.uid, currentSleep, dateFrom, dateTo);
+              saveHeartRate(user.uid, currentHeartRate);
             }
           }
         }
@@ -285,7 +180,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> fetchBloodOxygenData(DateTime selectedDate) async {
+  Future<void> fetchBloodOxygen(DateTime selectedDate) async {
     setState(() => _state = AppState.FETCHING_DATA);
     User? user = FirebaseAuth.instance.currentUser;
 
@@ -302,9 +197,10 @@ class _HomePageState extends State<HomePage> {
       if (types.contains(HealthDataType.BLOOD_OXYGEN)) {
         for (HealthDataPoint dataPoint in healthData) {
           if (dataPoint.type == HealthDataType.BLOOD_OXYGEN) {
-            currentBloodOxygen = dataPoint.value.toString() + "%";
+            currentBloodOxygen = dataPoint.value.toString();
+            bloodOxygenSource = dataPoint.sourceName.toString();
             if (user != null) {
-              saveBloodOxygenData(user.uid, currentBloodOxygen);
+              saveBloodOxygen(user.uid, currentBloodOxygen);
             }
           }
         }
@@ -312,140 +208,238 @@ class _HomePageState extends State<HomePage> {
     } catch (error) {
       debugPrint("Exception in getHealthDataFromTypes: $error");
     }
-    await biggestBloodOxygen();
   }
 
-  Future<void> saveStepsData(String userId, int stepsData, DateTime dateTime) async {
-    final databaseReference = FirebaseDatabase.instance.ref();
-    final today = DateTime.now();
+  Future<void> fetchSleepData(DateTime selectedDate) async {
+    setState(() => _state = AppState.FETCHING_DATA);
+    User? user = FirebaseAuth.instance.currentUser;
 
-    final currentHour = today.hour;
-    final databasePath =
-        'health/$userId/steps/${today.year}-${today.month}-${today.day}/$currentHour';
-
-    int previousHour = currentHour - 1;
+    _healthDataList.clear();
+    String currentSleep = "";
+    String sleepSessionDateFrom = "";
+    String sleepSessionDateTo = "";
 
     try {
-      // Initialize the total subtracted steps to 0
+      List<HealthDataPoint> healthData =
+          await health.getHealthDataFromTypes(
+            selectedDate,
+            selectedDate.add(const Duration(days: 1)),
+            types,
+          );
+
+      if (user != null && types.contains(HealthDataType.SLEEP_SESSION)) {
+        for (HealthDataPoint dataPoint in healthData) {
+          if (dataPoint.type == HealthDataType.SLEEP_SESSION) {
+            currentSleep = dataPoint.value.toString();
+            sleepSessionDateFrom = dataPoint.dateFrom.toString();
+            sleepSessionDateTo = dataPoint.dateTo.toString();
+
+          } 
+        }
+         saveSleepData(user.uid, currentSleep, sleepSessionDateFrom, sleepSessionDateTo);
+      }
+    } catch (error) {
+      debugPrint("Exception in getHealthDataFromTypes: $error");
+    }
+  }
+
+  Future<void> fetchSleepDeepData(DateTime selectedDate) async {
+    setState(() => _state = AppState.FETCHING_DATA);
+    User? user = FirebaseAuth.instance.currentUser;
+
+    _healthDataList.clear();
+    double totalSleepDeep = 0;
+
+    try {
+      List<HealthDataPoint> healthData =
+          await health.getHealthDataFromTypes(
+            selectedDate,
+            selectedDate.add(const Duration(days: 1)),
+            types,
+          );
+
+      if (user != null && types.contains(HealthDataType.SLEEP_DEEP)) {
+        for (HealthDataPoint dataPoint in healthData) {
+          if (dataPoint.type == HealthDataType.SLEEP_DEEP) {
+            double sleepDeepData = double.parse(dataPoint.value.toString());
+            totalSleepDeep += sleepDeepData; 
+
+          } 
+        }
+
+        saveSleepDeepData(user.uid, totalSleepDeep.toString());
+      }
+    } catch (error) {
+      debugPrint("Exception in getHealthDataFromTypes: $error");
+    }
+  }
+
+  Future<void> fetchSleepLightData(DateTime selectedDate) async {
+    setState(() => _state = AppState.FETCHING_DATA);
+    User? user = FirebaseAuth.instance.currentUser;
+
+    _healthDataList.clear();
+    double totalSleepLight = 0;
+
+    try {
+      List<HealthDataPoint> healthData = await health.getHealthDataFromTypes(
+        selectedDate,
+        selectedDate.add(const Duration(days: 1)),
+        types,
+      );
+
+      if (user != null && types.contains(HealthDataType.SLEEP_LIGHT)) {
+        for (HealthDataPoint dataPoint in healthData) {
+          if (dataPoint.type == HealthDataType.SLEEP_LIGHT) {
+            double sleepLightData = double.parse(dataPoint.value.toString());
+            totalSleepLight += sleepLightData;
+
+          } 
+        }
+        saveSleepLightData(user.uid, totalSleepLight.toString());
+      }
+    } catch (error) {
+      debugPrint("Exception in getHealthDataFromTypes: $error");
+    }
+  }
+
+  Future<void> fetchSleepRemData(DateTime selectedDate) async {
+    setState(() => _state = AppState.FETCHING_DATA);
+    User? user = FirebaseAuth.instance.currentUser;
+
+    _healthDataList.clear();
+    double totalSleepRem = 0;
+
+    try {
+      List<HealthDataPoint> healthData =
+          await health.getHealthDataFromTypes(
+            selectedDate,
+            selectedDate.add(const Duration(days: 1)),
+            types,
+          );
+
+      if (user != null && types.contains(HealthDataType.SLEEP_REM)) {
+        for (HealthDataPoint dataPoint in healthData) {
+          if (dataPoint.type == HealthDataType.SLEEP_REM) {
+            double sleepRemData = double.parse(dataPoint.value.toString());
+            totalSleepRem += sleepRemData;
+          }
+        }
+         saveSleepRemData(user.uid, totalSleepRem.toString());
+      }
+    } catch (error) {
+      debugPrint("Exception in getHealthDataFromTypes: $error");
+    }
+  }
+
+  Future<void> fetchSleepAwakeData(DateTime selectedDate) async {
+    setState(() => _state = AppState.FETCHING_DATA);
+    User? user = FirebaseAuth.instance.currentUser;
+  
+    _healthDataList.clear();
+    double totalSleepAwake = 0;
+  
+    try {
+      List<HealthDataPoint> healthData =
+          await health.getHealthDataFromTypes(
+            selectedDate,
+            selectedDate.add(const Duration(days: 1)),
+            types,
+          );
+  
+      if (user != null && types.contains(HealthDataType.SLEEP_AWAKE)) {
+        for (HealthDataPoint dataPoint in healthData) {
+          if (dataPoint.type == HealthDataType.SLEEP_AWAKE) {
+            double sleepAwakeData = double.parse(dataPoint.value.toString());
+            totalSleepAwake += sleepAwakeData;
+          }
+        }
+         saveSleepAwakeData(user.uid, totalSleepAwake.toString());
+      }
+    } catch (error) {
+      debugPrint("Exception in getHealthDataFromTypes: $error");
+    }
+  }
+
+  // Data fetch from health connect //
+
+  Future<void> saveCalories(String userId, int userStep) async {
+    final today = DateTime.now();
+    final currentHour = today.hour;
+    final databaseReference = FirebaseDatabase.instance.ref();
+    final databasePath = 'health/$userId/calories/${today.year}-${today.month}-${today.day}/$currentHour';
+
+    double activeCalories = userStep * 0.04;
+    int roundedActiveCalories = activeCalories.round();
+
+    await databaseReference.child(databasePath).set(roundedActiveCalories);
+  }
+
+  // Data save to Firebase Realtime Database //
+
+  Future<void> saveSteps(String userId, int stepsData) async {
+    final today = DateTime.now();
+    final currentHour = today.hour;
+    final databaseReference = FirebaseDatabase.instance.ref();
+    final databasePath = 'health/$userId/steps/${today.year}-${today.month}-${today.day}/';
+
+    try {
       int totalSubtractedSteps = 0;
 
-      // Iterate through all previous hours and subtract their steps
-      while (previousHour >= 0) {
-        final previousHourPath =
-            'health/$userId/steps/${today.year}-${today.month}-${today.day}/$previousHour';
-        final previousDataEvent =
-            await databaseReference.child(previousHourPath).once();
+      // Iterate through previous hours and subtract their steps
+      for (int previousHour = currentHour - 1; previousHour >= 0; previousHour--) {
+        final previousHourPath = '$databasePath$previousHour';
+        final previousDataEvent = await databaseReference.child(previousHourPath).once();
 
         DataSnapshot previousDataSnapshot = previousDataEvent.snapshot;
         if (previousDataSnapshot.value != null) {
           totalSubtractedSteps += (previousDataSnapshot.value as int);
         }
-
-        // Move to the previous hour
-        previousHour--;
       }
 
-      // Calculate the current steps by subtracting the total subtracted steps
       int currentStep = stepsData - totalSubtractedSteps;
-
       if (currentStep < 0) {
         currentStep = 0;
       }
 
-      // Save the current steps data to Firebase
-      await databaseReference.child(databasePath).set(currentStep);
-      debugPrint('Steps data saved to Firebase at $databasePath');
+      await databaseReference.child(databasePath).update({
+        '$currentHour': currentStep,
+      });
+
+      debugPrint('Steps data saved to Firebase at $databasePath$currentHour');
     } catch (error) {
       debugPrint('Error saving steps data to Firebase: $error');
     }
   }
 
-  Future<void> saveCaloriesData(String userId, String calorieburn) async {
-    final databaseReference = FirebaseDatabase.instance.ref();
+  Future<void> saveHeartRate(String userId,String heartrate,) async {
     final today = DateTime.now();
-
     final currentHour = today.hour;
-    final databasePath =
-        'health/$userId/calories/${today.year}-${today.month}-${today.day}/$currentHour';
-
-    int previousHour = currentHour - 1;
+    final databaseReference = FirebaseDatabase.instance.ref();
+    final databasePath = 'health/$userId/heart_rate/${today.year}-${today.month}-${today.day}/$currentHour';
+    final databasePaths = 'health/$userId/blood_oxygen/${today.year}-${today.month}-${today.day}/deviceFrom';
 
     try {
-      // Initialize the total subtracted steps to 0
-      double caloriesBurn = double.parse(calorieburn);
-      double totalSubtractedCalories = 0;
+      await databaseReference.child(databasePath).set(heartrate);
+      await databaseReference.child(databasePaths).set(heartRateSource);
 
-      // Iterate through all previous hours and subtract their steps
-      while (previousHour >= 0) {
-        final previousHourPath =
-            'health/$userId/calories/${today.year}-${today.month}-${today.day}/$previousHour';
-        final previousDataEvent =
-            await databaseReference.child(previousHourPath).once();
-
-        DataSnapshot previousDataSnapshot = previousDataEvent.snapshot;
-        if (previousDataSnapshot.value != null) {
-          // Check the type of the value and convert it to a double if it's an int.
-          if (previousDataSnapshot.value is int) {
-            totalSubtractedCalories +=
-                (previousDataSnapshot.value as int).toDouble();
-          } else {
-            totalSubtractedCalories += (previousDataSnapshot.value as double);
-          }
-        }
-
-        // Move to the previous hour
-        previousHour--;
-      }
-
-      // Calculate the current steps by subtracting the total subtracted steps
-      double currentcalories = caloriesBurn - totalSubtractedCalories;
-
-      if (currentcalories < 0) {
-        currentcalories = 0;
-      }
-
-      // Format the double value to have 2 decimal places
-      String formattedCalories = currentcalories.toStringAsFixed(2);
-      double roundedCalories = double.parse(formattedCalories);
-
-      // Save the current steps data to Firebase
-      await databaseReference.child(databasePath).set(roundedCalories);
-      debugPrint('Calories data saved to Firebase at $databasePath');
-    } catch (error) {
-      debugPrint('Error saving Calories data to Firebase: $error');
-    }
-  }
-
-  Future<void> saveHeartRateData(String userId,String heartrate,) async {
-    final databaseReference = FirebaseDatabase.instance.ref();
-    final today = DateTime.now();
-
-    final currentHour = today.hour;
-    final databasePath =
-        'health/$userId/heart_rate/${today.year}-${today.month}-${today.day}/$currentHour';
-
-    try {
-      int heartRate = int.parse(currentHeartRate);
-
-      await databaseReference.child(databasePath).set(heartRate);
       debugPrint('Heart Rate data saved to Firebase at $databasePath');
     } catch (error) {
       debugPrint('Error saving Heart Rate data to Firebase: $error');
     }
   }
 
-  Future<void> saveBloodOxygenData(String userId, String bloodoxygen,) async {
-    final databaseReference = FirebaseDatabase.instance.ref();
+  Future<void> saveBloodOxygen(String userId,String bloodOxygen,) async {
     final today = DateTime.now();
-
     final currentHour = today.hour;
-    final databasePath =
-        'health/$userId/blood_oxygen/${today.year}-${today.month}-${today.day}/$currentHour';
+    final databaseReference = FirebaseDatabase.instance.ref();
+    final databasePath = 'health/$userId/blood_oxygen/${today.year}-${today.month}-${today.day}/$currentHour';
+    final databasePaths = 'health/$userId/blood_oxygen/${today.year}-${today.month}-${today.day}/deviceFrom';
 
     try {
-      double heartRate = double.parse(currentBloodOxygen);
+      await databaseReference.child(databasePath).set(bloodOxygen);
+      await databaseReference.child(databasePaths).set(bloodOxygenSource);
 
-      await databaseReference.child(databasePath).set(heartRate);
       debugPrint('Blood Oxygen data saved to Firebase at $databasePath');
     } catch (error) {
       debugPrint('Error saving Blood Oxygen data to Firebase: $error');
@@ -473,43 +467,222 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> fetchUserData() async {
+  Future<void> saveSleepDeepData(String userId, String sleepdeep) async {
+    final databaseReference = FirebaseDatabase.instance.ref();
+    final today = DateTime.now();
+
+    final databasePath =
+        'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/';
+
+    try {
+      double sleepDeepData = double.parse(sleepdeep);
+
+      // Save sleep data, dateFrom, and dateTo to Firebase
+      await databaseReference.child(databasePath).update({'sleepDeep': sleepDeepData});
+
+      debugPrint('Sleep deep data saved to Firebase at $databasePath');
+    } catch (error) {
+      debugPrint('Error saving Sleep deep data to Firebase: $error');
+    }
+  }
+
+  Future<void> saveSleepLightData(String userId, String sleepLight) async {
+    final databaseReference = FirebaseDatabase.instance.ref();
+    final today = DateTime.now();
+
+    final databasePath =
+        'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/';
+
+    try {
+      double sleepLightData = double.parse(sleepLight);
+
+      // Save sleep data, dateFrom, and dateTo to Firebase
+      await databaseReference.child(databasePath).update({'sleepLight': sleepLightData});
+
+      debugPrint('Sleep light data saved to Firebase at $databasePath');
+    } catch (error) {
+      debugPrint('Error saving Sleep light data to Firebase: $error');
+    }
+  }
+
+  Future<void> saveSleepRemData(String userId, String sleepRem) async {
+    final databaseReference = FirebaseDatabase.instance.ref();
+    final today = DateTime.now();
+
+    final databasePath =
+        'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/';
+
+    try {
+      double sleepRemData = double.parse(sleepRem);
+
+      // Save sleep data, dateFrom, and dateTo to Firebase
+      await databaseReference.child(databasePath).update({'sleepRem': sleepRemData});
+
+      debugPrint('Sleep Rem data saved to Firebase at $databasePath');
+    } catch (error) {
+      debugPrint('Error saving Sleep Rem data to Firebase: $error');
+    }
+  }
+
+  Future<void> saveSleepAwakeData(String userId, String sleepAwake) async {
+    final databaseReference = FirebaseDatabase.instance.ref();
+    final today = DateTime.now();
+
+    final databasePath =
+        'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/';
+
+    try {
+      double sleepAwakeData = double.parse(sleepAwake);
+
+      // Save sleep data, dateFrom, and dateTo to Firebase
+      await databaseReference.child(databasePath).update({'sleepAwake': sleepAwakeData});
+
+      debugPrint('Sleep Awake data saved to Firebase at $databasePath');
+    } catch (error) {
+      debugPrint('Error saving Sleep Awake data to Firebase: $error');
+    }
+  }
+
+  // Data save to Firebase Realtime Database //
+
+  // Data fetch from firebase //
+
+  Future<void> fetchStepsData(DateTime date) async {
+    final today = date;
     User? user = FirebaseAuth.instance.currentUser;
+
+    String userId = "";
+    int stepsTotal = 0;
+  
     if (user != null) {
-      DatabaseReference userRef =
-          FirebaseDatabase.instance.ref().child('users').child(user.uid);
-      DatabaseEvent event = await userRef.once();
-      dynamic data = event.snapshot.value;
+      userId = user.uid;
+      for (int i = 0; i <= 23 ; i++) {
+        String databasePath = 'health/$userId/steps/${today.year}-${today.month}-${today.day}/$i';
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
 
-      if (!mounted) return;
+        if(dataSnapshot.value != null) {
+          int steps = int.parse(dataSnapshot.value.toString());
+          stepsTotal += steps;
+        }     
+      }
+      setState(() {
+        stepsTotalRightNow = stepsTotal.toString();
+      });
+      debugPrint("Steps Total for Today: $stepsTotal");  
+    }
+  }
 
-      if (data != null && data is Map) {
-        setState(() {
-          profilePictureUrl = data['profilePictureUrl'] ?? '';
-        });
+  Future<void> fetchCaloriesData(DateTime date) async {
+    final today = date;
+    User? user = FirebaseAuth.instance.currentUser;
+
+    String userId = "";
+    double caloriesTotal = 0;
+  
+    if (user != null) {
+      userId = user.uid;
+      for (int i = 0; i <= 23 ; i++) {
+        String databasePath = 'health/$userId/calories/${today.year}-${today.month}-${today.day}/$i';
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+
+        if(dataSnapshot.value != null) {
+          double calories = double.parse(dataSnapshot.value.toString());
+          caloriesTotal += calories;
+        }     
+      }
+      setState(() {
+        caloriesburnRightNow = caloriesTotal.toString();
+      });
+      debugPrint("Calories Total for Today: $caloriesTotal");  
+    }
+  }
+
+  Future<void> fetchHeartRateData(DateTime date) async {
+    final today = date;
+    User? user = FirebaseAuth.instance.currentUser;
+
+    String userId = "";
+  
+    if (user != null) {
+      userId = user.uid;
+      for (int i = 24; i > 0; i--) {
+        String databasePath = 'health/$userId/heart_rate/${today.year}-${today.month}-${today.day}/$i';
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+
+        if(dataSnapshot.value != null) {
+          int heartRate = int.parse(dataSnapshot.value.toString());
+
+          if(heartRate > 0) {
+
+            setState(() {
+              heartRateRightNow = heartRate.toString();
+            });
+            debugPrint("Heart Rate Today: $heartRate");
+            break;
+          }
+        }
+      }     
+    }
+  }
+
+  Future<void> fetchBloodOxygenData(DateTime date) async {
+    final today = date;
+    User? user = FirebaseAuth.instance.currentUser;
+
+    String userId = "";
+  
+    if (user != null) {
+      userId = user.uid;
+      for (int i = 24; i > 0; i--) {
+        String databasePath = 'health/$userId/blood_oxygen/${today.year}-${today.month}-${today.day}/$i';
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+
+        if(dataSnapshot.value != null) {
+          double bloodOxygen = double.parse(dataSnapshot.value.toString());
+
+          if(bloodOxygen > 0) {
+            
+            setState(() {
+              bloodOxygenRightNow = bloodOxygen.toString();
+              bloodOxygenRightNow = '$bloodOxygenRightNow%';
+            });        
+            debugPrint("Blood Oxygen Today: $bloodOxygen");
+            break;
+          }
+        }
+      }     
+    }
+  }
+  
+  Future<void> fetchSleepDataFirebase(DateTime date) async {
+    final today = date;
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      String userId = user.uid;
+      String databasePath = 'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/';
+
+      DatabaseEvent databaseEvent = await FirebaseDatabase.instance.ref().child(databasePath).once();
+      if (databaseEvent.snapshot.value != null) {
+        Map<String, dynamic> sleepData = (databaseEvent.snapshot.value as Map<dynamic, dynamic>).cast<String, dynamic>();
+
+        if (sleepData['total'] != null) {
+          int sleepSession = int.parse(sleepData['total'].toString());
+
+          setState(() {
+            sleepTotalRightNow = sleepSession.toString();          
+          });
+          debugPrint('Fetched Sleep data: $sleepSession');
+        } else {
+          debugPrint('Sleep data total is null or has an unexpected type.');
+        }
       } else {
-        setState(() {});
+        debugPrint('Snapshot value is null.');
       }
     }
   }
-
-  void _showDatePicker() async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2030),
-    );
-    if (pickedDate != null && pickedDate != selectedDate) {
-      setState(() {
-        selectedDate = pickedDate;
-      });
-      await fetchStepData(selectedDate);
-      await fetchHeartRateData(selectedDate);
-      await fetchBloodOxygenData(selectedDate);
-      await fetchSleepDeepData(selectedDate);
-    }
-  }
+  
+  // Data Fetch from firebase
 
   Future<void> _fetchProfilePictureUrl() async {
     final FirebaseAuth auth = FirebaseAuth.instance;
@@ -532,19 +705,52 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _showDatePicker() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2030),
+    );
+    if (pickedDate != null && pickedDate != selectedDate) {
+      setState(() {
+        selectedDate = pickedDate;
+        
+      });
+      fetchStepsData(selectedDate);
+      fetchCaloriesData(selectedDate);
+      fetchHeartRateData(selectedDate);
+      fetchBloodOxygenData(selectedDate);
+      fetchSleepDataFirebase(selectedDate);
+    }
+  }
+
   @override
   void initState() {
-//   super.initState();
-//    setState(() {
-//      selectedDate = DateTime.now();
-//      selectedDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
-//      fetchStepData(selectedDate);
-//    });
-//    
-//    fetchHeartRateData();
-//    fetchSleepDeepData();
-//    fetchBloodOxygenData();
-//    _fetchProfilePictureUrl();
+   super.initState();
+
+   setState(() {
+      selectedDate = DateTime.now();
+      selectedDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+
+      // fetchStep(selectedDate);
+      // fetchHeartRate(selectedDate);
+      // fetchBloodOxygen(selectedDate);
+
+      // fetchSleepData(selectedDate);
+      // fetchSleepDeepData(selectedDate);
+      // fetchSleepLightData(selectedDate);
+      // fetchSleepRemData(selectedDate);
+      // fetchSleepAwakeData(selectedDate);
+
+      fetchStepsData(selectedDate);
+      fetchCaloriesData(selectedDate);
+      fetchHeartRateData(selectedDate);
+      fetchBloodOxygenData(selectedDate);
+      fetchSleepDataFirebase(selectedDate);
+   });
+    
+   _fetchProfilePictureUrl();
   }
 
   @override
@@ -667,12 +873,7 @@ class _HomePageState extends State<HomePage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => CaloriesPage(
-                                    currentStep: currentSteps,
-                                    currentStepDate: firstDataPointDate,
-                                    maxStep: maxStep ??
-                                        0, // Use a default value or handle null case
-                                  ),
+                                  builder: (context) => CaloriesPage(),
                                 ),
                               );
                             },
@@ -716,7 +917,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     SizedBox(height: 15 * screenHeight / 375),
                                     Text(
-                                      currentCalorieBurn,
+                                      caloriesburnRightNow,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
@@ -744,13 +945,11 @@ class _HomePageState extends State<HomePage> {
                           child: ElevatedButton(
                             onPressed: () {
                               Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => StepsPage(
-                                            currentStep: currentSteps,
-                                            currentStepDate: firstDataPointDate,
-                                            maxStep: maxStep ?? 0,
-                                          )));
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const StepsPage()
+                                )
+                              );
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
@@ -792,7 +991,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     SizedBox(height: 15 * screenHeight / 375),
                                     Text(
-                                      currentSteps,
+                                      stepsTotalRightNow,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
@@ -824,9 +1023,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => HeartRatePage(
-                                currentHeartRate: currentHeartRate, 
-                                maxHeartRate: maxHeartRate ?? 0)
+                              builder: (context) => const HeartRatePage()
                             )
                           );
                         },
@@ -870,7 +1067,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 SizedBox(height: 82 * screenHeight / 375),
                                 Text(
-                                  currentHeartRate,
+                                  heartRateRightNow,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18,
@@ -909,7 +1106,7 @@ class _HomePageState extends State<HomePage> {
                               Navigator.push(
                                 context,MaterialPageRoute(
                                   builder: (context) =>
-                                    BloodOxygenPage(currentBloodOxygen: currentBloodOxygen, maxBloodOxygen: maxBloodOxygen ?? 0,)
+                                    const BloodOxygenPage()
                                 )
                               );
                             },
@@ -952,7 +1149,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     SizedBox(height: 16 * screenHeight / 375),
                                     Text(
-                                      currentBloodOxygen,
+                                      bloodOxygenRightNow,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
@@ -982,7 +1179,7 @@ class _HomePageState extends State<HomePage> {
                               Navigator.push(
                                 context,MaterialPageRoute(
                                   builder: (context) =>
-                                    SleepPage()
+                                    const SleepPage()
                                 )
                               );
                             },
@@ -1028,7 +1225,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     const SizedBox(height: 42),
                                     Text(
-                                      currentSleep,
+                                      sleepTotalRightNow,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,

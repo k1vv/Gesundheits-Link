@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_null_comparison
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -16,29 +18,41 @@ class SleepPage extends StatefulWidget {
 
 class _SleepPage extends State<SleepPage> {
 
-  int flexBar = 0;
-  double maxValue = 0;
-  int biggestSleep = 0;
-  String stepsText = "N/A";
-  
-  int biggestHeartRate = 0;
-  double selectedValue = 0;
-  List<int> sleepDataList = [];
-  String flexbarString = "N/A";
-  String startTimeText = "N/A";
-  String currentHeartRate = "N/A";
-  String selectedDataRange = "Day";
-  List<BarChartGroupData> barGroups = [];
-  DateTime currentStepsDate = DateTime.now();
-  List<int?> sleepData = List.filled(7, null);
+  double selectedValue = 0;                                                                                           ///////////////////////////////////////////////////////////////
+
+  String dateKey = ''; 
+
   String dateFrom = "N/A";
   String dateTo = "N/A";
-  Map<String, dynamic> dataMap = {};
-  String dateKey = '';
+
+  String sleepsText = "N/A";                                // Sleep Value when user slide the graph //
+  String startTimeText = "N/A";                             // The date when user slid the graph //
+
+  String selectedOption = "Weekly";
+  
+  int sleepLight = 0;
+  int sleepDeep = 0;
+  int sleepRem = 0;
+  int sleepAwake = 0;
+  int biggestSleep = 0;                                                                                                                  // Variable Declaration //
+  int biggestHeartRate = 0;
+  
   List<String> dateTolist = [];
   List<String> dateFromlist = [];
+
+  List<int> sleepWeeklyDataList = [];  
+  List<int> sleepRemWeeklyDataList = []; 
+  List<int> sleepDeepWeeklyDataList = [];                   // List where the data fetch from firebase is stored //
+  List<int> sleepLightWeeklyDataList = [];                      
+  List<int> sleepAwakeWeeklyDataList = [];          
+
+  List<BarChartGroupData> barGroups = [];
+
+  Map<String, dynamic> dataMap = {};                                                                                   ///////////////////////////////////////////////////////////////
   
-  Future<void> fetchSleepData() async {
+  // Fetch Data Weekly //
+
+  Future<void> fetchSleepWeeklyData() async {
     final today = DateTime.now();
     String userId = "";
     User? user = FirebaseAuth.instance.currentUser;
@@ -47,42 +61,33 @@ class _SleepPage extends State<SleepPage> {
       userId = user.uid;
       DateTime startOfPeriod = today.subtract(const Duration(days: 6));
       DateTime endOfPeriod = today;
-      String startOfPeriodStr =
-          '${startOfPeriod.year}-${startOfPeriod.month}-${startOfPeriod.day}';
-      String endOfPeriodStr =
-          '${endOfPeriod.year}-${endOfPeriod.month}-${endOfPeriod.day}';
+      String startOfPeriodStr = '${startOfPeriod.year}-${startOfPeriod.month}-${startOfPeriod.day}';
+      String endOfPeriodStr = '${endOfPeriod.year}-${endOfPeriod.month}-${endOfPeriod.day}';
       String databasePath = 'health/$userId/sleep_session/';
-      DataSnapshot dataSnapshot = (await FirebaseDatabase.instance
-              .ref()
-              .child(databasePath)
-              .orderByKey()
-              .startAt(startOfPeriodStr)
-              .endAt(endOfPeriodStr)
-              .once())
-          .snapshot;
+      DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).orderByKey().startAt(startOfPeriodStr).endAt(endOfPeriodStr).once()).snapshot;
 
       if (dataSnapshot.value is Map) {
-        Map<String, dynamic> dataMap =
-            Map<String, dynamic>.from(dataSnapshot.value as Map<dynamic, dynamic>);
-        sleepDataList = List.generate(7, (index) {
-          String dateKey =
-              '${startOfPeriod.year}-${startOfPeriod.month}-${startOfPeriod.day + index}';
-          int sleepDataForDay = dataMap[dateKey] != null
-              ? int.parse(dataMap[dateKey]['total'].toString())
-              : 0;
-          dateFrom = dataMap[dateKey] != null &&
-                  dataMap[dateKey] is Map &&
-                  dataMap[dateKey]['dateFrom'] != null
-              ? formatTime(dataMap[dateKey]['dateFrom'])
-              : 'N/A';
-          dateTo = dataMap[dateKey] != null &&
-                  dataMap[dateKey] is Map &&
-                  dataMap[dateKey]['dateTo'] != null
-              ? formatTime(dataMap[dateKey]['dateTo'])
-              : 'N/A';
+        Map<String, dynamic> dataMap = Map<String, dynamic>.from(dataSnapshot.value as Map<dynamic, dynamic>);
+        sleepWeeklyDataList = List.generate(7, (index) {
+
+          String dateKey = '${startOfPeriod.year}-${startOfPeriod.month}-${startOfPeriod.day + index}';
+
+          int sleepDataForDay = dataMap[dateKey] != null ? int.parse(dataMap[dateKey]['total'].toString()) : 0;
+          dateFrom = dataMap[dateKey] != null && dataMap[dateKey] is Map && dataMap[dateKey]['dateFrom'] != null ? formatTime(dataMap[dateKey]['dateFrom']) : 'N/A';
+          dateTo = dataMap[dateKey] != null && dataMap[dateKey] is Map && dataMap[dateKey]['dateTo'] != null ? formatTime(dataMap[dateKey]['dateTo']) : 'N/A';
+
+          sleepDeep = dataMap[dateKey] != null ? int.tryParse(dataMap[dateKey]['sleepDeep']?.toString() ?? '0') ?? 0 : 0;
+          sleepLight = dataMap[dateKey] != null ? int.tryParse(dataMap[dateKey]['sleepLight']?.toString() ?? '0') ?? 0 : 0;
+          sleepRem = dataMap[dateKey] != null ? int.tryParse(dataMap[dateKey]['sleepRem']?.toString() ?? '0') ?? 0 : 0;
+          sleepAwake = dataMap[dateKey] != null ? int.tryParse(dataMap[dateKey]['sleepAwake']?.toString() ?? '0') ?? 0 : 0;
 
           debugPrint('Date From: $dateFrom');    
           debugPrint('Date To: $dateTo');
+
+          sleepDeepWeeklyDataList.add(sleepDeep);
+          sleepLightWeeklyDataList.add(sleepLight);
+          sleepRemWeeklyDataList.add(sleepRem);
+          sleepAwakeWeeklyDataList.add(sleepAwake);
 
           dateTolist.add(dateTo);
           dateFromlist.add(dateFrom);
@@ -93,30 +98,28 @@ class _SleepPage extends State<SleepPage> {
           }
           return sleepDataForDay;
         });
-
-        // Print dateFrom and dateTo here to see their values
-
-
-        setState(() {
-          barGroups = List.generate(7, (index) {
-            int dayIndex = index + 1;
-            int sleepDataForDay = sleepDataList[index];
-            return BarChartGroupData(
-              x: dayIndex,
-              barsSpace: 4,
-              barRods: [
-                BarChartRodData(
-                  y: sleepDataForDay.toDouble(),
-                  colors: [const Color.fromARGB(255, 255, 96, 120)],
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(5),
-                    bottom: Radius.circular(0),
+        if (mounted) {
+          setState(() {
+            barGroups = List.generate(7, (index) {
+              int dayIndex = index + 1;
+              int sleepDataForDay = sleepWeeklyDataList[index];
+              return BarChartGroupData(
+                x: dayIndex,
+                barsSpace: 4,
+                barRods: [
+                  BarChartRodData(
+                    y: sleepDataForDay.toDouble(),
+                    colors: [const Color.fromARGB(255, 255, 96, 120)],
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(5),
+                      bottom: Radius.circular(0),
+                    ),
                   ),
-                ),
-              ],
-            );
+                ],
+              );
+            });
           });
-        });
+        }
       }
     }
   }
@@ -133,13 +136,21 @@ class _SleepPage extends State<SleepPage> {
       if (dataSnapshot.value != null) {
         setState(() {
           int x = (dataSnapshot.value as int?) ?? 0;
-          stepsText = formatDuration(x);
+          sleepsText = formatDuration(x);
           startTimeText = DateFormat('EEEEEE').format(today);
         });
-      debugPrint(stepsText);
+      debugPrint(sleepsText);
       debugPrint(startTimeText);
       }
     }
+  }
+
+  // Fetch Data Weekly //
+
+  int calculateSleepDebt(int actualSleepDuration, int requiredSleepDuration) {
+
+    int sleepDebt = requiredSleepDuration - actualSleepDuration;
+    return sleepDebt > 0 ? sleepDebt : 0;
   }
 
   String getDayOfWeek(int index) {
@@ -166,7 +177,7 @@ class _SleepPage extends State<SleepPage> {
   @override
   void initState() {
     super.initState();
-    fetchSleepData();
+    fetchSleepWeeklyData();
     fetchCurrentData();
   }
 
@@ -246,7 +257,7 @@ class _SleepPage extends State<SleepPage> {
             children: [
               SizedBox(
                 child: Text(
-                  stepsText,
+                  sleepsText,
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
                 ),
               ),
@@ -273,7 +284,21 @@ class _SleepPage extends State<SleepPage> {
                             leftTitles: SideTitles(showTitles: false),
                             bottomTitles: SideTitles(showTitles: false),
                             topTitles: SideTitles(showTitles: false),
-                            rightTitles: SideTitles(showTitles: false),
+                            rightTitles: SideTitles(
+                                showTitles: true,
+                                getTextStyles: (context, value) =>
+                                  const TextStyle(
+                                    fontSize: 12,
+                                    color: Color.fromARGB(71, 0, 0, 0),
+                                  ),
+                                margin: 10,
+                                reservedSize: 40, // Adjust the reserved size according to your need
+                                getTitles: (value) {
+                                  int hourValue = value.toInt() ~/ 60;
+                                  return '$hourValue Hour';
+                                },
+
+                            ),
                           ),
                           gridData: FlGridData(
                             show: true,
@@ -298,7 +323,7 @@ class _SleepPage extends State<SleepPage> {
                 top: 0,
                 left: 0 * screenWidth / 375,
                 child: SizedBox(
-                  width: 360 * screenWidth / 375,
+                  width: 330 * screenWidth / 375,
                   child: SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       activeTrackColor: Colors.transparent,
@@ -311,27 +336,38 @@ class _SleepPage extends State<SleepPage> {
                     child: Slider(
                       value: selectedValue,
                       onChanged: (value) {
-                        setState(() {
-                          selectedValue = value;
-                          if (sleepDataList.isNotEmpty && selectedValue.isFinite) {
-                            final index = selectedValue.toInt() - 1;
-                            // ignore: unnecessary_null_comparison
-                            if (index >= 0 && index < sleepDataList.length && sleepDataList[index] != null) {
-                              startTimeText = getDayOfWeek(index + 1);
-                              stepsText = formatDuration(sleepDataList[index]);
+                        if (mounted) {
+                          setState(() {
+                            selectedValue = value;
+                            if (selectedOption == 'Weekly') {
+                              final today = DateTime.now();
+                              final startOfPeriod = today.subtract(const Duration(days: 6));
+                              final selectedDate = startOfPeriod.add(Duration(days: value.toInt()));
 
-                              // Check if the index is within bounds before accessing the list elements
-                              if (index < dateFromlist.length && index < dateTolist.length) {
-                                dateFrom = dateFromlist[index];
-                                dateTo = dateTolist[index];
+                              final formatter = DateFormat('EEE, MMM dd');
+                              startTimeText = formatter.format(selectedDate);
+
+                              final index = selectedValue.toInt();
+                              if (index >= 0 && index < sleepWeeklyDataList.length && sleepWeeklyDataList[index] != null) {
+                                sleepsText = formatDuration(sleepWeeklyDataList[index]);
+
+                                if (index < dateFromlist.length && index < dateTolist.length) {
+                                  dateFrom = dateFromlist[index];
+                                  dateTo = dateTolist[index];
+
+                                  sleepDeep = sleepDeepWeeklyDataList[index];
+                                  sleepLight = sleepLightWeeklyDataList[index];
+                                  sleepRem = sleepRemWeeklyDataList[index];
+                                  sleepAwake = sleepAwakeWeeklyDataList[index];
+                                }
                               }
                             }
-                          }
-                        });
+                          });
+                        }
                       },
                       min: 0,
-                      max: 7,
-                      divisions: 7,
+                      max: selectedOption == 'Weekly' ? 6 : 29,
+                      divisions: selectedOption == 'Weekly' ? 6 : 29,
                     ),
                   ),
                 ),
@@ -348,6 +384,13 @@ class _SleepPage extends State<SleepPage> {
                 children: [
                   Text("Date From: $dateFrom"),
                   Text("Date To: $dateTo"),
+
+                  Text("Sleep Deep : $sleepDeep"),
+                  Text("Sleep Light : $sleepLight"),
+                  Text("Sleep Rem : $sleepRem"),
+                  Text("Sleep Awake: $sleepAwake"),
+
+                  Text("Sleep Debt: ${calculateSleepDebt(sleepDeep + sleepLight + sleepRem + sleepAwake, 360)} minutes"),
                 ],
               ),
             )

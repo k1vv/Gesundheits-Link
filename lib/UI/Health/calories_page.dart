@@ -1,22 +1,15 @@
 import 'dart:async';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/UI/Main/main_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 class CaloriesPage extends StatefulWidget {
-  final String currentStep;
-  final int maxStep;
-  final DateTime currentStepDate;
 
-  const CaloriesPage(
-      {Key? key,
-      required this.currentStep,
-      required this.currentStepDate,
-      required this.maxStep})
-      : super(key: key);
+  const CaloriesPage({Key? key,}) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -24,44 +17,369 @@ class CaloriesPage extends StatefulWidget {
 }
 
 class _CaloriesPageState extends State<CaloriesPage> {
-  String currentSteps = "N/A";
-  DateTime currentStepsDate = DateTime.now();
-  String flexbarString = "N/A";
-  int flexBar = 0;
-  double maxValue = 0;
-  List<int?> stepData = List.filled(24, null);
-  int biggestStepValue = 0;
-  double selectedValue = 0;
-  String startTimeText = "00:00";
-  String stepsText = "N/A";
-  double barProgress = 0;
-  String enteredGoal = "2500";
 
-  Future<void> fetchDataFromFirebase(int x) async {
+
+  List<double?> caloriesData = List.generate(24, (index) => 0.0);
+  List<double?> caloriesWeeklyData = List.generate(7, (index) => 0.0);
+
+  List<double?> caloriesMonthlyData = List.generate(
+    DateTime(DateTime.now().year, DateTime.now().month + 1, 0).day,
+    (index) => 0.0,
+  );
+
+  List<BarChartGroupData> barGroups = [];
+
+  String selectedOption = "Daily";
+
+  String caloriesText = "N/A";
+  String enteredGoal = "2500";
+  String startTimeText = "00:00";
+  String totalCaloriesBurn = "N/A";
+
+  double barProgress = 0;
+  double selectedValue = 0;
+  double biggestCalories = 0;
+
+  String caloriesLatest = "N/A";
+  String latestTime = "N/A";
+
+  bool isLoading = false;
+  
+  Future<void> fetchTotalCaloriesData() async {
+    final today = DateTime.now();
+    User? user = FirebaseAuth.instance.currentUser;
+
+    String userId = "";
+    double caloriesTotal = 0;
+  
+    if (user != null) {
+      userId = user.uid;
+      for (int i = 1; i <= 23 ; i++) {
+        String databasePath = 'health/$userId/calories/${today.year}-${today.month}-${today.day}/$i';
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+
+        if(dataSnapshot.value != null) {
+          double calories = double.parse(dataSnapshot.value.toString());
+          caloriesTotal += calories;
+        }     
+      }
+      if(mounted) {
+        setState(() {
+          totalCaloriesBurn = caloriesTotal.toString();
+        });
+      }   
+      debugPrint("Total Calories Burn: $caloriesTotal");  
+    }
+  }
+
+  Future<void> fetchCaloriesDailyData() async {
     final today = DateTime.now();
     String userId = "";
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       userId = user.uid;
-      final databasePath =
-          'health/$userId/steps/${today.year}-${today.month}-${today.day}/$x';
-      DataSnapshot dataSnapshot =
-          (await FirebaseDatabase.instance.ref().child(databasePath).once())
-              .snapshot;
-      if (dataSnapshot.value != null) {
-        int? value = int.tryParse(dataSnapshot.value.toString());
-        if (value != null) {
-          // Multiply the value by 0.04 before storing it in stepData
-          value = (value * 0.04).ceil().toInt();
+
+      for (int i = 1; i <= 23; i++) {
+        final databasePath = 'health/$userId/calories/${today.year}-${today.month}-${today.day}/$i';
+
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+        if (dataSnapshot.value != null) {
+          double? value = double.parse(dataSnapshot.value.toString());
           if (mounted) {
             setState(() {
-              stepData[x - 1] = value;
+              caloriesData[i] = value;
             });
-          }
+          }       
         }
+      }
+      if(mounted) {
+        setState(() {
+          barGroups = List.generate(24, (index) {
+           return BarChartGroupData(
+             x: index,
+             barsSpace: 4,
+             barRods: [
+               BarChartRodData(
+                 y: index < caloriesData.length ? (caloriesData[index]?.toDouble() ?? 0.0) : 0.0,
+                 colors: [const Color.fromARGB(255, 255, 96, 120)],
+                 borderRadius: const BorderRadius.vertical(
+                   top: Radius.circular(5), bottom: Radius.circular(0)
+                 )
+               ),
+             ],
+           );
+          });
+        });
       }
     }
   }
+
+  Future<void> getBiggestCalories() async {
+    final today = DateTime.now();
+    User? user = FirebaseAuth.instance.currentUser;
+
+    String userId = "";
+
+    if (user != null) {
+      userId = user.uid;
+
+      double maxCalories = 0;
+
+      for (int i = 1; i <= 23; i++) {
+        String databasePath = 'health/$userId/calories/${today.year}-${today.month}-${today.day}/$i';
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+
+        if (dataSnapshot.value != null) {
+          double calories = double.parse(dataSnapshot.value.toString());
+
+          if (calories > maxCalories) {
+            maxCalories = calories;
+          }
+        }
+      }
+      
+      if(mounted) {
+        setState(() {
+          biggestCalories = maxCalories;
+        });
+      }
+      debugPrint('Maximum calories: $maxCalories');
+    }
+  }
+
+  Future<void> getLatestcalories() async {
+    final today = DateTime.now();
+    User? user = FirebaseAuth.instance.currentUser;
+
+    String userId = "";
+
+    if (user != null) {
+      userId = user.uid;
+
+      for (int i = 23; i >= 0; i--) {
+        String databasePath = 'health/$userId/calories/${today.year}-${today.month}-${today.day}/$i';
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+
+        if (dataSnapshot.value != null) {
+          double calories = double.parse(dataSnapshot.value.toString());
+          if(calories > 0) {
+            if(mounted) {
+              setState(() {
+                caloriesLatest = calories.toString();
+                latestTime = i.toString();
+
+                startTimeText = '${latestTime.padLeft(2, '0')}:00';
+                caloriesText = caloriesLatest;
+              });
+            }
+            // Break the loop after finding the first non-zero calories
+            break;
+          }
+        }
+      }
+
+      debugPrint('Latest calories: $caloriesLatest');
+    }
+  }
+
+  // Fetch Daily Calories Data //
+
+  // Fetch Weekly Calories Data //
+
+  Future<void> fetchCaloriesWeeklyData() async {
+    final today = DateTime.now();
+    String userId = "";
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      userId = user.uid;
+
+      double totalCalories = 0;
+      DateTime startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+
+      for (int i = 0; i < 7; i++) {
+        double maxCalories = 0; 
+        DateTime currentDate = startOfWeek.add(Duration(days: i));
+
+        for (int j = 1; j <= 23; j++) {
+          String databasePath = 'health/$userId/calories/${currentDate.year}-${currentDate.month}-${currentDate.day}/$j';
+          DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+
+          if (dataSnapshot.value != null) {
+            double calories = double.parse(dataSnapshot.value.toString());
+            totalCalories += calories;
+            if (calories != maxCalories) {
+              maxCalories += calories;
+            }
+          }
+        }
+        if(mounted) {
+          setState(() {
+            caloriesWeeklyData[i] = maxCalories;
+          });
+        }
+        debugPrint("maxCalories: $maxCalories %$i");
+      }
+
+      findBiggestWeeklyCalories();
+      if(mounted) {
+        setState(() {
+          totalCaloriesBurn = totalCalories.toString();
+          barGroups = List.generate(7, (index) {
+            return BarChartGroupData(
+              x: index,
+              barsSpace: 4,
+              barRods: [
+                BarChartRodData(
+                  y: index < caloriesWeeklyData.length
+                      ? (caloriesWeeklyData[index]?.toDouble() ?? 0.0)
+                      : 0.0,
+                  colors: [const Color.fromARGB(255, 255, 96, 120)],
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(5),
+                    bottom: Radius.circular(0),
+                  ),
+                ),
+              ],
+            );
+          });
+        });
+      }
+    }
+  }
+
+  Future<void> findBiggestWeeklyCalories() async {
+    double? maxCalories = 0;
+    int index = 0;
+
+    for (int i = 0; i < caloriesWeeklyData.length; i++) {
+      double? calories = caloriesWeeklyData[i];
+
+      if (calories! > maxCalories!) {
+        maxCalories = calories;
+        index = i;
+      }
+    }
+
+    if (mounted) {
+
+        final today = DateTime.now();
+        final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+        final selectedDate = startOfWeek.add(Duration(days: index));
+
+        final formatter = DateFormat('EEE, MMM dd');
+        startTimeText = formatter.format(selectedDate);
+
+      setState(() {
+        biggestCalories = double.parse(maxCalories.toString());
+        caloriesText = biggestCalories.toString();
+      });
+    }
+  }
+
+
+  // Fetch Weekly Calories Data //
+
+  // Fetch Monthly Calories Data //
+
+  Future<void> fetchCaloriesMonthlyData() async {
+    final today = DateTime.now();
+    String userId = "";
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      userId = user.uid;
+
+      double totalCalories = 0;
+      DateTime startOfMonth = DateTime(today.year, today.month, 1);
+
+      for (int i = 0; i < DateTime(today.year, today.month + 1, 0).day; i++) {
+        double maxCalories = 0;
+        DateTime currentDate = startOfMonth.add(Duration(days: i));
+
+        for (int j = 1; j <= 23; j++) {
+          String databasePath =
+              'health/$userId/calories/${currentDate.year}-${currentDate.month}-${currentDate.day}/$j';
+          DataSnapshot dataSnapshot = (await FirebaseDatabase.instance
+                  .ref()
+                  .child(databasePath)
+                  .once())
+              .snapshot;
+
+          if (dataSnapshot.value != null) {
+            double calories =
+                double.parse(dataSnapshot.value.toString());
+            totalCalories += calories;
+            if (calories != maxCalories) {
+              maxCalories += calories;
+            }
+          }
+        }
+        if (mounted) {
+          setState(() {
+            caloriesMonthlyData[i] = maxCalories;
+          });
+        }
+        debugPrint("maxCalories monthly: $maxCalories %$i");
+      }
+      findBiggestMonthlyCalories();
+      if (mounted) {
+        setState(() {
+          totalCaloriesBurn = totalCalories.toString();
+          barGroups = List.generate(
+            DateTime(today.year, today.month + 1, 0).day,
+            (index) {
+              return BarChartGroupData(
+                x: index,
+                barsSpace: 4,
+                barRods: [
+                  BarChartRodData(
+                    y: index < caloriesMonthlyData.length
+                        ? (caloriesMonthlyData[index]?.toDouble() ?? 0.0)
+                        : 0.0,
+                    colors: [const Color.fromARGB(255, 255, 96, 120)],
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(5),
+                      bottom: Radius.circular(0),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        });
+      }
+    }
+  }
+
+  Future<void> findBiggestMonthlyCalories() async {
+    double? maxCalories = 0;
+    int index = 0;
+
+    for (int i = 0; i < caloriesMonthlyData.length; i++) {
+      double? calories = caloriesMonthlyData[i];
+
+      if (calories! > maxCalories!) {
+        maxCalories = calories;
+        index = i;
+      }
+    }
+
+    if (mounted) {
+
+        final today = DateTime.now();
+        final selectedDate = DateTime(today.year, today.month, index + 1);
+
+        final formatter = DateFormat('EEE, MMM dd');
+        startTimeText = formatter.format(selectedDate);
+
+      setState(() {
+        biggestCalories = double.parse(maxCalories.toString());
+        caloriesText = biggestCalories.toString();
+      });
+    }
+  }
+
+
+  // Fetch Monthly Calories Data //
 
   Future<void> saveGoalToFirebase(String goal) async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -80,18 +398,19 @@ class _CaloriesPageState extends State<CaloriesPage> {
       String userId = user.uid;
       String databasePath = 'health/$userId/health_goal/calorie_goal';
 
-      DataSnapshot dataSnapshot =
-          (await FirebaseDatabase.instance.ref().child(databasePath).once())
-              .snapshot;
-
+      DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
       if (dataSnapshot.value != null) {
-        setState(() {
-          enteredGoal = dataSnapshot.value.toString();
-        });
+        if(mounted) {
+          setState(() {
+            enteredGoal = dataSnapshot.value.toString();
+          });
+        }
       } else {
-        setState(() {
-          enteredGoal = '2500';
-        });
+        if(mounted){
+          setState(() {
+            enteredGoal = '2500';
+          });
+        }
       }
     }
   }
@@ -122,10 +441,7 @@ class _CaloriesPageState extends State<CaloriesPage> {
                 enteredGoal = goalController.text;
 
                 await saveGoalToFirebase(enteredGoal);
-                barProgress = (double.parse(flexbarString) /
-                        int.parse(enteredGoal) *
-                        100) /
-                    100;
+                barProgress = (double.parse(totalCaloriesBurn) / int.parse(enteredGoal) * 100) / 100;
 
                 // ignore: use_build_context_synchronously
                 Navigator.of(context).pop();
@@ -138,32 +454,56 @@ class _CaloriesPageState extends State<CaloriesPage> {
     );
   }
 
-  void fetchData() {
-    fetchGoalFromFirebase();
-    flexbarString = widget.currentStep;
-    try {
-      int x = int.parse(flexbarString);
-      flexbarString = ((x.toDouble() * 0.04).ceil()).toString();
-      barProgress = (double.parse(flexbarString) / double.parse(enteredGoal) * 100) / 100;
-    } catch (e) {
-      debugPrint('Error parsing flexbarString: $e');
+  Future<void> getTodaysData () async {
+
+    await getLatestcalories();
+    await getBiggestCalories();
+    await fetchGoalFromFirebase();
+    await fetchCaloriesDailyData();
+    await fetchTotalCaloriesData();
+
+    if(mounted) {
+      setState(() {
+        barProgress = (double.parse(totalCaloriesBurn) / int.parse(enteredGoal) * 100) / 100;
+      });
     }
-    currentSteps = widget.currentStep;
-    currentStepsDate = widget.currentStepDate;
-    flexBar = widget.maxStep;
-    flexBar = (flexBar.toDouble() * 0.04).ceil().toInt();
-    for (int x = 1; x <= 24; x++) {
-      fetchDataFromFirebase(x);
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    if (isLoading) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            contentPadding: const EdgeInsets.all(0),
+            // ignore: sized_box_for_whitespace
+            content: Container(
+              width: 100,
+              height: 100,
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      Navigator.of(context).pop();
     }
   }
 
   @override
   void initState() {
     super.initState();
-    fetchData();
-    if (stepData.isNotEmpty && stepData[0] != null) {
-      startTimeText = '${(stepData[0] ?? 0).toString().padLeft(2, '0')}:00';
-      stepsText = (stepData[0] ?? 0).toString();
+
+    getTodaysData();
+    
+    int latestIndex = caloriesData.lastIndexWhere((calories) => calories != null);
+
+    if (latestIndex != -1) {
+      startTimeText = '${(caloriesData[latestIndex] ?? 0).toString().padLeft(2, '0')}:00';
+      caloriesText = (caloriesData[latestIndex] ?? 0).toString();
     }
   }
 
@@ -171,20 +511,6 @@ class _CaloriesPageState extends State<CaloriesPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-
-    List<BarChartGroupData> barGroups = List.generate(24, (index) {
-      return BarChartGroupData(
-        x: index + 1,
-        barsSpace: 4,
-        barRods: [
-          BarChartRodData(
-              y: stepData[index]?.toDouble() ?? 0.0,
-              colors: [const Color.fromARGB(255, 255, 96, 120)],
-              borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(5), bottom: Radius.circular(0))),
-        ],
-      );
-    });
 
     return Scaffold(
       appBar: AppBar(
@@ -243,6 +569,20 @@ class _CaloriesPageState extends State<CaloriesPage> {
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(children: [
+          SizedBox(height: 15 * screenWidth / 375,),
+          Row(
+            children: [
+              SizedBox(width: 75 * screenWidth / 375,),
+
+              buildOption("Daily"),
+              SizedBox(width: 3 * screenWidth / 375,),
+              buildOption("Weekly"),
+              SizedBox(width: 3 * screenWidth / 375,),
+              buildOption("Monthly"),
+
+              SizedBox(width: 75 * screenWidth / 375,),
+            ],
+          ),
           SizedBox(
             height: 15 * screenHeight / 375,
           ),
@@ -257,7 +597,7 @@ class _CaloriesPageState extends State<CaloriesPage> {
             children: [
               SizedBox(
                 child: Text(
-                  stepsText,
+                  caloriesText,
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 21),
                 ),
@@ -298,7 +638,7 @@ class _CaloriesPageState extends State<CaloriesPage> {
                                 color: Color.fromARGB(71, 0, 0, 0),
                               ),
                               margin: 10,
-                              textDirection: TextDirection.ltr,
+
                             ),
                           ),
                           gridData: FlGridData(
@@ -312,7 +652,7 @@ class _CaloriesPageState extends State<CaloriesPage> {
                                   bottom: BorderSide(color: Colors.grey),
                                   left: BorderSide(color: Colors.grey))),
                           minY: 0,
-                          maxY: flexBar == 0 ? 5.0 : flexBar * 1.2,
+                          maxY: biggestCalories == 0 ? 5.0 : biggestCalories * 1.2,
                           barGroups: barGroups,
                         ),
                       ),
@@ -331,33 +671,58 @@ class _CaloriesPageState extends State<CaloriesPage> {
                       inactiveTrackColor: Colors.transparent,
                       thumbColor: Colors.transparent,
                       overlayColor: Colors.transparent,
-                      trackHeight: 250 *
-                          screenHeight /
-                          375, // Adjust the height of the slider
-                      thumbShape: SliderComponentShape
-                          .noThumb, // Adjust the size of the thumb
+                      trackHeight: 250 * screenHeight / 375,
+                      thumbShape: SliderComponentShape.noThumb,
                     ),
                     child: Slider(
                       value: selectedValue,
                       onChanged: (value) {
-                        setState(() {
-                          selectedValue = value;
-                          if (stepData.isNotEmpty) {
-                            final index = selectedValue.toInt() - 1;
-                            if (index >= 0 &&
-                                index < stepData.length &&
-                                stepData[index] != null) {
-                              final selectedHour =
-                                  (index + 1).toString().padLeft(2, '0');
-                              startTimeText = '$selectedHour:00';
-                              stepsText = (stepData[index] ?? 0).toString();
+                        if(mounted) {
+                          setState(() {
+                            selectedValue = value;
+
+                            if (selectedOption == 'Weekly') {
+                              final today = DateTime.now();
+                              final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+                              final selectedDate = startOfWeek.add(Duration(days: value.toInt()));
+
+                              final formatter = DateFormat('EEE, MMM dd');
+                              startTimeText = formatter.format(selectedDate);
+                              caloriesText = (caloriesWeeklyData[value.toInt() % 7] ?? 0).toString();
+                            } else if (selectedOption == 'Daily') {
+                              if (caloriesData.isNotEmpty) {
+                                final index = value.toInt();
+                                if (index >= 0 &&
+                                    index < caloriesData.length &&
+                                    caloriesData[index] != null) {
+                                  final selectedHour = (index).toString().padLeft(2, '0');
+                                  startTimeText = '$selectedHour:00';
+                                  caloriesText = (caloriesData[index] ?? 0).toString();
+                                }
+                              }
+                            } else if (selectedOption == 'Monthly') {
+                              if (caloriesMonthlyData.isNotEmpty) {
+                                final index = value.toInt();
+                                if (index >= 0 &&
+                                    index < caloriesMonthlyData.length &&
+                                    caloriesMonthlyData[index] != null) {
+
+                                  final today = DateTime.now();
+                                  final selectedDate = DateTime(today.year, today.month, index + 1);
+
+
+                                  final formatter = DateFormat('EEE, MMM dd');
+                                  startTimeText = formatter.format(selectedDate);
+                                  caloriesText = (caloriesMonthlyData[index] ?? 0).toString();
+                                }
+                              }
                             }
-                          }
-                        });
+                          });
+                        }
                       },
-                      min: 0,
-                      max: 24,
-                      divisions: 24,
+                      min: selectedOption == 'Weekly' ? 0 : 0,
+                      max: selectedOption == 'Weekly' ? 6 : (selectedOption == 'Monthly' ? caloriesMonthlyData.length.toDouble() - 1 : 24),
+                      divisions: selectedOption == 'Weekly' ? 6 : (selectedOption == 'Monthly' ? caloriesMonthlyData.length - 1 : 24),
                     ),
                   ),
                 ),
@@ -368,7 +733,6 @@ class _CaloriesPageState extends State<CaloriesPage> {
           Container(
             padding: const EdgeInsets.all(10),
             width: 350 * screenWidth / 375,
-            height: 70 * screenHeight / 375,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               color: Colors.white,
@@ -377,56 +741,87 @@ class _CaloriesPageState extends State<CaloriesPage> {
               children: [
                 SizedBox(
                   child: Text(
-                    flexbarString,
+                    totalCaloriesBurn,
                     style: const TextStyle(
                         fontWeight: FontWeight.bold, fontSize: 21),
                   ),
                 ),
-                const SizedBox(
-                  child: Text("Todays Total Calories"),
-                ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearPercentIndicator(
-                    lineHeight: 25,
-                    percent: barProgress,
-                    progressColor: Colors.pink,
-                    backgroundColor: Colors.pink.shade100,
+                SizedBox(
+                  child: Text(
+                    selectedOption == 'Daily'
+                        ? "Today's Total Active Calories Burn"
+                        : selectedOption == 'Weekly'
+                            ? "This Week's Total Active Calories Burn"
+                            : "This Month's Total Active Calories Burn",
                   ),
                 ),
-                Row(
-                  children: [
-                    SizedBox(width: 5 * screenWidth / 375),
-                    const Text(
-                      "0",
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    SizedBox(
-                      width: 182 * screenWidth / 375,
-                    ),
-                    SizedBox(
-                      width: 134 * screenWidth / 375,
-                      height: 15 * screenHeight / 375,
-                      child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              elevation: 0,
-                              shadowColor:
-                                  const Color.fromARGB(33, 158, 158, 158),
-                              backgroundColor:
-                                  const Color.fromARGB(33, 158, 158, 158),
-                              foregroundColor:
-                                  const Color.fromARGB(33, 158, 158, 158),
-                              surfaceTintColor:
-                                  const Color.fromARGB(33, 158, 158, 158)),
-                          onPressed: () {
-                            _showGoalDialog(context);
-                          },
-                          child: Text(
-                            "Target: $enteredGoal",
-                            style: const TextStyle(color: Colors.grey),
-                          )),
-                    )
-                  ],
+                SizedBox(height: 10 * screenHeight / 375,),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 241, 241, 241), 
+                    borderRadius: BorderRadius.circular(20)
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        "Today's Progress",
+                        style: TextStyle(
+                          fontFamily: 'Arial', 
+                          fontWeight: FontWeight.bold, 
+                          fontSize: 18,
+                          decoration: TextDecoration.underline,
+                          decorationColor: Color.fromARGB(255, 145, 146, 146), 
+                          decorationStyle: TextDecorationStyle.solid,
+                        ),
+                      ),
+                      SizedBox(height: 10 * screenHeight / 375,),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: LinearPercentIndicator(
+                          lineHeight: 25,
+                          percent: barProgress,
+                          progressColor: Colors.pink,
+                          backgroundColor: Colors.pink.shade100,
+                        ),
+                      ),
+                      SizedBox(height: 2 * screenHeight / 375,),
+                      Row(
+                        children: [
+                          SizedBox(width: 5 * screenWidth / 375),
+                          const Text(
+                            "0",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                          SizedBox(
+                            width: 164 * screenWidth / 375,
+                          ),
+                          SizedBox(
+                            width: 134 * screenWidth / 375,
+                            height: 15 * screenHeight / 375,
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                    elevation: 0,
+                                    shadowColor:
+                                        const Color.fromARGB(33, 158, 158, 158),
+                                    backgroundColor:
+                                        const Color.fromARGB(33, 158, 158, 158),
+                                    foregroundColor:
+                                        const Color.fromARGB(33, 158, 158, 158),
+                                    surfaceTintColor:
+                                        const Color.fromARGB(33, 158, 158, 158)),
+                                onPressed: () {
+                                  _showGoalDialog(context);
+                                },
+                                child: Text(
+                                  "Target: $enteredGoal",
+                                  style: const TextStyle(color: Colors.grey),
+                                )),
+                          )
+                        ],
+                      )
+                    ],
+                  ),
                 )
               ],
             ),
@@ -435,4 +830,92 @@ class _CaloriesPageState extends State<CaloriesPage> {
       ),
     );
   }
+  Widget buildOption(String option) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () async {
+          if(mounted) {
+            setState(() {
+              selectedOption = option;
+            });
+          }
+          if(selectedOption == "Daily") {
+            if(mounted) {
+              setState(() {
+                isLoading = true;     
+              });
+            }
+            showLoadingDialog(context);
+
+              await getLatestcalories();
+              await getBiggestCalories();
+              await fetchCaloriesDailyData();
+              await fetchTotalCaloriesData();
+
+            if(mounted) {
+              setState(() {
+                isLoading = false;     
+              });
+            }
+            // ignore: use_build_context_synchronously
+            showLoadingDialog(context);
+
+          } else if (selectedOption == "Weekly") {
+            if(mounted) {
+              setState(() {
+                isLoading = true;     
+              });
+            }
+            showLoadingDialog(context);
+
+            await fetchCaloriesWeeklyData();
+
+            if(mounted) {
+              setState(() {
+                isLoading = false;     
+              });
+            }
+            // ignore: use_build_context_synchronously
+            showLoadingDialog(context);
+          }
+
+          else if (selectedOption == "Monthly") {
+            if(mounted) {
+              setState(() {
+                isLoading = true;     
+              });
+            }
+            showLoadingDialog(context);
+
+            await fetchCaloriesMonthlyData();
+
+            if(mounted) {
+              setState(() {
+                isLoading = false;     
+              });
+            }
+            // ignore: use_build_context_synchronously
+            showLoadingDialog(context);
+          }
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 1000),
+          decoration: BoxDecoration(
+            color: option == selectedOption ? const Color.fromARGB(255, 255, 96, 120) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: Center(
+            child: Text(
+              option,
+              style: TextStyle(
+                color: option == selectedOption ? Colors.white : Colors.black,
+                fontWeight: FontWeight.bold, 
+                fontSize: 16
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  } 
 }

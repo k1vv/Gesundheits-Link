@@ -102,7 +102,7 @@ class _AdminPageState extends State<AdminPage> {
       selectedDate = DateTime.now();
       selectedDate =
           DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
-      fetchStepData();
+      //fetchStepData();
     });
   }
 

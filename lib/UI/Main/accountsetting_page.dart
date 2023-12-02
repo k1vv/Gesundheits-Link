@@ -595,7 +595,7 @@ class _SettingsState extends State<Settings> {
                   ],
                 ),
                 SizedBox(height: 20 * screenHeight / 375,),
-                SizedBox(
+                 SizedBox(
                   width: 250,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -609,7 +609,7 @@ class _SettingsState extends State<Settings> {
                       shadowColor: const Color.fromARGB(73, 248, 203, 198),
                     ),
                     onPressed: () {
-                      FirebaseAuth.instance.signOut();
+                     FirebaseAuth.instance.signOut();
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const LogInScreen()),
@@ -625,7 +625,6 @@ class _SettingsState extends State<Settings> {
                       ),
                     ),
                   ),
-                
                 SizedBox(height: 5.3 * screenHeight / 375,),
                 Image.asset("assets/images/hemi.png")
               ],

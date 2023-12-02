@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names, prefer_final_fields, must_be_immutable, unused_field
+
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
@@ -10,10 +12,11 @@ import 'package:myapp/UI/Welcome/welcome_page.dart';
 import 'package:myapp/UI/Habits/habit_provider.dart';
 import 'package:myapp/UI/Habits/notification_scheduler.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); 
 
-  await Firebase.initializeApp();
   await LocalNotifications.init();
   await NotificationScheduler.scheduleNotifications();
 
@@ -25,11 +28,21 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
+  _MyAppState createState() => _MyAppState();
+}
+
+
+
+class _MyAppState extends State<MyApp> {
+
+  @override
   Widget build(BuildContext context) {
+    
     return MaterialApp(
       title: 'Gesundheits Link',
       debugShowCheckedModeBanner: false,
@@ -63,7 +76,7 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
-    void requestNotificationPermissions() async {
+  void requestNotificationPermissions() async {
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     // ignore: prefer_const_declarations
     final AndroidNotificationDetails androidPlatformChannelSpecifics = const AndroidNotificationDetails(

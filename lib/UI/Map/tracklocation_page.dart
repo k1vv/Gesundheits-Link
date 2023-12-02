@@ -11,7 +11,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_foreground_service/flutter_foreground_service.dart';
 
-
 class TrackLocation extends StatefulWidget {
   const TrackLocation({Key? key}) : super(key: key);
 
@@ -177,6 +176,21 @@ class _TrackLocationState extends State<TrackLocation> {
           ),
         ),
       );
+      markers.add(
+        Marker(
+          width: 45.0,
+          height: 45.0,
+          point: latLng,
+          builder: (ctx) => Container(
+            color: Colors.transparent,
+            child: Image.asset(
+              'assets/images/running.png',
+              width: 45.0,
+              height: 45.0,
+            ),
+          ),
+        ),
+      );
       polylinePoints.add(latLng);
       polyline.points.add(latLng);
       mapController.move(latLng, 16.10);
@@ -258,7 +272,7 @@ class _TrackLocationState extends State<TrackLocation> {
     });
   }
 
-  @override
+  @override 
   Widget build(BuildContext context) {
     return Stack(
       children: [
