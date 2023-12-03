@@ -1,4 +1,5 @@
-//import 'package:admin_2/read_listview.dart';
+// ignore_for_file: use_key_in_widget_constructors, unused_local_variable
+
 import 'package:flutter/material.dart';
 import 'package:myapp/UI/Admin/settings.dart';
 import 'package:myapp/UI/Admin/usees_management.dart';
@@ -12,8 +13,8 @@ class NavBar extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          UserAccountsDrawerHeader(
-            accountName: const Text('WELCOME ADMIN'),
+          const UserAccountsDrawerHeader(
+            accountName: Text('WELCOME ADMIN'),
             currentAccountPicture: CircleAvatar(
               child: CircleAvatar(
                 child: Icon(
@@ -26,24 +27,24 @@ class NavBar extends StatelessWidget {
             ), accountEmail: null,
           ),
           ListTile(
-            leading: Icon(Icons.account_circle),
-            title: Text('User Management'),
+            leading: const Icon(Icons.account_circle),
+            title: const Text('User Management'),
             onTap: () {
               // Navigate to the UserManagementPage when the ListTile is tapped
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => UserManagement()),
+                MaterialPageRoute(builder: (context) => const UserManagement()),
               );
             },
           ),
-          Divider(),
+          const Divider(),
           ListTile(
-            leading: Icon(Icons.settings),
-            title: Text('Settings'),
+            leading: const Icon(Icons.settings),
+            title: const Text('Settings'),
             onTap: () {
               var push = Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => AdminSettingPage2()),
+                MaterialPageRoute(builder: (context) => const AdminSettingPage2()),
               );
             },
           ),

@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -13,7 +15,7 @@ class NewScreen2 extends StatefulWidget {
 class _NewScreen2State extends State<NewScreen2> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _databaseReference =
-      FirebaseDatabase.instance.reference();
+      FirebaseDatabase.instance.ref();
 
   @override
   Widget build(BuildContext context) {

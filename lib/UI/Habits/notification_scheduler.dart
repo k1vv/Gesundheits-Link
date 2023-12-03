@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -44,18 +46,18 @@ static Future<void> scheduleNotifications() async {
       );
     } else if (now.hour < 8 && habit.timeRange == "Anytime" && habit.isStarred == false) {
   // Set the targetTime to 2 minutes from now
-  DateTime targetTime = now.add(Duration(minutes: 2));
+  DateTime targetTime = now.add(const Duration(minutes: 2));
   Duration delay = targetTime.difference(now);
 
   LocalNotifications.showScheduleNotification(
     title: 'Anytime Message',
     body: 'You still have unfinished habits',
     payload: 'Scheduled Notification Payload',
-    delay: Duration(minutes: 1),
+    delay: const Duration(minutes: 1),
   );
   debugPrint("success");
 } else if (now.hour < 13 && habit.timeRange == "Anytime" && habit.isStarred == false) {
-      DateTime targetTime = now.add(Duration(minutes: 2));
+      DateTime targetTime = now.add(const Duration(minutes: 2));
       Duration delay = targetTime.difference(now);
 
       LocalNotifications.showScheduleNotification(
@@ -66,7 +68,7 @@ static Future<void> scheduleNotifications() async {
       );
       debugPrint("success");
     } else if (now.hour < 19 && habit.timeRange == "Anytime" && habit.isStarred == false) {
-      DateTime targetTime = now.add(Duration(minutes: 2));
+      DateTime targetTime = now.add(const Duration(minutes: 2));
       Duration delay = targetTime.difference(now);
 
       LocalNotifications.showScheduleNotification(

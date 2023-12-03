@@ -13,7 +13,6 @@ class _UserManagementState extends State<UserManagement> {
   late DatabaseReference _databaseReference;
   late Future<List<Map<String, String>>> _userDetails;
   bool _isLoading = false; 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   String userSleepTotal = '';
   String userStepsToday = '';
   String userHearRateToday = '';
@@ -180,7 +179,6 @@ class _UserManagementState extends State<UserManagement> {
 Future<void> deleteUserById(String userId, String email, String password) async {
   String adminemail = "mazim.razmi@student.gmi.edu.my";
   String adminpassword = "Akramz5461";
-  String adminid = "xhtAad07b9TI1eszEGSegP3BTrx1";
 
   try {
     await FirebaseAuth.instance.signOut(); // Sign out any existing user

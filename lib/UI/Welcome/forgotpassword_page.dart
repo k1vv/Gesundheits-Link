@@ -1,6 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:myapp/UI/Welcome/test.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:myapp/UI/Welcome/forgotpassword_widget.dart';
+
 
 class ForgotPasswordPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();

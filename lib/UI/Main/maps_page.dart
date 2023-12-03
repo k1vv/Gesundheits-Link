@@ -184,7 +184,7 @@ class _ShowMapsState extends State<ShowMaps> {
                     ),
                     Text(
                       "$distance KM/20 KM",
-                       style: TextStyle(
+                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16, 
                         fontFamily: 'Arial'
@@ -201,7 +201,7 @@ class _ShowMapsState extends State<ShowMaps> {
                     ),
                     Text(
                       "$calories kcal",
-                       style: TextStyle(
+                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16, 
                         fontFamily: 'Arial'

@@ -1,8 +1,10 @@
 // ignore_for_file: constant_identifier_names, unused_field, prefer_final_fields
+
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:health/health.dart';
 import 'package:flutter/material.dart';
+import 'package:myapp/UI/Health/divider.dart';
 import 'package:myapp/UI/Health/steps_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/UI/Health/calories_page.dart';
@@ -11,6 +13,7 @@ import 'package:myapp/UI/Health/bloodoxygen_page.dart';
 import 'package:myapp/UI/Health/sleeptracking_page.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:myapp/UI/Health/bodymeasurements_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -108,9 +111,9 @@ class _HomePageState extends State<HomePage> {
         debugPrint("Exception in authorize: $error");
       }
     }
-
-    setState(() => _state =
-        (authorized) ? AppState.AUTHORIZED : AppState.AUTH_NOT_GRANTED);
+    if(mounted) {
+      setState(() => _state = (authorized) ? AppState.AUTHORIZED : AppState.AUTH_NOT_GRANTED);
+    }
   }
 
   // Health Connect Permission //
@@ -565,9 +568,12 @@ class _HomePageState extends State<HomePage> {
           stepsTotal += steps;
         }     
       }
-      setState(() {
-        stepsTotalRightNow = stepsTotal.toString();
-      });
+      if(mounted) {
+        setState(() {
+          stepsTotalRightNow = stepsTotal.toString();
+        });
+      }
+      
       debugPrint("Steps Total for Today: $stepsTotal");  
     }
   }
@@ -590,9 +596,12 @@ class _HomePageState extends State<HomePage> {
           caloriesTotal += calories;
         }     
       }
-      setState(() {
-        caloriesburnRightNow = caloriesTotal.toString();
-      });
+      if(mounted) {
+        setState(() {
+          caloriesburnRightNow = caloriesTotal.toString();
+        });
+      }
+      
       debugPrint("Calories Total for Today: $caloriesTotal");  
     }
   }
@@ -613,10 +622,11 @@ class _HomePageState extends State<HomePage> {
           int heartRate = int.parse(dataSnapshot.value.toString());
 
           if(heartRate > 0) {
-
-            setState(() {
-              heartRateRightNow = heartRate.toString();
-            });
+          if(mounted) {
+              setState(() {
+                heartRateRightNow = heartRate.toString();
+              });
+            }          
             debugPrint("Heart Rate Today: $heartRate");
             break;
           }
@@ -641,11 +651,12 @@ class _HomePageState extends State<HomePage> {
           double bloodOxygen = double.parse(dataSnapshot.value.toString());
 
           if(bloodOxygen > 0) {
-            
-            setState(() {
-              bloodOxygenRightNow = bloodOxygen.toString();
-              bloodOxygenRightNow = '$bloodOxygenRightNow%';
-            });        
+            if(mounted) {
+              setState(() {
+                bloodOxygenRightNow = bloodOxygen.toString();
+                bloodOxygenRightNow = '$bloodOxygenRightNow%';
+              });        
+            }
             debugPrint("Blood Oxygen Today: $bloodOxygen");
             break;
           }
@@ -669,9 +680,12 @@ class _HomePageState extends State<HomePage> {
         if (sleepData['total'] != null) {
           int sleepSession = int.parse(sleepData['total'].toString());
 
-          setState(() {
-            sleepTotalRightNow = sleepSession.toString();          
-          });
+          if(mounted) {
+            setState(() {
+              sleepTotalRightNow = sleepSession.toString();          
+            });
+          }
+          
           debugPrint('Fetched Sleep data: $sleepSession');
         } else {
           debugPrint('Sleep data total is null or has an unexpected type.');
@@ -695,9 +709,12 @@ class _HomePageState extends State<HomePage> {
         DataSnapshot snapshot = event.snapshot;
         if (snapshot.value != null && snapshot.value is Map<dynamic, dynamic>) {
           Map<dynamic, dynamic> values = snapshot.value as Map<dynamic, dynamic>;
-          setState(() {
-            _profilePictureUrl = values['profilePictureUrl'] ?? "";
-          });
+          if(mounted) {
+            setState(() {
+              _profilePictureUrl = values['profilePictureUrl'] ?? "";
+            });
+          }
+          
         }
       } catch (error) {
         debugPrint("Error fetching profile picture: $error");
@@ -713,10 +730,12 @@ class _HomePageState extends State<HomePage> {
       lastDate: DateTime(2030),
     );
     if (pickedDate != null && pickedDate != selectedDate) {
-      setState(() {
-        selectedDate = pickedDate;
-        
-      });
+      if(mounted) {
+        setState(() {
+          selectedDate = pickedDate;
+        });
+      }
+      
       fetchStepsData(selectedDate);
       fetchCaloriesData(selectedDate);
       fetchHeartRateData(selectedDate);
@@ -873,7 +892,7 @@ class _HomePageState extends State<HomePage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => CaloriesPage(),
+                                  builder: (context) => const CaloriesPage(),
                                 ),
                               );
                             },
@@ -1248,7 +1267,83 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 20 * screenHeight / 375)
+                    SizedBox(height: 5 * screenHeight / 375),
+                    SizedBox(
+                      width: 300 * screenWidth / 375,
+                      height: 62 * screenHeight / 375,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,MaterialPageRoute(
+                              builder: (context) =>
+                                const DividePage()
+                            )
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          elevation: 0,
+                          shadowColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: const BorderSide(
+                              color: Color.fromARGB(50, 158, 158, 158),
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 0, height: 10),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                const SizedBox(height: 20),
+                                const Row(
+                                  children: [
+                                    Text(
+                                      'Weight Management',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 11,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 7,
+                                    ),
+                                    Image(
+                                      image: AssetImage(
+                                          'assets/images/star.png'),
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 42),
+                                Text(
+                                  sleepTotalRightNow,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const Text(
+                                  'Sleep Session',
+                                  style: TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10 * screenHeight / 375),
                   ],
                 )
               ],

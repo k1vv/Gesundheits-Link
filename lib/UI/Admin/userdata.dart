@@ -3,24 +3,26 @@ import 'package:flutter/material.dart';
 //import 'package:firebase_core/firebase_core.dart';
 
 class UserDataPage extends StatelessWidget {
+  const UserDataPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('User Details'),
+        title: const Text('User Details'),
         backgroundColor: Colors.pink,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: const Padding(
+        padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CircleAvatar(
+              radius: 50,
               child: Icon(
                 Icons.person,
                 size: 50,
               ),
-              radius: 50,
             ),
             SizedBox(height: 20),
             Text(

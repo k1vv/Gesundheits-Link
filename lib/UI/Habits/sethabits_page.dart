@@ -24,7 +24,7 @@ class _SetHabitsState extends State<SetHabits> {
     String habitDescription = "Your Daily Exercise";
     DateTime startDateTime = DateTime.now();
     DateTime endDateTime = DateTime.now();
-    DateTime yesterdayDateTime = endDateTime.subtract(Duration(days: 1));
+    DateTime yesterdayDateTime = endDateTime.subtract(const Duration(days: 1));
     
 
     if (user != null) {
