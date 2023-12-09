@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:myapp/UI/Health/bodymeasurements_page.dart';
-import 'package:myapp/UI/Health/heartrate_page.dart';
-import 'package:myapp/UI/Health/steps_page.dart';
 import 'package:myapp/UI/Health/weight_management.dart';
-import 'package:myapp/UI/Main/main_page.dart';
 
 
 class DividePage extends StatefulWidget {

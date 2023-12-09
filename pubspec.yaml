@@ -50,7 +50,6 @@ dependencies:
   url_launcher: ^6.1.14
   geolocator: ^10.1.0
   vector_math: ^2.1.4
-  flutter_animate: ^4.2.0+1
   flutter_polyline_points: ^2.0.0
   flutter_sensors: ^1.0.1
   qr_code_scanner: ^1.0.1
@@ -84,6 +83,7 @@ dependencies:
   android_alarm_manager_plus: ^3.0.3
   gauge_indicator: ^0.4.3
   kdgaugeview: ^1.0.5
+  flutter_animate: ^4.3.0
 
   
 dev_dependencies:

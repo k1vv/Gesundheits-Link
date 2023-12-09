@@ -202,17 +202,16 @@ class _StepsPageState extends State<StepsPage> {
         double maxsteps = 0; 
         DateTime currentDate = startOfWeek.add(Duration(days: i));
 
-        for (int j = 1; j <= 23; j++) {
-          String databasePath = 'health/$userId/steps/${currentDate.year}-${currentDate.month}-${currentDate.day}/$j';
-          DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+        String databasePath = 'health/$userId/steps/${currentDate.year}-${currentDate.month}-${currentDate.day}/';
 
-          if (dataSnapshot.value != null) {
-            double steps = double.parse(dataSnapshot.value.toString());
-            totalsteps += steps;
-            if (steps != maxsteps) {
-              maxsteps += steps;
-            }
-          }
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+
+        if (dataSnapshot.value != null) {
+          Map<Object?, Object?>? data = dataSnapshot.value as Map<Object?, Object?>?;
+          int sum = data?.values.whereType<int>().fold<int>(0, (int acc, int value) => acc + value) ?? 0;
+
+          totalsteps += sum.toDouble();
+          maxsteps = sum.toDouble();
         }
         if(mounted) {
           setState(() {
@@ -296,23 +295,16 @@ class _StepsPageState extends State<StepsPage> {
         double maxsteps = 0;
         DateTime currentDate = startOfMonth.add(Duration(days: i));
 
-        for (int j = 1; j <= 23; j++) {
-          String databasePath =
-              'health/$userId/steps/${currentDate.year}-${currentDate.month}-${currentDate.day}/$j';
-          DataSnapshot dataSnapshot = (await FirebaseDatabase.instance
-                  .ref()
-                  .child(databasePath)
-                  .once())
-              .snapshot;
+        String databasePath = 'health/$userId/steps/${currentDate.year}-${currentDate.month}-${currentDate.day}/';
 
-          if (dataSnapshot.value != null) {
-            double steps =
-                double.parse(dataSnapshot.value.toString());
-            totalsteps += steps;
-            if (steps != maxsteps) {
-              maxsteps += steps;
-            }
-          }
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+
+        if (dataSnapshot.value != null) {
+          Map<Object?, Object?>? data = dataSnapshot.value as Map<Object?, Object?>?;
+          int sum = data?.values.whereType<int>().fold<int>(0, (int acc, int value) => acc + value) ?? 0;
+
+          totalsteps += sum.toDouble();
+          maxsteps = sum.toDouble();
         }
         if (mounted) {
           setState(() {
@@ -674,7 +666,10 @@ class _StepsPageState extends State<StepsPage> {
                       thumbShape: SliderComponentShape.noThumb,
                     ),
                     child: Slider(
-                      value: selectedValue,
+                      value: selectedValue.clamp(
+                        selectedOption == 'Weekly' ? 0.0 : 0.0,
+                        selectedOption == 'Weekly' ? 6.0 : (selectedOption == 'Monthly' ? stepsMonthlyData.length.toDouble() - 1.0 : 24.0),
+                      ),
                       onChanged: (value) {
                         if(mounted) {
                           setState(() {

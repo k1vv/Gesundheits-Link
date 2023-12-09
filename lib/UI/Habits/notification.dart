@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_declarations, avoid_returning_null_for_void
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -23,7 +25,7 @@ class LocalNotifications {
       onDidReceiveLocalNotification: (id, title, body, payload) => null,
     );
     final LinuxInitializationSettings initializationSettingsLinux =
-        LinuxInitializationSettings(defaultActionName: 'Open notification');
+        const LinuxInitializationSettings(defaultActionName: 'Open notification');
     final InitializationSettings initializationSettings =
         InitializationSettings(
             android: initializationSettingsAndroid,

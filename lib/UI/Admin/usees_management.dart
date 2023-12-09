@@ -194,7 +194,7 @@ Future<void> deleteUserById(String userId, String email, String password) async 
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: adminemail, password: adminpassword);
     }
   } catch (e) {
-    print("Error deleting user: $e");
+    debugPrint("Error deleting user: $e");
   }
 }
 

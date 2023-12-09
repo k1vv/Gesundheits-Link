@@ -200,17 +200,16 @@ class _CaloriesPageState extends State<CaloriesPage> {
         double maxCalories = 0; 
         DateTime currentDate = startOfWeek.add(Duration(days: i));
 
-        for (int j = 1; j <= 23; j++) {
-          String databasePath = 'health/$userId/calories/${currentDate.year}-${currentDate.month}-${currentDate.day}/$j';
-          DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+        String databasePath = 'health/$userId/calories/${currentDate.year}-${currentDate.month}-${currentDate.day}/';
 
-          if (dataSnapshot.value != null) {
-            double calories = double.parse(dataSnapshot.value.toString());
-            totalCalories += calories;
-            if (calories != maxCalories) {
-              maxCalories += calories;
-            }
-          }
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+
+        if (dataSnapshot.value != null) {
+          Map<Object?, Object?>? data = dataSnapshot.value as Map<Object?, Object?>?;
+          int sum = data?.values.whereType<int>().fold<int>(0, (int acc, int value) => acc + value) ?? 0;
+
+          totalCalories += sum.toDouble();
+          maxCalories = sum.toDouble();
         }
         if(mounted) {
           setState(() {
@@ -276,7 +275,6 @@ class _CaloriesPageState extends State<CaloriesPage> {
     }
   }
 
-
   // Fetch Weekly Calories Data //
 
   // Fetch Monthly Calories Data //
@@ -295,23 +293,16 @@ class _CaloriesPageState extends State<CaloriesPage> {
         double maxCalories = 0;
         DateTime currentDate = startOfMonth.add(Duration(days: i));
 
-        for (int j = 1; j <= 23; j++) {
-          String databasePath =
-              'health/$userId/calories/${currentDate.year}-${currentDate.month}-${currentDate.day}/$j';
-          DataSnapshot dataSnapshot = (await FirebaseDatabase.instance
-                  .ref()
-                  .child(databasePath)
-                  .once())
-              .snapshot;
+        String databasePath = 'health/$userId/calories/${currentDate.year}-${currentDate.month}-${currentDate.day}/';
 
-          if (dataSnapshot.value != null) {
-            double calories =
-                double.parse(dataSnapshot.value.toString());
-            totalCalories += calories;
-            if (calories != maxCalories) {
-              maxCalories += calories;
-            }
-          }
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+
+        if (dataSnapshot.value != null) {
+          Map<Object?, Object?>? data = dataSnapshot.value as Map<Object?, Object?>?;
+          int sum = data?.values.whereType<int>().fold<int>(0, (int acc, int value) => acc + value) ?? 0;
+
+          totalCalories += sum.toDouble();
+          maxCalories = sum.toDouble();
         }
         if (mounted) {
           setState(() {
@@ -675,49 +666,56 @@ class _CaloriesPageState extends State<CaloriesPage> {
                       thumbShape: SliderComponentShape.noThumb,
                     ),
                     child: Slider(
-                      value: selectedValue,
+                      value: selectedValue.clamp(
+                        selectedOption == 'Weekly' ? 0.0 : 0.0,
+                        selectedOption == 'Weekly' ? 6.0 : (selectedOption == 'Monthly' ? caloriesMonthlyData.length.toDouble() - 1.0 : 24.0),
+                      ),
                       onChanged: (value) {
-                        if(mounted) {
-                          setState(() {
-                            selectedValue = value;
+                        try{
+                          if(mounted) {
+                            setState(() {
+                              selectedValue = value;
 
-                            if (selectedOption == 'Weekly') {
-                              final today = DateTime.now();
-                              final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
-                              final selectedDate = startOfWeek.add(Duration(days: value.toInt()));
+                              if (selectedOption == 'Weekly') {
+                                final today = DateTime.now();
+                                final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+                                final selectedDate = startOfWeek.add(Duration(days: value.toInt()));
 
-                              final formatter = DateFormat('EEE, MMM dd');
-                              startTimeText = formatter.format(selectedDate);
-                              caloriesText = (caloriesWeeklyData[value.toInt() % 7] ?? 0).toString();
-                            } else if (selectedOption == 'Daily') {
-                              if (caloriesData.isNotEmpty) {
-                                final index = value.toInt();
-                                if (index >= 0 &&
-                                    index < caloriesData.length &&
-                                    caloriesData[index] != null) {
-                                  final selectedHour = (index).toString().padLeft(2, '0');
-                                  startTimeText = '$selectedHour:00';
-                                  caloriesText = (caloriesData[index] ?? 0).toString();
+                                final formatter = DateFormat('EEE, MMM dd');
+                                startTimeText = formatter.format(selectedDate);
+                                caloriesText = (caloriesWeeklyData[value.toInt() % 7] ?? 0).toString();
+                              } else if (selectedOption == 'Daily') {
+                                if (caloriesData.isNotEmpty) {
+                                  final index = value.toInt();
+                                  if (index >= 0 &&
+                                      index < caloriesData.length &&
+                                      caloriesData[index] != null) {
+                                    final selectedHour = (index).toString().padLeft(2, '0');
+                                    startTimeText = '$selectedHour:00';
+                                    caloriesText = (caloriesData[index] ?? 0).toString();
+                                  }
+                                }
+                              } else if (selectedOption == 'Monthly') {
+                                if (caloriesMonthlyData.isNotEmpty) {
+                                  final index = value.toInt();
+                                  if (index >= 0 &&
+                                      index < caloriesMonthlyData.length &&
+                                      caloriesMonthlyData[index] != null) {
+
+                                    final today = DateTime.now();
+                                    final selectedDate = DateTime(today.year, today.month, index + 1);
+
+
+                                    final formatter = DateFormat('EEE, MMM dd');
+                                    startTimeText = formatter.format(selectedDate);
+                                    caloriesText = (caloriesMonthlyData[index] ?? 0).toString();
+                                  }
                                 }
                               }
-                            } else if (selectedOption == 'Monthly') {
-                              if (caloriesMonthlyData.isNotEmpty) {
-                                final index = value.toInt();
-                                if (index >= 0 &&
-                                    index < caloriesMonthlyData.length &&
-                                    caloriesMonthlyData[index] != null) {
-
-                                  final today = DateTime.now();
-                                  final selectedDate = DateTime(today.year, today.month, index + 1);
-
-
-                                  final formatter = DateFormat('EEE, MMM dd');
-                                  startTimeText = formatter.format(selectedDate);
-                                  caloriesText = (caloriesMonthlyData[index] ?? 0).toString();
-                                }
-                              }
-                            }
-                          });
+                            });
+                          }
+                        } catch (error) {
+                          debugPrint("Error Occured: $error");
                         }
                       },
                       min: selectedOption == 'Weekly' ? 0 : 0,

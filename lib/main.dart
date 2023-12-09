@@ -1,7 +1,11 @@
-// ignore_for_file: constant_identifier_names, prefer_final_fields, must_be_immutable, unused_field
+// ignore_for_file: constant_identifier_names, prefer_final_fields, must_be_immutable, unused_field, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:myapp/UI/Health/bloodoxygen_page.dart';
+import 'package:myapp/UI/Health/calories_page.dart';
+import 'package:myapp/UI/Health/sleeptracking_page.dart';
+import 'package:myapp/UI/Health/steps_page.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/UI/Main/main_page.dart';
 import 'package:myapp/UI/Admin/admin_page.dart';
@@ -15,7 +19,8 @@ import 'package:myapp/UI/Habits/notification_scheduler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); 
+  await Firebase.initializeApp();
+
 
   await LocalNotifications.init();
   await NotificationScheduler.scheduleNotifications();
@@ -47,9 +52,15 @@ class _MyAppState extends State<MyApp> {
       title: 'Gesundheits Link',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
         useMaterial3: true,
       ),
+      routes: {
+        'calories_page': (context) => const CaloriesPage(),
+        'steps_page': (context) => const StepsPage(),
+        'bloodoxygen_page': (context) => const BloodOxygenPage(),
+        'sleeptracker_page': (context) => const SleepPage(),
+      },
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {

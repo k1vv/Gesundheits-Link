@@ -232,7 +232,8 @@ class _TrackLocationState extends State<TrackLocation> {
 
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
-    void updateCalories(dynamic caloriesValue) {
+  
+  void updateCalories(dynamic caloriesValue) {
     // Assuming caloriesValue is a double, round it to an integer
     int roundedCalories = caloriesValue?.round() ?? 0;
 
@@ -254,20 +255,15 @@ class _TrackLocationState extends State<TrackLocation> {
     paceTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       updatePace();
     });
+
+
     databaseReference = FirebaseDatabase.instance.ref();
     userId = FirebaseAuth.instance.currentUser!.uid;
 
-
     caloriesRef = databaseReference.child('SmartWatch/1/ExerciseSessions/002/Calories');
 
-    // Set up the listener
     caloriesRef.onValue.listen((DatabaseEvent event) {
-      // This callback will be triggered whenever the "Calories" field changes
-
-      // Access the new value
       dynamic caloriesValue = event.snapshot.value;
-
-      // Update the UI with the new value
       updateCalories(caloriesValue);
     });
   }

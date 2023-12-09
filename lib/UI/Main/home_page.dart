@@ -5,15 +5,12 @@ import 'package:intl/intl.dart';
 import 'package:health/health.dart';
 import 'package:flutter/material.dart';
 import 'package:myapp/UI/Health/divider.dart';
-import 'package:myapp/UI/Health/steps_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:myapp/UI/Health/calories_page.dart';
+import 'package:myapp/Widgets/healthcontainer.dart';
 import 'package:myapp/UI/Health/heartrate_page.dart';
-import 'package:myapp/UI/Health/bloodoxygen_page.dart';
-import 'package:myapp/UI/Health/sleeptracking_page.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:myapp/UI/Health/bodymeasurements_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -120,250 +117,128 @@ class _HomePageState extends State<HomePage> {
 
   // Data fetch from health connect //
 
-  Future<void> fetchStep(DateTime selectedDate) async {                            
+  Future<void> fetchDataFromHealthConnect(DateTime selectedDate, HealthDataType dataType) async {
     setState(() => _state = AppState.FETCHING_DATA);
     User? user = FirebaseAuth.instance.currentUser;
-
     _healthDataList.clear();
-
-    try {
-      List<HealthDataPoint> healthData = await health.getHealthDataFromTypes(
-        selectedDate,
-        selectedDate.add(const Duration(days: 1)),types,
-      );
-      if (types.contains(HealthDataType.STEPS)) {
-        for (HealthDataPoint dataPoint in healthData) {
-          if (dataPoint.type == HealthDataType.STEPS) {
-            currentSteps = dataPoint.value.toString();
-            int? stepnow = int.tryParse(currentSteps);
-
-
-            if (user != null) {
-              saveSteps(user.uid, stepnow!);
-              saveCalories(user.uid, stepnow);
-            }
-            break;
-          }
-        }
-      }
-      _healthDataList.addAll((healthData.length < 100) ? healthData : healthData.sublist(0, 100));
-    } catch (error) {
-      debugPrint("Exception in getHealthDataFromTypes: $error");
-    }
-  }
-
-  Future<void> fetchHeartRate(DateTime selectedDate) async {
-    setState(() => _state = AppState.FETCHING_DATA);
-    User? user = FirebaseAuth.instance.currentUser;
-
-    _healthDataList.clear();
-
-    try {
-      List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(
-            selectedDate,
-            selectedDate.add(const Duration(days: 1)),
-            types,
-          );
-
-      if (types.contains(HealthDataType.HEART_RATE)) {
-        for (HealthDataPoint dataPoint in healthData) {
-          if (dataPoint.type == HealthDataType.HEART_RATE) {
-            currentHeartRate = dataPoint.value.toString();
-            heartRateSource = dataPoint.sourceName.toString();
-
-            if (user != null) {
-              saveHeartRate(user.uid, currentHeartRate);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      debugPrint("Exception in getHealthDataFromTypes: $error");
-    }
-  }
-
-  Future<void> fetchBloodOxygen(DateTime selectedDate) async {
-    setState(() => _state = AppState.FETCHING_DATA);
-    User? user = FirebaseAuth.instance.currentUser;
-
-    _healthDataList.clear();
-
-    try {
-      List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(
-            selectedDate,
-            selectedDate.add(const Duration(days: 1)),
-            types,
-          );
-
-      if (types.contains(HealthDataType.BLOOD_OXYGEN)) {
-        for (HealthDataPoint dataPoint in healthData) {
-          if (dataPoint.type == HealthDataType.BLOOD_OXYGEN) {
-            currentBloodOxygen = dataPoint.value.toString();
-            bloodOxygenSource = dataPoint.sourceName.toString();
-            if (user != null) {
-              saveBloodOxygen(user.uid, currentBloodOxygen);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      debugPrint("Exception in getHealthDataFromTypes: $error");
-    }
-  }
-
-  Future<void> fetchSleepData(DateTime selectedDate) async {
-    setState(() => _state = AppState.FETCHING_DATA);
-    User? user = FirebaseAuth.instance.currentUser;
-
-    _healthDataList.clear();
-    String currentSleep = "";
-    String sleepSessionDateFrom = "";
-    String sleepSessionDateTo = "";
-
-    try {
-      List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(
-            selectedDate,
-            selectedDate.add(const Duration(days: 1)),
-            types,
-          );
-
-      if (user != null && types.contains(HealthDataType.SLEEP_SESSION)) {
-        for (HealthDataPoint dataPoint in healthData) {
-          if (dataPoint.type == HealthDataType.SLEEP_SESSION) {
-            currentSleep = dataPoint.value.toString();
-            sleepSessionDateFrom = dataPoint.dateFrom.toString();
-            sleepSessionDateTo = dataPoint.dateTo.toString();
-
-          } 
-        }
-         saveSleepData(user.uid, currentSleep, sleepSessionDateFrom, sleepSessionDateTo);
-      }
-    } catch (error) {
-      debugPrint("Exception in getHealthDataFromTypes: $error");
-    }
-  }
-
-  Future<void> fetchSleepDeepData(DateTime selectedDate) async {
-    setState(() => _state = AppState.FETCHING_DATA);
-    User? user = FirebaseAuth.instance.currentUser;
-
-    _healthDataList.clear();
-    double totalSleepDeep = 0;
-
-    try {
-      List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(
-            selectedDate,
-            selectedDate.add(const Duration(days: 1)),
-            types,
-          );
-
-      if (user != null && types.contains(HealthDataType.SLEEP_DEEP)) {
-        for (HealthDataPoint dataPoint in healthData) {
-          if (dataPoint.type == HealthDataType.SLEEP_DEEP) {
-            double sleepDeepData = double.parse(dataPoint.value.toString());
-            totalSleepDeep += sleepDeepData; 
-
-          } 
-        }
-
-        saveSleepDeepData(user.uid, totalSleepDeep.toString());
-      }
-    } catch (error) {
-      debugPrint("Exception in getHealthDataFromTypes: $error");
-    }
-  }
-
-  Future<void> fetchSleepLightData(DateTime selectedDate) async {
-    setState(() => _state = AppState.FETCHING_DATA);
-    User? user = FirebaseAuth.instance.currentUser;
-
-    _healthDataList.clear();
-    double totalSleepLight = 0;
-
+  
     try {
       List<HealthDataPoint> healthData = await health.getHealthDataFromTypes(
         selectedDate,
         selectedDate.add(const Duration(days: 1)),
-        types,
+        [dataType],
       );
-
-      if (user != null && types.contains(HealthDataType.SLEEP_LIGHT)) {
-        for (HealthDataPoint dataPoint in healthData) {
-          if (dataPoint.type == HealthDataType.SLEEP_LIGHT) {
-            double sleepLightData = double.parse(dataPoint.value.toString());
-            totalSleepLight += sleepLightData;
-
-          } 
-        }
-        saveSleepLightData(user.uid, totalSleepLight.toString());
+  
+      if (healthData.isNotEmpty) {
+        processHealthData(user, healthData, dataType);
       }
     } catch (error) {
       debugPrint("Exception in getHealthDataFromTypes: $error");
     }
   }
-
-  Future<void> fetchSleepRemData(DateTime selectedDate) async {
-    setState(() => _state = AppState.FETCHING_DATA);
-    User? user = FirebaseAuth.instance.currentUser;
-
-    _healthDataList.clear();
-    double totalSleepRem = 0;
-
-    try {
-      List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(
-            selectedDate,
-            selectedDate.add(const Duration(days: 1)),
-            types,
-          );
-
-      if (user != null && types.contains(HealthDataType.SLEEP_REM)) {
-        for (HealthDataPoint dataPoint in healthData) {
-          if (dataPoint.type == HealthDataType.SLEEP_REM) {
-            double sleepRemData = double.parse(dataPoint.value.toString());
-            totalSleepRem += sleepRemData;
-          }
-        }
-         saveSleepRemData(user.uid, totalSleepRem.toString());
+  
+  void processHealthData(User? user, List<HealthDataPoint> healthData, HealthDataType dataType) {
+    for (HealthDataPoint dataPoint in healthData) {
+      switch (dataType) {
+        case HealthDataType.STEPS:
+          processStepsData(user, dataPoint);
+          break;
+        case HealthDataType.HEART_RATE:
+          processHeartRateData(user, dataPoint);
+          break;
+        case HealthDataType.BLOOD_OXYGEN:
+          processBloodOxygenData(user, dataPoint);
+          break;
+        case HealthDataType.SLEEP_SESSION:
+          processSleepData(user, dataPoint);
+          break;
+        case HealthDataType.SLEEP_DEEP:
+          processSleepDeepData(user, dataPoint);
+          break;
+        case HealthDataType.SLEEP_LIGHT:
+          processSleepLightData(user, dataPoint);
+          break;
+        case HealthDataType.SLEEP_REM:
+          processSleepRemData(user, dataPoint);
+          break;
+        case HealthDataType.SLEEP_AWAKE:
+          processSleepAwakeData(user, dataPoint);
+          break;
       }
-    } catch (error) {
-      debugPrint("Exception in getHealthDataFromTypes: $error");
     }
   }
-
-  Future<void> fetchSleepAwakeData(DateTime selectedDate) async {
-    setState(() => _state = AppState.FETCHING_DATA);
-    User? user = FirebaseAuth.instance.currentUser;
   
-    _healthDataList.clear();
-    double totalSleepAwake = 0;
+  void processStepsData(User? user, HealthDataPoint dataPoint) {
+    if (dataPoint.type == HealthDataType.STEPS) {
+      currentSteps = dataPoint.value.toString();
+      int? stepNow = int.tryParse(currentSteps);
   
-    try {
-      List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(
-            selectedDate,
-            selectedDate.add(const Duration(days: 1)),
-            types,
-          );
-  
-      if (user != null && types.contains(HealthDataType.SLEEP_AWAKE)) {
-        for (HealthDataPoint dataPoint in healthData) {
-          if (dataPoint.type == HealthDataType.SLEEP_AWAKE) {
-            double sleepAwakeData = double.parse(dataPoint.value.toString());
-            totalSleepAwake += sleepAwakeData;
-          }
-        }
-         saveSleepAwakeData(user.uid, totalSleepAwake.toString());
+      if (user != null) {
+        saveSteps(user.uid, stepNow!);
+        saveCalories(user.uid, stepNow);
       }
-    } catch (error) {
-      debugPrint("Exception in getHealthDataFromTypes: $error");
     }
   }
-
+  
+  void processHeartRateData(User? user, HealthDataPoint dataPoint) {
+    if (dataPoint.type == HealthDataType.HEART_RATE) {
+      currentHeartRate = dataPoint.value.toString();
+      heartRateSource = dataPoint.sourceName.toString();
+  
+      if (user != null) {
+        saveHeartRate(user.uid, currentHeartRate);
+      }
+    }
+  }
+  
+  void processBloodOxygenData(User? user, HealthDataPoint dataPoint) {
+    if (dataPoint.type == HealthDataType.BLOOD_OXYGEN) {
+      currentBloodOxygen = dataPoint.value.toString();
+      bloodOxygenSource = dataPoint.sourceName.toString();
+  
+      if (user != null) {
+        saveBloodOxygen(user.uid, currentBloodOxygen);
+      }
+    }
+  }
+  
+  void processSleepData(User? user, HealthDataPoint dataPoint) {
+    if (dataPoint.type == HealthDataType.SLEEP_SESSION) {
+      String currentSleep = dataPoint.value.toString();
+      String sleepSessionDateFrom = dataPoint.dateFrom.toString();
+      String sleepSessionDateTo = dataPoint.dateTo.toString();
+  
+      saveSleepData(user!.uid, currentSleep, sleepSessionDateFrom, sleepSessionDateTo);
+    }
+  }
+  
+  void processSleepDeepData(User? user, HealthDataPoint dataPoint) {
+    if (dataPoint.type == HealthDataType.SLEEP_DEEP) {
+      double sleepDeepData = double.parse(dataPoint.value.toString());
+      saveSleepDeepData(user!.uid, sleepDeepData.toString());
+    }
+  }
+  
+  void processSleepLightData(User? user, HealthDataPoint dataPoint) {
+    if (dataPoint.type == HealthDataType.SLEEP_LIGHT) {
+      double sleepLightData = double.parse(dataPoint.value.toString());
+      saveSleepLightData(user!.uid, sleepLightData.toString());
+    }
+  }
+  
+  void processSleepRemData(User? user, HealthDataPoint dataPoint) {
+    if (dataPoint.type == HealthDataType.SLEEP_REM) {
+      double sleepRemData = double.parse(dataPoint.value.toString());
+      saveSleepRemData(user!.uid, sleepRemData.toString());
+    }
+  }
+  
+  void processSleepAwakeData(User? user, HealthDataPoint dataPoint) {
+    if (dataPoint.type == HealthDataType.SLEEP_AWAKE) {
+      double sleepAwakeData = double.parse(dataPoint.value.toString());
+      saveSleepAwakeData(user!.uid, sleepAwakeData.toString());
+    }
+  }
   // Data fetch from health connect //
 
   Future<void> saveCalories(String userId, int userStep) async {
@@ -550,148 +425,85 @@ class _HomePageState extends State<HomePage> {
 
   // Data fetch from firebase //
 
-  Future<void> fetchStepsData(DateTime date) async {
+  Future<void> fetchDataForDate(DateTime date, String dataType) async {
     final today = date;
     User? user = FirebaseAuth.instance.currentUser;
+    String userId = user?.uid ?? "";
 
-    String userId = "";
-    int stepsTotal = 0;
-  
+    double total = 0;
+
     if (user != null) {
-      userId = user.uid;
-      for (int i = 0; i <= 23 ; i++) {
-        String databasePath = 'health/$userId/steps/${today.year}-${today.month}-${today.day}/$i';
-        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+      final List<Future<void>> futures = [];
 
-        if(dataSnapshot.value != null) {
-          int steps = int.parse(dataSnapshot.value.toString());
-          stepsTotal += steps;
-        }     
-      }
-      if(mounted) {
-        setState(() {
-          stepsTotalRightNow = stepsTotal.toString();
-        });
-      }
-      
-      debugPrint("Steps Total for Today: $stepsTotal");  
-    }
-  }
+      for (int i = (dataType == 'heart_rate' || dataType == 'blood_oxygen') ? 24 : 0;
+          (dataType == 'heart_rate' || dataType == 'blood_oxygen') ? i > 0 : i <= 23;
+          (dataType == 'heart_rate' || dataType == 'blood_oxygen') ? i-- : i++) {
+        String databasePath = 'health/$userId/$dataType/${today.year}-${today.month}-${today.day}/$i';
 
-  Future<void> fetchCaloriesData(DateTime date) async {
-    final today = date;
-    User? user = FirebaseAuth.instance.currentUser;
+        futures.add(FirebaseDatabase.instance.ref().child(databasePath).once().then((DatabaseEvent databaseEvent) {
+          DataSnapshot dataSnapshot = databaseEvent.snapshot;
 
-    String userId = "";
-    double caloriesTotal = 0;
-  
-    if (user != null) {
-      userId = user.uid;
-      for (int i = 0; i <= 23 ; i++) {
-        String databasePath = 'health/$userId/calories/${today.year}-${today.month}-${today.day}/$i';
-        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
-
-        if(dataSnapshot.value != null) {
-          double calories = double.parse(dataSnapshot.value.toString());
-          caloriesTotal += calories;
-        }     
-      }
-      if(mounted) {
-        setState(() {
-          caloriesburnRightNow = caloriesTotal.toString();
-        });
-      }
-      
-      debugPrint("Calories Total for Today: $caloriesTotal");  
-    }
-  }
-
-  Future<void> fetchHeartRateData(DateTime date) async {
-    final today = date;
-    User? user = FirebaseAuth.instance.currentUser;
-
-    String userId = "";
-  
-    if (user != null) {
-      userId = user.uid;
-      for (int i = 24; i > 0; i--) {
-        String databasePath = 'health/$userId/heart_rate/${today.year}-${today.month}-${today.day}/$i';
-        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
-
-        if(dataSnapshot.value != null) {
-          int heartRate = int.parse(dataSnapshot.value.toString());
-
-          if(heartRate > 0) {
-          if(mounted) {
-              setState(() {
-                heartRateRightNow = heartRate.toString();
-              });
-            }          
-            debugPrint("Heart Rate Today: $heartRate");
-            break;
-          }
-        }
-      }     
-    }
-  }
-
-  Future<void> fetchBloodOxygenData(DateTime date) async {
-    final today = date;
-    User? user = FirebaseAuth.instance.currentUser;
-
-    String userId = "";
-  
-    if (user != null) {
-      userId = user.uid;
-      for (int i = 24; i > 0; i--) {
-        String databasePath = 'health/$userId/blood_oxygen/${today.year}-${today.month}-${today.day}/$i';
-        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
-
-        if(dataSnapshot.value != null) {
-          double bloodOxygen = double.parse(dataSnapshot.value.toString());
-
-          if(bloodOxygen > 0) {
-            if(mounted) {
-              setState(() {
-                bloodOxygenRightNow = bloodOxygen.toString();
-                bloodOxygenRightNow = '$bloodOxygenRightNow%';
-              });        
+          if (dataSnapshot.value != null) {
+            if (dataType == 'steps' || dataType == 'calories') {
+              total += int.parse(dataSnapshot.value.toString());
+            } else if (dataType == 'heart_rate') {
+              int heartRate = int.parse(dataSnapshot.value.toString());
+              if (heartRate > 0) {
+                if (mounted) {
+                  setState(() {
+                    heartRateRightNow = heartRate.toString();
+                  });
+                }
+                debugPrint("Heart Rate Today: $heartRate");
+                return;
+              }
+            } else if (dataType == 'blood_oxygen') {
+              double bloodOxygen = double.parse(dataSnapshot.value.toString());
+              if (bloodOxygen > 0) {
+                if (mounted) {
+                  setState(() {
+                    bloodOxygenRightNow = bloodOxygen.toString();
+                    bloodOxygenRightNow = '$bloodOxygenRightNow%';
+                  });
+                }
+                debugPrint("Blood Oxygen Today: $bloodOxygen");
+                return;
+              }
+            } else if (dataType == 'sleep_session') {
+              Map<String, dynamic> sleepData = (dataSnapshot.value as Map<dynamic, dynamic>).cast<String, dynamic>();
+              if (sleepData['total'] != null) {
+                int sleepSession = int.parse(sleepData['total'].toString());
+                if (mounted) {
+                  setState(() {
+                    sleepTotalRightNow = sleepSession.toString();
+                  });
+                }
+                debugPrint('Fetched Sleep data: $sleepSession');
+                return;
+              } else {
+                debugPrint('Sleep data total is null or has an unexpected type.');
+              }
             }
-            debugPrint("Blood Oxygen Today: $bloodOxygen");
-            break;
           }
+        }));
+      }
+
+      await Future.wait(futures);
+
+      if (dataType == 'steps') {
+        if (mounted) {
+          setState(() {
+            stepsTotalRightNow = total.toString();
+          });
         }
-      }     
-    }
-  }
-  
-  Future<void> fetchSleepDataFirebase(DateTime date) async {
-    final today = date;
-    User? user = FirebaseAuth.instance.currentUser;
-
-    if (user != null) {
-      String userId = user.uid;
-      String databasePath = 'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/';
-
-      DatabaseEvent databaseEvent = await FirebaseDatabase.instance.ref().child(databasePath).once();
-      if (databaseEvent.snapshot.value != null) {
-        Map<String, dynamic> sleepData = (databaseEvent.snapshot.value as Map<dynamic, dynamic>).cast<String, dynamic>();
-
-        if (sleepData['total'] != null) {
-          int sleepSession = int.parse(sleepData['total'].toString());
-
-          if(mounted) {
-            setState(() {
-              sleepTotalRightNow = sleepSession.toString();          
-            });
-          }
-          
-          debugPrint('Fetched Sleep data: $sleepSession');
-        } else {
-          debugPrint('Sleep data total is null or has an unexpected type.');
+        debugPrint("Steps Total for Today: $total");
+      } else if (dataType == 'calories') {
+        if (mounted) {
+          setState(() {
+            caloriesburnRightNow = total.toString();
+          });
         }
-      } else {
-        debugPrint('Snapshot value is null.');
+        debugPrint("Calories Total for Today: $total");
       }
     }
   }
@@ -728,6 +540,7 @@ class _HomePageState extends State<HomePage> {
       initialDate: selectedDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2030),
+      
     );
     if (pickedDate != null && pickedDate != selectedDate) {
       if(mounted) {
@@ -736,11 +549,7 @@ class _HomePageState extends State<HomePage> {
         });
       }
       
-      fetchStepsData(selectedDate);
-      fetchCaloriesData(selectedDate);
-      fetchHeartRateData(selectedDate);
-      fetchBloodOxygenData(selectedDate);
-      fetchSleepDataFirebase(selectedDate);
+      
     }
   }
 
@@ -751,23 +560,22 @@ class _HomePageState extends State<HomePage> {
    setState(() {
       selectedDate = DateTime.now();
       selectedDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
-
-      // fetchStep(selectedDate);
-      // fetchHeartRate(selectedDate);
-      // fetchBloodOxygen(selectedDate);
-
-      // fetchSleepData(selectedDate);
-      // fetchSleepDeepData(selectedDate);
-      // fetchSleepLightData(selectedDate);
-      // fetchSleepRemData(selectedDate);
-      // fetchSleepAwakeData(selectedDate);
-
-      fetchStepsData(selectedDate);
-      fetchCaloriesData(selectedDate);
-      fetchHeartRateData(selectedDate);
-      fetchBloodOxygenData(selectedDate);
-      fetchSleepDataFirebase(selectedDate);
    });
+
+    // fetchDataFromHealthConnect(selectedDate, HealthDataType.STEPS);
+    // fetchDataFromHealthConnect(selectedDate, HealthDataType.HEART_RATE);
+    // fetchDataFromHealthConnect(selectedDate, HealthDataType.BLOOD_OXYGEN);
+    // fetchDataFromHealthConnect(selectedDate, HealthDataType.SLEEP_SESSION);
+    // fetchDataFromHealthConnect(selectedDate, HealthDataType.SLEEP_DEEP);
+    // fetchDataFromHealthConnect(selectedDate, HealthDataType.SLEEP_LIGHT);
+    // fetchDataFromHealthConnect(selectedDate, HealthDataType.SLEEP_REM);
+    // fetchDataFromHealthConnect(selectedDate, HealthDataType.SLEEP_AWAKE);
+
+    fetchDataForDate(selectedDate, 'steps');
+    fetchDataForDate(selectedDate, 'calories');
+    fetchDataForDate(selectedDate, 'heart_rate');
+    fetchDataForDate(selectedDate, 'blood_oxygen');
+    fetchDataForDate(selectedDate, 'sleep_session');
     
    _fetchProfilePictureUrl();
   }
@@ -783,7 +591,7 @@ class _HomePageState extends State<HomePage> {
     final String currentMonth = DateFormat('MMMM').format(selectedDate);
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -833,7 +641,9 @@ class _HomePageState extends State<HomePage> {
                         heroTag: 'btn1',
                         backgroundColor:
                             const Color.fromARGB(255, 255, 241, 245),
-                        onPressed: _showDatePicker,
+                        onPressed: () {
+                          _showDatePicker();
+                        },
                         shape: const CircleBorder(),
                         child: const Icon(
                           Icons.calendar_month_rounded,
@@ -884,152 +694,26 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Column(
                       children: [
-                        SizedBox(
-                          width: 145 * screenWidth / 375,
-                          height: 62 * screenHeight / 375,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const CaloriesPage(),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              elevation: 0,
-                              shadowColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                side: const BorderSide(
-                                  color: Color.fromARGB(50, 158, 158, 158),
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(height: 10 * screenHeight / 375),
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    SizedBox(height: 10 * screenHeight / 375),
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'Calories',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 11,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        SizedBox(width: 35 * screenWidth / 375),
-                                        Image(
-                                          image: const AssetImage(
-                                              'assets/images/flame.png'),
-                                          width: 20 * screenWidth / 375,
-                                          height: 10 * screenHeight / 375,
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 15 * screenHeight / 375),
-                                    Text(
-                                      caloriesburnRightNow,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    const Text(
-                                      'kcal',
-                                      style: TextStyle(
-                                        fontStyle: FontStyle.italic,
-                                        fontSize: 10,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
+                        HealthButtonSmall(
+                          screenWidth: screenWidth, 
+                          screenHeight: screenHeight, 
+                          gap: 17.9,
+                          buttonText: 'Calories', 
+                          imageAsset: 'assets/images/flame.png', 
+                          caloriesValue: caloriesburnRightNow, 
+                          destinationPageRoute: 'calories_page',
                         ),
+                        
                         SizedBox(height: 5 * screenHeight / 375),
-                        SizedBox(
-                          width: 145 * screenWidth / 375,
-                          height: 62 * screenHeight / 375,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const StepsPage()
-                                )
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              elevation: 0,
-                              shadowColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                side: const BorderSide(
-                                  color: Color.fromARGB(50, 158, 158, 158),
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(height: 10 * screenHeight / 375),
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    SizedBox(height: 10 * screenHeight / 375),
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'Steps',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 11,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        SizedBox(width: 35 * screenWidth / 375),
-                                        Image(
-                                          image: const AssetImage(
-                                              'assets/images/icon-Z93.png'),
-                                          width: 20 * screenWidth / 375,
-                                          height: 10 * screenHeight / 375,
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 15 * screenHeight / 375),
-                                    Text(
-                                      stepsTotalRightNow,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    const Text(
-                                      'Steps',
-                                      style: TextStyle(
-                                        fontStyle: FontStyle.italic,
-                                        fontSize: 10,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
+
+                        HealthButtonSmall(
+                          screenWidth: screenWidth, 
+                          screenHeight: screenHeight, 
+                          gap: 23.5,
+                          buttonText: 'Steps', 
+                          imageAsset: 'assets/images/icon-Z93.png', 
+                          caloriesValue: stepsTotalRightNow, 
+                          destinationPageRoute: 'steps_page',
                         ),
                       ],
                     ),
@@ -1117,153 +801,26 @@ class _HomePageState extends State<HomePage> {
                         SizedBox(
                           width: 38 * screenWidth / 375,
                         ),
-                        SizedBox(
-                          width: 145 * screenWidth / 375,
-                          height: 62 * screenHeight / 375,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,MaterialPageRoute(
-                                  builder: (context) =>
-                                    const BloodOxygenPage()
-                                )
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              elevation: 0,
-                              shadowColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                side: const BorderSide(
-                                  color: Color.fromARGB(50, 158, 158, 158),
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    SizedBox(height: 10 * screenHeight / 375),
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'Blood Oxygen',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 11,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        SizedBox(width: 1 * screenWidth / 375),
-                                        Image(
-                                          image: const AssetImage(
-                                              'assets/images/pressure.png'),
-                                          width: 20 * screenWidth / 375,
-                                          height: 10 * screenHeight / 375,
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 16 * screenHeight / 375),
-                                    Text(
-                                      bloodOxygenRightNow,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    const Text(
-                                      'SpO2',
-                                      style: TextStyle(
-                                        fontStyle: FontStyle.italic,
-                                        fontSize: 10,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
+                        HealthButtonSmall(
+                          screenWidth: screenWidth, 
+                          screenHeight: screenHeight,
+                          gap: 4.8, 
+                          buttonText: 'Blood Oxygen', 
+                          imageAsset: 'assets/images/pressure.png', 
+                          caloriesValue: bloodOxygenRightNow, 
+                          destinationPageRoute: 'bloodoxygen_page',
                         ),
+
                         SizedBox(width: 10 * screenWidth / 375),
-                        SizedBox(
-                          width: 145 * screenWidth / 375,
-                          height: 62 * screenHeight / 375,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,MaterialPageRoute(
-                                  builder: (context) =>
-                                    const SleepPage()
-                                )
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              elevation: 0,
-                              shadowColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                side: const BorderSide(
-                                  color: Color.fromARGB(50, 158, 158, 158),
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                const SizedBox(width: 0, height: 10),
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    const SizedBox(height: 20),
-                                    const Row(
-                                      children: [
-                                        Text(
-                                          'Sleep Tracker',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 11,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 7,
-                                        ),
-                                        Image(
-                                          image: AssetImage(
-                                              'assets/images/star.png'),
-                                          width: 20,
-                                          height: 20,
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 42),
-                                    Text(
-                                      sleepTotalRightNow,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    const Text(
-                                      'Sleep Session',
-                                      style: TextStyle(
-                                        fontStyle: FontStyle.italic,
-                                        fontSize: 10,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
+
+                        HealthButtonSmall(
+                          screenWidth: screenWidth, 
+                          screenHeight: screenHeight,
+                          gap: 5, 
+                          buttonText: 'Sleep Tracker', 
+                          imageAsset: 'assets/images/star.png', 
+                          caloriesValue: sleepTotalRightNow, 
+                          destinationPageRoute: 'sleeptracker_page',
                         ),
                       ],
                     ),
@@ -1350,7 +907,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-      ),
+      ).animate().fadeIn(duration: 600.ms)// begin=1
     );
   }
 }
