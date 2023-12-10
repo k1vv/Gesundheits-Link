@@ -48,7 +48,7 @@ class _SleepPage extends State<SleepPage> {
 
   List<BarChartGroupData> barGroups = [];
 
-  Map<String, dynamic> dataMap = {};                                                                                   ///////////////////////////////////////////////////////////////
+                                                                           ///////////////////////////////////////////////////////////////
   
   // Fetch Data Weekly //
 
@@ -60,13 +60,11 @@ class _SleepPage extends State<SleepPage> {
     if (user != null) {
       userId = user.uid;
       DateTime startOfPeriod = today.subtract(const Duration(days: 6));
-      DateTime endOfPeriod = today;
-      String startOfPeriodStr = '${startOfPeriod.year}-${startOfPeriod.month}-${startOfPeriod.day}';
-      String endOfPeriodStr = '${endOfPeriod.year}-${endOfPeriod.month}-${endOfPeriod.day}';
       String databasePath = 'health/$userId/sleep_session/';
-      DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).orderByKey().startAt(startOfPeriodStr).endAt(endOfPeriodStr).once()).snapshot;
+      
+      DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
 
-      if (dataSnapshot.value is Map) {
+      if (dataSnapshot.value != null) {
         Map<String, dynamic> dataMap = Map<String, dynamic>.from(dataSnapshot.value as Map<dynamic, dynamic>);
         sleepWeeklyDataList = List.generate(7, (index) {
 
@@ -120,6 +118,8 @@ class _SleepPage extends State<SleepPage> {
             });
           });
         }
+      } else {
+        debugPrint("Error Encountered");
       }
     }
   }
@@ -375,23 +375,174 @@ class _SleepPage extends State<SleepPage> {
             ],
           ),
           SizedBox(height: 10 * screenHeight / 375),
-            Container(
-              color: Colors.grey,
-              width: 200 * screenWidth / 375,
-              height: 100 * screenHeight / 375,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Date From: $dateFrom"),
-                  Text("Date To: $dateTo"),
-
-                  Text("Sleep Deep : $sleepDeep"),
-                  Text("Sleep Light : $sleepLight"),
-                  Text("Sleep Rem : $sleepRem"),
-                  Text("Sleep Awake: $sleepAwake"),
-
-                  Text("Sleep Debt: ${calculateSleepDebt(sleepDeep + sleepLight + sleepRem + sleepAwake, 360)} minutes"),
-                ],
+            Material(
+              color: const Color.fromARGB(255, 255,192,203),
+              borderRadius: BorderRadius.circular(15),
+              elevation: 10,
+              child: Container(
+                width: 325 * screenWidth / 375,
+                height: 125 * screenHeight / 375,
+                padding: EdgeInsets.only(
+                  left: 25 * screenWidth / 375,
+                  right: 25 * screenWidth / 375,
+                  top: 10 * screenHeight / 375,
+                  bottom: 10 * screenHeight / 375,
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      child: const Text(
+                        "Your Sleep Data :", 
+                        textAlign: TextAlign.start,
+                        style: TextStyle(
+                          fontFamily: 'Arial', 
+                          fontWeight: FontWeight.bold, 
+                          fontSize: 18
+                        ),
+                      )
+                    ),
+                    SizedBox(height: 5 * screenHeight / 375,),
+                    Row(
+                      children: [
+                        const Text(
+                          "Date From :", 
+                          style: TextStyle(
+                            fontFamily: 'Arial', 
+                            fontSize: 16
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          dateFrom, 
+                          style: const TextStyle(
+                            fontFamily: 'Arial', 
+                            fontSize: 16
+                          ),
+                        )
+                      ],
+                    ),
+                    SizedBox(height: 2 * screenHeight / 375,),
+                    Row(
+                      children: [
+                        const Text(
+                          "Date To :", 
+                          style: TextStyle(
+                              fontFamily: 'Arial', 
+                              fontSize: 16
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          dateTo, 
+                          style: const TextStyle(
+                            fontFamily: 'Arial', 
+                            fontSize: 16
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 2 * screenHeight / 375,), 
+                    Row(
+                      children: [
+                        const Text(
+                          "Sleep Deep : ", 
+                          style: TextStyle(
+                              fontFamily: 'Arial', 
+                              fontSize: 16
+                          ),),
+                        const Spacer(),
+                        Text(
+                          "$sleepDeep minutes", 
+                          style: const TextStyle(
+                            fontFamily: 'Arial', 
+                            fontSize: 16
+                          ),
+                        )
+                      ],
+                    ),
+                    SizedBox(height: 2 * screenHeight / 375,),
+                    Row(
+                      children: [
+                        const Text(
+                          "Sleep Light : ",
+                          style: TextStyle(
+                            fontFamily: 'Arial', 
+                            fontSize: 16
+                          ), 
+                        ),
+                        const Spacer(),
+                        Text(
+                          "$sleepLight minutes", 
+                          style: const TextStyle(
+                            fontFamily: 'Arial', 
+                            fontSize: 16
+                          ),
+                        )
+                      ],
+                    ),
+                    SizedBox(height: 2 * screenHeight / 375,),
+                    Row(
+                      children: [
+                        const Text(
+                          "Sleep Rem : ",
+                          style: TextStyle(
+                            fontFamily: 'Arial', 
+                            fontSize: 16
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          "$sleepRem minutes", 
+                          style: const TextStyle(
+                            fontFamily: 'Arial', 
+                            fontSize: 16
+                          ),
+                        )
+                      ],
+                    ),
+                    SizedBox(height: 2 * screenHeight / 375,),
+                    Row(
+                      children: [
+                        const Text(
+                          "Sleep Awake : ",
+                          style: TextStyle(
+                            fontFamily: 'Arial', 
+                            fontSize: 16
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          "$sleepAwake minutes", 
+                          style: const TextStyle(
+                            fontFamily: 'Arial', 
+                            fontSize: 16
+                          ),
+                        )
+                      ],
+                    ),
+                    SizedBox(height: 2 * screenHeight / 375,),
+                    Row(
+                      children: [
+                        const Text(
+                          "Sleep Debt: ",
+                          style: TextStyle(
+                            fontFamily: 'Arial', 
+                            fontSize: 16
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          "${calculateSleepDebt(sleepDeep + sleepLight + sleepRem + sleepAwake, 360)} minutes", 
+                          style: const TextStyle(
+                            fontFamily: 'Arial', 
+                            fontSize: 16
+                          ),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
               ),
             )
         ]),

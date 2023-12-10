@@ -16,24 +16,11 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  late PageController _pageController;
   int currentIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    currentIndex = widget.initialIndex;
-    _pageController = PageController(initialPage: currentIndex);
-  }
 
   void onTap(int index) {
     setState(() {
       currentIndex = index;
-      _pageController.animateToPage(
-        index,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
     });
   }
 
@@ -41,13 +28,8 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
+      body: IndexedStack(
+        index: currentIndex,
         children: const [
           HomePage(),
           Habits(),
@@ -70,21 +52,18 @@ class _MainPageState extends State<MainPage> {
           showUnselectedLabels: false,
           elevation: 0,
           items: [
-            const BottomNavigationBarItem(
-                label: "Home", icon: Icon(Icons.home)),
-            const BottomNavigationBarItem(
-                label: "HABITS", icon: Icon(Icons.directions_run)),
+            const BottomNavigationBarItem(label: "Home", icon: Icon(Icons.home)),
+            const BottomNavigationBarItem(label: "HABITS", icon: Icon(Icons.directions_run)),
             BottomNavigationBarItem(
-                label: "WATCH",
-                icon: Image.asset(
-                  "assets/images/watch.png",
-                  width: 60,
-                  height: 60,
-                )),
-            const BottomNavigationBarItem(
-                label: "ROUTE", icon: Icon(Icons.location_on_rounded)),
-            const BottomNavigationBarItem(
-                label: "Settings", icon: Icon(Icons.settings)),
+              label: "WATCH",
+              icon: Image.asset(
+                "assets/images/watch.png",
+                width: 60,
+                height: 60,
+              ),
+            ),
+            const BottomNavigationBarItem(label: "ROUTE", icon: Icon(Icons.location_on_rounded)),
+            const BottomNavigationBarItem(label: "Settings", icon: Icon(Icons.settings)),
           ],
         ),
       ),

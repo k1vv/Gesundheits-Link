@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:myapp/UI/Main/main_page.dart';
 import 'package:myapp/UI/Welcome/login_page.dart';
 import 'package:image_picker/image_picker.dart';
@@ -626,7 +627,7 @@ class _SettingsState extends State<Settings> {
                     ),
                   ),
                 SizedBox(height: 5.3 * screenHeight / 375,),
-                Image.asset("assets/images/hemi.png")
+                Image.asset("assets/images/hemi.png").animate().fadeIn(duration: 3000.ms)
               ],
             ),
           ),

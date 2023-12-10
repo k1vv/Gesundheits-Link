@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:health/health.dart';
-import 'package:myapp/UI/Main/home_page.dart';
+import 'package:flutter/material.dart';
 import 'package:myapp/UI/Main/utils.dart';
+import 'package:myapp/UI/Main/home_page.dart';
 import 'package:myapp/UI/Welcome/login_page.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -16,7 +16,7 @@ class Welcome extends StatefulWidget {
 
 class _WelcomeState extends State<Welcome> {
 
-    // ignore: prefer_final_fields, unused_field
+  // ignore: prefer_final_fields, unused_field
   List<HealthDataPoint> _healthDataList = [];
   // ignore: unused_field
   AppState _state = AppState.DATA_NOT_FETCHED;
@@ -30,24 +30,28 @@ class _WelcomeState extends State<Welcome> {
   HealthFactory health = HealthFactory(useHealthConnectIfAvailable: true);
 
   Future authorize() async {
+    try {
+      await Permission.activityRecognition.request();
+      await Permission.location.request();
 
-    await Permission.activityRecognition.request();
-    await Permission.location.request();
+      bool? hasPermissions = await health.hasPermissions(types, permissions: permissions);
+      hasPermissions = false;
 
-    bool? hasPermissions = await health.hasPermissions(types, permissions: permissions);
-    hasPermissions = false;
-
-    bool authorized = false;
-    if (!hasPermissions) {
-      try {
-        authorized =
-            await health.requestAuthorization(types, permissions: permissions);
-      } catch (error) {
-        debugPrint("Exception in authorize: $error");
+      bool authorized = false;
+      if (!hasPermissions) {
+        try {
+          authorized = await health.requestAuthorization(types, permissions: permissions);
+        } catch (error) {
+          debugPrint("Exception in authorize: $error");
+        }
       }
+      setState(() => _state = (authorized) ? AppState.AUTHORIZED : AppState.AUTH_NOT_GRANTED);
+    } catch (error) {
+      SnackBar(
+        content: Text('Your message here $error'),
+        duration: const Duration(seconds: 3)
+      );
     }
-    setState(() => _state =
-        (authorized) ? AppState.AUTHORIZED : AppState.AUTH_NOT_GRANTED);
   }
 
   @override
@@ -63,8 +67,8 @@ class _WelcomeState extends State<Welcome> {
         children: [
           // Background Image
           Image.asset(
-            'assets/images/wallpaper.png', // Replace with your image asset path
-            fit: BoxFit.cover, // Adjust this to your needs
+            'assets/images/wallpaper.png',
+            fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
           ),

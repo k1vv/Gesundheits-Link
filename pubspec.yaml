@@ -84,6 +84,7 @@ dependencies:
   gauge_indicator: ^0.4.3
   kdgaugeview: ^1.0.5
   flutter_animate: ^4.3.0
+  screenshot: ^2.1.0
 
   
 dev_dependencies:

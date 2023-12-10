@@ -75,11 +75,20 @@ static Future<void> scheduleNotifications() async {
         title: 'Anytime Message',
         body: 'You still have unfinished habits',
         payload: 'Scheduled Notification Payload',
-        delay: delay,
+        delay: delay,  
       );
       debugPrint("success");
     } else if (now.hour > 19) {
-      continue;
+      DateTime targetTime = now.add(const Duration(minutes: 1));
+      Duration delay = targetTime.difference(now);
+
+      LocalNotifications.showScheduleNotification(
+        title: 'You Have unfinished Habits',
+        body: 'Drink Water \n\n Finish your habit now',
+        payload: 'Scheduled Notification Payload',
+        delay: delay,
+      );
+      debugPrint("success");
     } 
   }
 }

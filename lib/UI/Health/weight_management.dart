@@ -13,6 +13,11 @@ class WeightManagementPage extends StatefulWidget {
 
 class _WeightManagementPageState extends State<WeightManagementPage> {
 
+  String selectedGoal = 'Gain';
+  TextEditingController weightController = TextEditingController();
+  TextEditingController calorieController = TextEditingController();
+
+
   bool isDeficit = false;
   bool gainLost = true;
 
@@ -146,7 +151,7 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
     }
   }
 
-  Future<void> saveWeightsGoals (double initialWeight, double weightGoals, bool earnLost) async {
+  Future<void> saveWeightsGoals (double initialWeight, double weightGoals, String earnLost) async {
     try {
       User? user = FirebaseAuth.instance.currentUser;
 
@@ -209,11 +214,39 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
 
   Future<void> fetchWeightGoals() async {
     try {
-      User? user = FirebaseAuth.instance.currentUser;
-      final today = DateTime.now();
+      User? user = FirebaseAuth.instance.currentUser;      
 
       if(user != null) {
+        String userId = user.uid;
+        final databasePath = 'health/$userId/health_goal/weights_goal/';
 
+        final DatabaseReference databaseReference = FirebaseDatabase.instance.ref();
+        DataSnapshot dataSnapshot = await databaseReference.child(databasePath).get();
+
+        if (dataSnapshot.exists) {
+          Map<dynamic, dynamic> values = dataSnapshot.value as Map<dynamic, dynamic>;
+          double initialWeights = double.tryParse(values['inital_weight'].toString()) ?? 0.0;
+          double weightGoalss = double.tryParse(values['weight_goals'].toString()) ?? 0.0;
+          String goalsType = values['goals_type'].toString();
+
+          initialWeight = "${initialWeights.toStringAsFixed(2)} KG";
+          targetedWeight = "${weightGoalss.toStringAsFixed(2)} KG";
+
+          if(goalsType == "Loss") {
+            if(mounted) {
+              setState(() {
+                gainLost = true;
+              });
+            }        
+          } else {
+            if(mounted) {
+              setState(() {
+                gainLost = false;
+              });
+            }
+          }
+          calculateTotalProgress(initialWeights, currentWeight);
+        }
       }
     } catch (error) {
       debugPrint("Error Encountered when fetching goals: $error");
@@ -266,7 +299,7 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
 
           totalCaloriesConsumed = sum.toString();
 
-          debugPrint("Your Calories Consumed : $activeCaloriesBurn");
+          debugPrint("Your Calories Consumed : $totalCaloriesConsumed");
         }
       }
     } catch (error) {
@@ -382,11 +415,24 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
     debugPrint("Total calories: $totalCaloriesBurn");
   }
 
+  Future<void> calculateTotalProgress (double initialweightss, double currentweightss) async {
+    try{
+      if(gainLost == true) {
+        totalLostGain = "${(initialweightss - currentweightss).toStringAsFixed(2)} KG";
+      } else {
+        totalLostGain = "${(currentweightss - initialweightss).toStringAsFixed(2)} KG";
+      }
+    } catch (error) {
+      debugPrint ("Error Encountered: $error");
+    }
+  }
+
   Future<void> fetchData () async {
 
     await fetchBodyMeasurements();
     await fetchActiveCaloriesBurn();
     await fetchCaloriesConsumed();
+    await fetchWeightGoals();
 
   }
 
@@ -409,13 +455,10 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
 
   }
 
-  void showGoalsAlertDialog(BuildContext context, double screenHeight, double screenWidth) {
-    // Define a boolean flag to determine whether to show the "Enter Calories" TextField
-    bool showEnterCalories = false;
-  
-    // Define a variable to store the selected goal
-    String selectedGoal = 'Initial Weight';
-  
+    void addWeightRecord(BuildContext context, double screenHeight, double screenWidth) {
+
+    TextEditingController currentWeightController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -428,54 +471,20 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
           ),
         ),
         content: Container(
-          height: 150 * screenHeight / 375, // Adjust the height as needed
+          height: 100 * screenHeight / 375, // Adjust the height as needed
           padding: const EdgeInsets.only(
             left: 10,
             right: 10,
           ),
           child: Column(
             children: [
-              DropdownButton<String>(
-                value: selectedGoal,
-                onChanged: (String? newValue) {
-                  if (mounted) {
-                    setState(() {
-                      selectedGoal = newValue!;
-                    });
-                  }
-                },
-                items: <String>['Initial Weight', 'Enter Calories']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
+              TextField(
+                controller: currentWeightController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Current Weight',
+                ),
               ),
-              if (selectedGoal == 'Initial Weight')
-                TextField(
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  onChanged: (value) {
-                    if (mounted) {
-                      setState(() {
-                        // Handle the input for Initial Weight
-                      });
-                    }
-                  },
-                  decoration: const InputDecoration(labelText: 'Your Initial Weight'),
-                ),
-              if (selectedGoal == 'Enter Calories')
-                TextField(
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  onChanged: (value) {
-                    if (mounted) {
-                      setState(() {
-                        // Handle the input for Enter Calories
-                      });
-                    }
-                  },
-                  decoration: const InputDecoration(labelText: 'Enter Calories'),
-                ),
             ],
           ),
         ),
@@ -484,12 +493,108 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
             width: 225 * screenWidth / 375,
             child: TextButton(
               onPressed: () {
-                // Handle the button click based on the selected goal
-                if (selectedGoal == 'Initial Weight') {
-                
-                } else if (selectedGoal == 'Enter Calories') {
-                
-                }
+                String initialWeightText = weightController.text;
+                String weightGoalsText = calorieController.text;
+
+                double initialWeight = double.tryParse(initialWeightText) ?? 0.0;
+                double weightGoals = double.tryParse(weightGoalsText) ?? 0.0;
+
+                saveWeightsGoals(initialWeight, weightGoals, selectedGoal);
+
+                Navigator.pop(context);
+              },
+              child: const Text(
+                "Save",
+                style: TextStyle(
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void showGoalsAlertDialog(BuildContext context, double screenHeight, double screenWidth) {
+    // Define controllers for text fields
+    TextEditingController weightController = TextEditingController();
+    TextEditingController calorieController = TextEditingController();
+
+    // Define a variable to store the selected goal
+    String selectedGoal = 'Gain';
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text(
+          "Create Your Goals",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Arial',
+          ),
+        ),
+        content: Container(
+          height: 100 * screenHeight / 375, // Adjust the height as needed
+          padding: const EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: Column(
+            children: [
+              StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+                  return DropdownButton<String>(
+                    value: selectedGoal,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedGoal = newValue!;
+                      });
+                    },
+                    items: <String>['Gain', 'Loss'].map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
+
+              // Text field for weight
+              TextField(
+                controller: weightController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Initial Weight',
+                ),
+              ),
+
+              // Text field for calorie
+              TextField(
+                controller: calorieController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Target Weight',
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          SizedBox(
+            width: 225 * screenWidth / 375,
+            child: TextButton(
+              onPressed: () {
+                String initialWeightText = weightController.text;
+                String weightGoalsText = calorieController.text;
+
+                double initialWeight = double.tryParse(initialWeightText) ?? 0.0;
+                double weightGoals = double.tryParse(weightGoalsText) ?? 0.0;
+
+                saveWeightsGoals(initialWeight, weightGoals, selectedGoal);
+
                 Navigator.pop(context);
               },
               child: const Text(
