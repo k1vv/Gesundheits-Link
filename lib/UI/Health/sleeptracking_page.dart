@@ -1,12 +1,12 @@
 // ignore_for_file: unnecessary_null_comparison
 
 import 'dart:async';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:myapp/UI/Main/main_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:intl/intl.dart';
-import 'package:myapp/UI/Main/main_page.dart';
 
 class SleepPage extends StatefulWidget {
   const SleepPage({Key? key,}): super(key: key);
@@ -18,7 +18,7 @@ class SleepPage extends StatefulWidget {
 
 class _SleepPage extends State<SleepPage> {
 
-  double selectedValue = 0;                                                                                           ///////////////////////////////////////////////////////////////
+  double selectedValue = 0;                                                                 
 
   String dateKey = ''; 
 
@@ -47,8 +47,6 @@ class _SleepPage extends State<SleepPage> {
   List<int> sleepAwakeWeeklyDataList = [];          
 
   List<BarChartGroupData> barGroups = [];
-
-                                                                           ///////////////////////////////////////////////////////////////
   
   // Fetch Data Weekly //
 

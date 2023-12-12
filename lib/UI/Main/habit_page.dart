@@ -404,7 +404,7 @@ class _HabitsState extends State<Habits> {
                   ),
           ],
         ),
-      ).animate().fadeIn(duration: 1200.ms)
-    );
+      ),
+    ).animate().fadeIn(duration: 1200.ms);
   }
 }

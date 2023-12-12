@@ -42,6 +42,7 @@ class _TrackLocationState extends State<TrackLocation> {
   bool showWidgets1 = false;
   bool showWidgets2 = false;
   bool showWidgets3 = false;
+  bool shouldUpdateListeners = true;
 
   int secondsElapsed = 0;
 
@@ -55,6 +56,8 @@ class _TrackLocationState extends State<TrackLocation> {
   late Uint8List? imageBytes;
   late MapController mapController;
   late DatabaseReference databaseReference;
+  late DatabaseReference stopRef;
+  late DatabaseReference pauseRef;
   late DatabaseReference caloriesRef;
   late DatabaseReference distanceRef;
   late DatabaseReference heartRateRef;
@@ -319,13 +322,40 @@ class _TrackLocationState extends State<TrackLocation> {
   }
 
   void updateHeartRate(dynamic heartrate) {
-    double heartRateFetch = heartrate ?? 0;
-
-    String formattedHeartRate = heartRateFetch.toStringAsFixed(2);
+    int heartRateFetch = heartrate;
 
     setState(() {
       heartRateText = heartRateFetch.toString();
     });
+  }
+
+  void updateStatus(dynamic status) {
+    bool statusNow = status;
+
+    if(statusNow == false) {
+      stopRunning(); 
+    }
+  }
+
+  void updateRunStatus(dynamic status) {
+    bool statusNow = status;
+    if(statusNow == true) {
+      if(mounted) {
+        setState(() {
+          isRunning = false;
+          shouldUpdateListeners = false;
+        });
+      }
+    } else {
+      if(mounted) {
+        setState(() {
+          isRunning = true;
+          shouldUpdateListeners = true;
+        });
+      }    
+      startTimer();
+      startRunning();
+    }
   }
 
   @override
@@ -346,18 +376,37 @@ class _TrackLocationState extends State<TrackLocation> {
     databaseReference = FirebaseDatabase.instance.ref();
     userId = FirebaseAuth.instance.currentUser!.uid;
 
-    caloriesRef =
-        databaseReference.child('SmartWatch/1/ExerciseSessions/002/Calories');
-    distanceRef =
-        databaseReference.child('SmartWatch/1/ExerciseSessions/002/Distance');
+    caloriesRef = databaseReference.child('SmartWatch/1/ExerciseSessions/002/Calories');
+    distanceRef = databaseReference.child('SmartWatch/1/ExerciseSessions/002/Distance');
+    heartRateRef = databaseReference.child('SmartWatch/1/ExerciseSessions/002/HeartRate');
+
+    stopRef = databaseReference.child('ExerciseStatus');
+    pauseRef = databaseReference.child('RunStatus');
 
     caloriesRef.onValue.listen((DatabaseEvent event) {
+      if (!shouldUpdateListeners) return; // Check shouldUpdateListeners before updating
       dynamic caloriesValue = event.snapshot.value;
       updateCalories(caloriesValue);
     });
+
     distanceRef.onValue.listen((DatabaseEvent event) {
+      if (!shouldUpdateListeners) return; // Check shouldUpdateListeners before updating
       dynamic distanceValue = event.snapshot.value;
       updateDistance(distanceValue);
+    });
+
+    heartRateRef.onValue.listen((DatabaseEvent event) {
+      if (!shouldUpdateListeners) return; // Check shouldUpdateListeners before updating
+      dynamic heartRateValue = event.snapshot.value;
+      updateHeartRate(heartRateValue);
+    });
+    stopRef.onValue.listen((DatabaseEvent event) {
+      dynamic stopRun = event.snapshot.value;
+      updateStatus(stopRun);
+    });
+    pauseRef.onValue.listen((DatabaseEvent event) {
+      dynamic pauseRun = event.snapshot.value;
+      updateRunStatus(pauseRun);
     });
   }
 
@@ -372,7 +421,7 @@ class _TrackLocationState extends State<TrackLocation> {
               children: [
                 SizedBox(
                   height: isMapExpanded ? 650 : 475,
-                  width: 360,
+                  width: double.infinity,
                   child: FlutterMap(
                     mapController: mapController,
                     options: MapOptions(
@@ -531,22 +580,27 @@ class _TrackLocationState extends State<TrackLocation> {
                               ],
                             )),
                         Visibility(
-                            visible: showWidgets1,
+                          visible: showWidgets1,
                             child: Column(
                               children: [
                                 const SizedBox(
                                   height: 30,
                                 ),
                                 SizedBox(
-                                    width: 180,
-                                    height: 24,
-                                    child: Text(userPace,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                            fontFamily: 'Arial',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20,
-                                            color: Colors.black))),
+                                  width: 180,
+                                  height: 24,
+                                  child: 
+                                  Text(
+                                    userPace,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontFamily: 'Arial',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      color: Colors.black
+                                    )
+                                  )
+                                ),
                                 const SizedBox(
                                   width: 180,
                                   height: 50,
@@ -556,106 +610,146 @@ class _TrackLocationState extends State<TrackLocation> {
                                     style: TextStyle(
                                         fontFamily: 'Arial',
                                         fontSize: 12,
-                                        color: Color.fromARGB(110, 0, 0, 0)),
+                                        color: Color.fromARGB(110, 0, 0, 0)
                                   ),
-                                )
-                              ],
-                            )),
+                                ),
+                              )
+                            ],
+                          )
+                        ),
                       ],
                     ),
                     Visibility(
-                      visible: showWidgets2,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 60,
-                            height: 60,
-                            child: ElevatedButton(
-                              onPressed: () {},
-                              onLongPress: () {
-                                setState(() {
-                                  showWidgets2 = !showWidgets2;
-                                  showWidgets3 = !showWidgets3;
-                                  isRunning = false;
-                                });
-                              },
-                              style: ElevatedButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  elevation: 0,
-                                  shadowColor: Colors.transparent,
-                                  foregroundColor: Colors.white,
-                                  backgroundColor: Colors.transparent,
-                                  surfaceTintColor: Colors.transparent),
-                              child: Image.asset(
-                                'assets/images/pause.png',
-                                width: 60,
-                                height: 60,
-                                fit: BoxFit.fill,
-                              ),
-                            ),
+                          visible: showWidgets1,
+                            child: Column(
+                              children: [
+                                const SizedBox(
+                                  height: 30,
+                                ),
+                                SizedBox(
+                                  width: 180,
+                                  height: 24,
+                                  child: 
+                                  Text(
+                                    heartRateText,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontFamily: 'Arial',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      color: Colors.black
+                                    )
+                                  )
+                                ),
+                                const SizedBox(
+                                  width: 180,
+                                  height: 50,
+                                  child: Text(
+                                    'Heart Rate',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontFamily: 'Arial',
+                                        fontSize: 12,
+                                        color: Color.fromARGB(110, 0, 0, 0)
+                                  ),
+                                ),
+                              )
+                            ],
                           )
-                        ],
-                      ),
-                    ),
-                    Visibility(
-                      visible: showWidgets3,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 60,
-                            height: 60,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                stopRunning();
-                              },
-                              style: ElevatedButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  elevation: 0,
-                                  shadowColor: Colors.transparent,
-                                  foregroundColor: Colors.white,
-                                  backgroundColor: Colors.transparent,
-                                  surfaceTintColor: Colors.transparent),
-                              child: Image.asset(
-                                'assets/images/stop.png',
-                                width: 60,
-                                height: 60,
-                                fit: BoxFit.fill,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 60,
-                            height: 60,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  showWidgets3 = !showWidgets3;
-                                  showWidgets2 = !showWidgets2;
-                                  isRunning = true;
-                                });
-                                startTimer();
-                                startRunning();
-                              },
-                              style: ElevatedButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  elevation: 0,
-                                  shadowColor: Colors.transparent,
-                                  foregroundColor: Colors.white,
-                                  backgroundColor: Colors.transparent,
-                                  surfaceTintColor: Colors.transparent),
-                              child: Image.asset(
-                                'assets/images/start.png',
-                                width: 60,
-                                height: 60,
-                                fit: BoxFit.fill,
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
+                        ),
+                    // Visibility(
+                    //   visible: showWidgets2,
+                    //   child: Row(
+                    //     mainAxisAlignment: MainAxisAlignment.center,
+                    //     children: [
+                    //       SizedBox(
+                    //         width: 60,
+                    //         height: 60,
+                    //         child: ElevatedButton(
+                    //           onPressed: () {},
+                    //           onLongPress: () {
+                    //             setState(() {
+                    //               showWidgets2 = !showWidgets2;
+                    //               showWidgets3 = !showWidgets3;
+                    //               isRunning = false;
+                    //             });
+                    //           },
+                    //           style: ElevatedButton.styleFrom(
+                    //               padding: EdgeInsets.zero,
+                    //               elevation: 0,
+                    //               shadowColor: Colors.transparent,
+                    //               foregroundColor: Colors.white,
+                    //               backgroundColor: Colors.transparent,
+                    //               surfaceTintColor: Colors.transparent),
+                    //           child: Image.asset(
+                    //             'assets/images/pause.png',
+                    //             width: 60,
+                    //             height: 60,
+                    //             fit: BoxFit.fill,
+                    //           ),
+                    //         ),
+                    //       )
+                    //     ],
+                    //   ),
+                    // ),
+                    // Visibility(
+                    //   visible: showWidgets3,
+                    //   child: Row(
+                    //     mainAxisAlignment: MainAxisAlignment.center,
+                    //     children: [
+                    //       SizedBox(
+                    //         width: 60,
+                    //         height: 60,
+                    //         child: ElevatedButton(
+                    //           onPressed: () {
+                    //             stopRunning();
+                    //           },
+                    //           style: ElevatedButton.styleFrom(
+                    //               padding: EdgeInsets.zero,
+                    //               elevation: 0,
+                    //               shadowColor: Colors.transparent,
+                    //               foregroundColor: Colors.white,
+                    //               backgroundColor: Colors.transparent,
+                    //               surfaceTintColor: Colors.transparent),
+                    //           child: Image.asset(
+                    //             'assets/images/stop.png',
+                    //             width: 60,
+                    //             height: 60,
+                    //             fit: BoxFit.fill,
+                    //           ),
+                    //         ),
+                    //       ),
+                    //       SizedBox(
+                    //         width: 60,
+                    //         height: 60,
+                    //         child: ElevatedButton(
+                    //           onPressed: () {
+                    //             setState(() {
+                    //               showWidgets3 = !showWidgets3;
+                    //               showWidgets2 = !showWidgets2;
+                    //               isRunning = true;
+                    //             });
+                    //             startTimer();
+                    //             startRunning();
+                    //           },
+                    //           style: ElevatedButton.styleFrom(
+                    //               padding: EdgeInsets.zero,
+                    //               elevation: 0,
+                    //               shadowColor: Colors.transparent,
+                    //               foregroundColor: Colors.white,
+                    //               backgroundColor: Colors.transparent,
+                    //               surfaceTintColor: Colors.transparent),
+                    //           child: Image.asset(
+                    //             'assets/images/start.png',
+                    //             width: 60,
+                    //             height: 60,
+                    //             fit: BoxFit.fill,
+                    //           ),
+                    //         ),
+                    //       )
+                    //     ],
+                    //   ),
+                    // ),
                   ],
                 ),
               ],

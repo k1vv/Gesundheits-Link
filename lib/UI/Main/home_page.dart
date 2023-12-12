@@ -81,6 +81,7 @@ class _HomePageState extends State<HomePage> {
 
   // UI Usage Variable //
 
+  String currentWeightsNow = "N/A";
   String sleepTotalRightNow = "N/A";
   String stepsTotalRightNow = "N/A";
   String heartRateRightNow = "N/A";
@@ -609,7 +610,12 @@ class _HomePageState extends State<HomePage> {
       for (int i = 24; i > 0; i--) {
         String databasePath = 'health/$userId/heart_rate/${today.year}-${today.month}-${today.day}/$i';
         DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
-
+        
+        if(mounted) {
+          setState(() {
+            heartRateRightNow = 'N/A';
+          });
+        }     
         if(dataSnapshot.value != null) {
           int heartRate = int.parse(dataSnapshot.value.toString());
 
@@ -639,6 +645,13 @@ class _HomePageState extends State<HomePage> {
         String databasePath = 'health/$userId/blood_oxygen/${today.year}-${today.month}-${today.day}/$i';
         DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
 
+        if(mounted) {
+          setState(() {
+            bloodOxygenRightNow = 'N/A';
+          });
+        }
+
+        
         if(dataSnapshot.value != null) {
           double bloodOxygen = double.parse(dataSnapshot.value.toString());
 
@@ -666,9 +679,15 @@ class _HomePageState extends State<HomePage> {
       String databasePath = 'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/';
 
       DatabaseEvent databaseEvent = await FirebaseDatabase.instance.ref().child(databasePath).once();
+
+      if(mounted) {
+          setState(() {
+            sleepTotalRightNow = 'N/A';
+          });
+      }   
       if (databaseEvent.snapshot.value != null) {
         Map<String, dynamic> sleepData = (databaseEvent.snapshot.value as Map<dynamic, dynamic>).cast<String, dynamic>();
-
+     
         if (sleepData['total'] != null) {
           int sleepSession = int.parse(sleepData['total'].toString());
 
@@ -687,8 +706,59 @@ class _HomePageState extends State<HomePage> {
       }
     }
   }
+
+  Future<void> fechWeights(DateTime date) async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      String userId = user.uid;
+      String databasePath = 'health/$userId/body_measurements/weight';
+
+      DatabaseEvent databaseEvent = await FirebaseDatabase.instance.ref().child(databasePath).once();
+
+      if(mounted) {
+        setState(() {
+            sleepTotalRightNow = 'N/A';
+         });
+      }   
+      if (databaseEvent.snapshot.value != null) {
+        String sleep = databaseEvent.snapshot.value.toString();
+
+        currentWeightsNow = sleep.toString();
+      } else {
+        debugPrint('Snapshot value is null.');
+      }
+    }
+  }
   
   // Data Fetch from firebase
+
+  Future<void> fetchData () async {
+    // await healthConnectData();
+
+    await firebaseData();
+  }
+
+  Future<void> healthConnectData () async {
+      fetchStep(selectedDate);
+      fetchHeartRate(selectedDate);
+      fetchBloodOxygen(selectedDate);
+
+      fetchSleepData(selectedDate);
+      fetchSleepDeepData(selectedDate);
+      fetchSleepLightData(selectedDate);
+      fetchSleepRemData(selectedDate);
+      fetchSleepAwakeData(selectedDate);
+  }
+
+  Future<void> firebaseData () async {
+      fetchStepsData(selectedDate);
+      fetchCaloriesData(selectedDate);
+      fetchHeartRateData(selectedDate);
+      fetchBloodOxygenData(selectedDate);
+      fetchSleepDataFirebase(selectedDate);
+      fechWeights(selectedDate);
+  }
 
   Future<void> _fetchProfilePictureUrl() async {
     final FirebaseAuth auth = FirebaseAuth.instance;
@@ -729,11 +799,11 @@ class _HomePageState extends State<HomePage> {
         });
       }
       
-      fetchSleepData(selectedDate);
-      fetchSleepDeepData(selectedDate);
-      fetchSleepLightData(selectedDate);
-      fetchSleepRemData(selectedDate);
-      fetchSleepAwakeData(selectedDate);
+      fetchStepsData(selectedDate);
+      fetchCaloriesData(selectedDate);
+      fetchHeartRateData(selectedDate);
+      fetchBloodOxygenData(selectedDate);
+      fetchSleepDataFirebase(selectedDate);
     }
   }
 
@@ -743,26 +813,10 @@ class _HomePageState extends State<HomePage> {
 
    setState(() {
       selectedDate = DateTime.now();
-      selectedDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
-
-      // fetchStep(selectedDate);
-      // fetchHeartRate(selectedDate);
-      // fetchBloodOxygen(selectedDate);
-
-      // fetchSleepData(selectedDate);
-      // fetchSleepDeepData(selectedDate);
-      // fetchSleepLightData(selectedDate);
-      // fetchSleepRemData(selectedDate);
-      // fetchSleepAwakeData(selectedDate);
-
-      fetchStepsData(selectedDate);
-      fetchCaloriesData(selectedDate);
-      fetchHeartRateData(selectedDate);
-      fetchBloodOxygenData(selectedDate);
-      fetchSleepDataFirebase(selectedDate);
+      selectedDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);     
    });
-    
-   _fetchProfilePictureUrl();
+    fetchData();
+    _fetchProfilePictureUrl();
   }
 
   @override
@@ -887,6 +941,7 @@ class _HomePageState extends State<HomePage> {
                           imageAsset: 'assets/images/flame.png', 
                           caloriesValue: caloriesburnRightNow, 
                           destinationPageRoute: 'calories_page',
+                          healthType: 'kcal',
                         ),
                         
                         SizedBox(height: 5 * screenHeight / 375),
@@ -899,6 +954,7 @@ class _HomePageState extends State<HomePage> {
                           imageAsset: 'assets/images/icon-Z93.png', 
                           caloriesValue: stepsTotalRightNow, 
                           destinationPageRoute: 'steps_page',
+                          healthType: 'steps',
                         ),
                       ],
                     ),
@@ -994,6 +1050,7 @@ class _HomePageState extends State<HomePage> {
                           imageAsset: 'assets/images/pressure.png', 
                           caloriesValue: bloodOxygenRightNow, 
                           destinationPageRoute: 'bloodoxygen_page',
+                          healthType: 'SP02',
                         ),
 
                         SizedBox(width: 10 * screenWidth / 375),
@@ -1006,6 +1063,7 @@ class _HomePageState extends State<HomePage> {
                           imageAsset: 'assets/images/star.png', 
                           caloriesValue: sleepTotalRightNow, 
                           destinationPageRoute: 'sleeptracker_page',
+                          healthType: 'Sleep Session',
                         ),
                       ],
                     ),
@@ -1064,7 +1122,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 const SizedBox(height: 42),
                                 Text(
-                                  sleepTotalRightNow,
+                                  currentWeightsNow,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18,

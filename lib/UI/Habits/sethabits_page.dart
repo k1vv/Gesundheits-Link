@@ -20,7 +20,9 @@ class SetHabits extends StatefulWidget {
 class _SetHabitsState extends State<SetHabits> {
   IconData selectedIcon = Icons.sports_gymnastics;
   MaterialColor selectedColor = Colors.blue;
-    Future<void> createSaveHabit() async {
+
+
+  Future<void> createSaveHabit() async {
     User? user = FirebaseAuth.instance.currentUser;
     String habitName = "Exercise";
     String habitDescription = "Your Daily Exercise";
@@ -82,7 +84,7 @@ class _SetHabitsState extends State<SetHabits> {
     }
   }
 
-    Future<String> generateCustomHabitId(DatabaseReference reference) async {
+  Future<String> generateCustomHabitId(DatabaseReference reference) async {
     String baseId = 'HB';
     int counter = 1;
     String customHabitId = '$baseId${counter.toString().padLeft(3, '0')}';
@@ -94,7 +96,7 @@ class _SetHabitsState extends State<SetHabits> {
     return customHabitId;
   }
 
-    Future<bool> checkIfIdExists(DatabaseReference reference, String habitId) async {
+  Future<bool> checkIfIdExists(DatabaseReference reference, String habitId) async {
     DatabaseEvent event = await reference.child(habitId).once();
     DataSnapshot snapshot = event.snapshot;
     return snapshot.value != null;

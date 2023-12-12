@@ -35,19 +35,26 @@ class _BodyMeasurementsPageState extends State<BodyMeasurementsPage> {
             TextFormField(
               controller: _birthdayController,
               decoration: const InputDecoration(labelText: 'Birthday'),
-              onTap: () {
-                // Use _pickedDate in the onTap handler
-                _pickedDate = showDatePicker(
+              onTap: () async {
+                // Use await to get the result of showDatePicker
+                DateTime? pickedDate = await showDatePicker(
                   context: context,
                   initialDate: DateTime.now(),
                   firstDate: DateTime(1900),
                   lastDate: DateTime.now(),
                 );
 
-                // Wrap the logic inside setState to trigger a rebuild
-                setState(() {
-                  _pickedDate = _pickedDate;
-                });
+                // Check if a date was selected before updating the UI
+                if (pickedDate != null) {
+                  // Format the picked date as needed
+                  String formattedDate =
+                      "${pickedDate.year}-${pickedDate.month}-${pickedDate.day}";
+
+                  // Update the controller and UI
+                  setState(() {
+                    _birthdayController.text = formattedDate;
+                  });
+                }
               },
             ),
             const SizedBox(height: 16.0),

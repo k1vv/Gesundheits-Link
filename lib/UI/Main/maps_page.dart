@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:myapp/UI/Map/exercise.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,7 +22,10 @@ class _ShowMapsState extends State<ShowMaps> {
   List<Map<String, dynamic>> exerciseList = [];
 
   late DatabaseReference startExercise;
+
   bool showError = false;
+  bool isConnect = true;
+
   String pace = "N/A";
   String distance = "N/A";
   String elapsedTime = "N/A";
@@ -58,6 +62,10 @@ class _ShowMapsState extends State<ShowMaps> {
                 pace: latestExercise['pace'],
               ),
             ];
+
+            elapsedTime = latestExercise['distance'];
+            distance = latestExercise['distance'];
+            calories = latestExercise['calories'];
           });
         }
       }
@@ -181,8 +189,9 @@ class _ShowMapsState extends State<ShowMaps> {
 
     if (status == LocationPermission.always ||
         status == LocationPermission.whileInUse) {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const TrackLocation()));
+          if (mounted) {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const TrackLocation()));
+          }
     } else if (status == LocationPermission.denied ||
         status == LocationPermission.deniedForever) {
       setState(() {
@@ -195,20 +204,24 @@ class _ShowMapsState extends State<ShowMaps> {
       });
     }
   }
+  
+  Future<void> initializeData() async {
+    await fetchLatestExerciseData();
+    await fetchExerciseData();
+
+    startExercise = FirebaseDatabase.instance.ref().child('ExerciseStatus');
+    startExercise.onValue.listen((DatabaseEvent event) async {
+      dynamic exercise = event.snapshot.value;
+      if (exercise.toString() == "true") {
+        await _requestLocationPermission();
+      }
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    fetchLatestExerciseData();
-    fetchExerciseData();
-
-    startExercise = FirebaseDatabase.instance.ref().child('ExerciseStatus');
-    startExercise.onValue.listen((DatabaseEvent event) {
-      dynamic exercise = event.snapshot.value;
-      if (exercise.toString() == "true") {
-        _requestLocationPermission();
-      }
-    });
+    initializeData();
   }
 
   @override
@@ -246,7 +259,7 @@ class _ShowMapsState extends State<ShowMaps> {
                 ),
               )
             ],
-          ),
+          ),       
           Container(
             color: Colors.white,
             child: Row(
@@ -281,29 +294,29 @@ class _ShowMapsState extends State<ShowMaps> {
                     SizedBox(
                       height: 5 * screenHeight / 375,
                     ),
-                    SizedBox(
-                      width: 50 * screenHeight / 375,
-                      child: ElevatedButton(
-                          onPressed: () {
-                            _requestLocationPermission();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            elevation: 0,
-                            shadowColor:
-                                const Color.fromARGB(255, 248, 203, 198),
-                            backgroundColor:
-                                const Color.fromARGB(255, 248, 203, 198),
-                            foregroundColor:
-                                const Color.fromARGB(255, 248, 203, 198),
-                            surfaceTintColor:
-                                const Color.fromARGB(255, 248, 203, 198),
-                          ),
-                          child: const Text(
-                            "Start",
-                            style: TextStyle(
-                                color: Colors.black, fontFamily: 'Arial'),
-                          )),
-                    )
+                    // SizedBox(
+                    //   width: 50 * screenHeight / 375,
+                    //   child: ElevatedButton(
+                    //       onPressed: () {
+                            
+                    //       },
+                    //       style: ElevatedButton.styleFrom(
+                    //         elevation: 0,
+                    //         shadowColor:
+                    //             const Color.fromARGB(255, 248, 203, 198),
+                    //         backgroundColor:
+                    //             const Color.fromARGB(255, 248, 203, 198),
+                    //         foregroundColor:
+                    //             const Color.fromARGB(255, 248, 203, 198),
+                    //         surfaceTintColor:
+                    //             const Color.fromARGB(255, 248, 203, 198),
+                    //       ),
+                    //       child: const Text(
+                    //         "Start",
+                    //         style: TextStyle(
+                    //             color: Colors.black, fontFamily: 'Arial'),
+                    //       )),
+                    // )
                   ],
                 ),
                 SizedBox(
@@ -358,48 +371,125 @@ class _ShowMapsState extends State<ShowMaps> {
               ],
             ),
           ),
-          Container(
-            height: 20 * screenHeight / 375,
-            color: Colors.white,
+          Container(color: Colors.white, height: 15 * screenHeight / 375,),
+          Row(
+            children: [
+              Container(color: Colors.white, width: 50 * screenWidth / 375, height: 30 * screenHeight / 375,),
+              Container(
+                color: Colors.white,
+                height: 30 * screenHeight / 375,
+                width: 275 * screenWidth / 375,
+                child: Text(
+                  isConnect ? "Start exercising on the smartwatch to start tracking" : "Connect to a watch to start exercise" , 
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: 'Arial',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16
+                  ),
+                ),
+              ),
+              Container( color: Colors.white, width: 50 * screenWidth / 375,height: 30 * screenHeight / 375,),
+            ],
           ),
           if (exerciseList.isNotEmpty)
             Container(
-              width: 370 * screenWidth / 375,
-              height: 125 * screenHeight / 375,
-              color: Colors.white,
-              child: ListView.builder(
-                itemCount: exerciseList.length,
-                itemBuilder: (context, index) {
-                  Map<String, dynamic> exerciseData = exerciseList[index];
-                  return GestureDetector(
-                    onLongPress: () {
-                      _showDeleteConfirmationDialog(exerciseData, index);
-                    },
-                    child: ListTile(
-                      title: Text('Exercise ${index + 1}'),
-                      subtitle: Text('Time: ${exerciseData['hourMinute']}\n'
-                          'Distance: ${exerciseData['distance']} km\n'
-                          'Duration: ${exerciseData['duration']}\n'
-                          'Pace: ${exerciseData['pace']}\n'),
-                      leading: GestureDetector(
-                        onTap: () {
-                          // Show the image pop-up
-                          _showImagePopup(exerciseData['imageUrl']);
-                        },
-                        child: Image.network(
-                          exerciseData['imageUrl'],
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
+              padding: const EdgeInsets.only(
+                left: 10, 
+                right: 10,
+              ),
+              child: Container(
+                width: 370 * screenWidth / 375,
+                height: 125 * screenHeight / 375,
+                color: Colors.white,
+                child: ListView.builder(
+                  itemCount: exerciseList.length,
+                  itemBuilder: (context, index) {
+                    Map<String, dynamic> exerciseData = exerciseList[index];
+                    return Column(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            color: const Color.fromARGB(255, 248, 203, 198),
+                          ),
+                          child: GestureDetector(
+                            onLongPress: () {
+                              _showDeleteConfirmationDialog(exerciseData, index);
+                            },
+                            child: ListTile(
+                              title: Text('Exercise ${index + 1}'),
+                              subtitle: Row(
+                                children: [
+                                  SizedBox(height: 5 * screenHeight / 375,),
+                                  Column(
+                                    children: [
+                                      Text(
+                                        " Time: ${exerciseData['hourMinute']}"
+                                      ),
+                                      Text(
+                                        "Pace: ${exerciseData['pace']}"
+                                      ),
+                                    ],
+                                  ),
+                                  const Column(
+                                    children: [
+                                      Text(
+                                        "aa", 
+                                        style: TextStyle(
+                                          color: Colors.transparent
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Column(
+                                    children: [
+                                      Text(
+                                        "Distance: ${exerciseData['distance']} km"
+                                      ),
+                                      Text(
+                                        "Duration: ${exerciseData['duration']}"
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ), 
+                              leading: GestureDetector(
+                                onTap: () {
+                                  // Show the image pop-up
+                                  _showImagePopup(exerciseData['imageUrl']);
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.black, // Adjust the color as needed
+                                      width: 2.0, // Adjust the width as needed
+                                    ),
+                                    borderRadius: BorderRadius.circular(8.0), // Adjust the radius as needed
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(6.0), // Adjust the radius as needed
+                                    child: Image.network(
+                                      exerciseData['imageUrl'],
+                                      width: 75 * screenWidth / 375,
+                                      height: 50 * screenHeight / 375,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                )
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  );
-                },
+                        SizedBox(height: 5 * screenHeight / 375,),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
         ]),
       ),
-    );
+    ).animate().fadeIn(duration: 1200.ms);
   }
 }

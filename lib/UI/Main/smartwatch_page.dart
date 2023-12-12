@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class WatchConnection extends StatefulWidget {
@@ -20,7 +21,76 @@ class _WatchConnectionState extends State<WatchConnection> {
   String watchid = "";
   int watchBattery = 0;
 
-Future<String?> fetchDataFromFirebase() async {
+  Future<String?> fetchDataFromFirebase() async {
+    try {
+      // Get the current user from Firebase Auth
+      User? user = FirebaseAuth.instance.currentUser;
+  
+      if (user != null) {
+        // Reference to the users collection
+        DatabaseReference usersRef =
+            FirebaseDatabase.instance.ref().child('users');
+  
+        // Reference to the specific user's data
+        DatabaseReference userDataRef = usersRef.child(user.uid).child('smartwatch');
+  
+        // Fetch the data
+        DataSnapshot snapshot = (await userDataRef.once()).snapshot;
+  
+        // Check if the data exists
+        if (snapshot.value != null) {
+          String data = snapshot.value.toString();
+          watchid = snapshot.value.toString();
+          if (watchid == "1") {
+            watchid = "Wear OS Emulator"; 
+          } else {
+            watchid = "Galaxy Watch 4";
+          }
+          await fetchWatchData();
+          return data;
+        } else {
+          // Data not found
+          return null;
+        }
+      } else {
+        // No user is currently logged in
+        return null;
+      }
+    } catch (e) {
+      debugPrint('Error fetching data from Firebase: $e');
+      return null;
+    }
+  }
+  
+  Future<void> fetchWatchData() async {
+    try {
+      // Get the current user from Firebase Auth
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        // Reference to the users collection
+        DatabaseReference usersRef =
+            FirebaseDatabase.instance.ref().child('Smartwatch');
+
+        // Reference to the specific user's data
+        DatabaseReference userDataRef = usersRef.child("2").child('batteryLevel');
+
+        // Fetch the data
+        DataSnapshot snapshot = (await userDataRef.once()).snapshot;
+
+        // Check if the data exists
+        if (snapshot.value != null) {
+          watchBattery = snapshot.value as int;
+        } else {
+        }
+      } else {
+      }
+    } catch (e) {
+      debugPrint('Error fetching data from Firebase: $e');
+    }
+  }
+
+  Future<void> deleteDataFromFirebase() async {
   try {
     // Get the current user from Firebase Auth
     User? user = FirebaseAuth.instance.currentUser;
@@ -33,62 +103,47 @@ Future<String?> fetchDataFromFirebase() async {
       // Reference to the specific user's data
       DatabaseReference userDataRef = usersRef.child(user.uid).child('smartwatch');
 
-      // Fetch the data
-      DataSnapshot snapshot = (await userDataRef.once()).snapshot;
+      // Delete the data
+      await userDataRef.remove();
 
-      // Check if the data exists
-      if (snapshot.value != null) {
-        String data = snapshot.value.toString();
-        watchid = snapshot.value.toString();
-        if (watchid == "1") {
-          watchid = "Wear OS Emulator"; 
-        } else {
-          watchid = "Galaxy Watch 4";
-        }
-        await fetchWatchData();
-        return data;
-      } else {
-        // Data not found
-        return null;
-      }
+      // Optionally, reset the watchid or perform any other cleanup
+      watchid = "";
     } else {
       // No user is currently logged in
-      return null;
+      debugPrint('No user is currently logged in');
     }
   } catch (e) {
-    debugPrint('Error fetching data from Firebase: $e');
-    return null;
+    debugPrint('Error deleting data from Firebase: $e');
   }
 }
 
-Future<void> fetchWatchData() async {
-  try {
-    // Get the current user from Firebase Auth
-    User? user = FirebaseAuth.instance.currentUser;
 
-    if (user != null) {
-      // Reference to the users collection
-      DatabaseReference usersRef =
-          FirebaseDatabase.instance.ref().child('Smartwatch');
-
-      // Reference to the specific user's data
-      DatabaseReference userDataRef = usersRef.child("2").child('batteryLevel');
-
-      // Fetch the data
-      DataSnapshot snapshot = (await userDataRef.once()).snapshot;
-
-      // Check if the data exists
-      if (snapshot.value != null) {
-        watchBattery = snapshot.value as int;
-      } else {
-      }
-    } else {
-    }
-  } catch (e) {
-    debugPrint('Error fetching data from Firebase: $e');
+  void showDeleteConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Disconnect Watch'),
+          content: const Text('Are you sure you want to disconnect from your smartwatch?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); 
+              },
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await deleteDataFromFirebase();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +262,7 @@ Future<void> fetchWatchData() async {
                                   backgroundColor: Colors.white,
                                 ),
                               onPressed: () {
-
+                                showDeleteConfirmationDialog(context);
                               },
                             child:  Column(
                             children: [
@@ -294,7 +349,7 @@ Future<void> fetchWatchData() async {
               alignment: Alignment.bottomCenter,
               child: SizedBox(
                 width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height - 450, // Adjust the height as needed
+                height: MediaQuery.of(context).size.height - 450,
                 child: QRView(
                   key: qrKey,
                   onQRViewCreated: (controller) {
@@ -317,7 +372,7 @@ Future<void> fetchWatchData() async {
             ),
         ],
       ),
-    );
+    ).animate().fadeIn(duration: 1200.ms);
   }
 
 Future<void> _saveScannedData(String scannedData) async {

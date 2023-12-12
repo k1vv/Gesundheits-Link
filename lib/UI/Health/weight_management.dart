@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -51,26 +53,60 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
   String totalLostGain = "N/A"; 
   String targetedWeight = "N/A";
 
-  Future<void> saveCaloriesBreakfast (double caloriesBreakfast) async {
+  Future<void> saveWeights (double weight) async {
     try {
       User? user = FirebaseAuth.instance.currentUser;
-      final today = DateTime.now();
 
       if(user != null) {
         String userId = user.uid;
-        final databasePath = 'health/$userId/calories_consumed/${today.year}-${today.month}-${today.day}/breakfast';
+        final databasePath = 'health/$userId/body_measurements/weight';
 
         final DatabaseReference databaseReference = FirebaseDatabase.instance.ref();
 
+        String weightss = weight.toString();
+        currentWeight = double.parse(weightss);
+
         try {
 
-          await databaseReference.child(databasePath).set(caloriesBreakfast);
+          await databaseReference.child(databasePath).set(weightss);
+          await fetchBodyMeasurements();
+          await fetchWeightGoals();
+          await calculateBMI();
+          await calculateBMR();
+          await calculateProgress();         
 
         } catch (error) {
           debugPrint("Error saving to firebase : $error");
         }
       }
+    } catch (error) {
+      debugPrint("Error Found : $error");
+    }
+  }
 
+  Future<void> saveCaloriesBreakfast(double caloriesBreakfast) async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      final today = DateTime.now();
+
+      if (user != null) {
+        String userId = user.uid;
+        final databasePath =
+            'health/$userId/calories_consumed/${today.year}-${today.month}-${today.day}/breakfast';
+
+        final DatabaseReference databaseReference =
+            FirebaseDatabase.instance.ref();
+
+        try {
+          caloriesBreakfast = caloriesBreakfast + 0.05;
+
+          await databaseReference.child(databasePath).set(caloriesBreakfast);
+          await fetchCaloriesConsumed();
+          await calculateCaloriesStatus();
+        } catch (error) {
+          debugPrint("Error saving to firebase : $error");
+        }
+      }
     } catch (error) {
       debugPrint("Error Found : $error");
     }
@@ -88,9 +124,11 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
         final DatabaseReference databaseReference = FirebaseDatabase.instance.ref();
 
         try {
+          caloriesLunch = caloriesLunch + 0.05;
 
           await databaseReference.child(databasePath).set(caloriesLunch);
-
+          await fetchCaloriesConsumed();
+          await calculateCaloriesStatus();
         } catch (error) {
           debugPrint("Error saving to firebase : $error");
         }
@@ -113,8 +151,11 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
         final DatabaseReference databaseReference = FirebaseDatabase.instance.ref();
 
         try {
+          caloriesDinner = caloriesDinner + 0.05;
 
           await databaseReference.child(databasePath).set(caloriesDinner);
+          await fetchCaloriesConsumed();
+          await calculateCaloriesStatus();
 
         } catch (error) {
           debugPrint("Error saving to firebase : $error");
@@ -138,8 +179,11 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
         final DatabaseReference databaseReference = FirebaseDatabase.instance.ref();
 
         try {
+          caloriesSnacks = caloriesSnacks + 0.05;
 
           await databaseReference.child(databasePath).set(caloriesSnacks);
+          await fetchCaloriesConsumed();
+          await calculateCaloriesStatus();
 
         } catch (error) {
           debugPrint("Error saving to firebase : $error");
@@ -153,24 +197,29 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
 
   Future<void> saveWeightsGoals (double initialWeight, double weightGoals, String earnLost) async {
     try {
-      User? user = FirebaseAuth.instance.currentUser;
+      if(initialWeight == 0.0 && weightGoals == 0.0) {
+        debugPrint("Too bad");
+      } else {   
 
-      if(user != null) {
-        String userId = user.uid;
-        final databasePath = 'health/$userId/health_goal/weights_goal/';
+        User? user = FirebaseAuth.instance.currentUser;
 
-        final DatabaseReference databaseReference = FirebaseDatabase.instance.ref();
+        if(user != null) {
+          String userId = user.uid;
+          final databasePath = 'health/$userId/health_goal/weights_goal/';
 
-        try {
+          final DatabaseReference databaseReference = FirebaseDatabase.instance.ref();
 
-          await databaseReference.child(databasePath).set({
-            'inital_weight': initialWeight.toString(), 
-            'weight_goals': weightGoals.toString(),
-            'goals_type': earnLost
-          });
+          try {
 
-        } catch (error) {
-          debugPrint("Error saving to firebase : $error");
+            await databaseReference.child(databasePath).set({
+              'inital_weight': initialWeight.toString(), 
+              'weight_goals': weightGoals.toString(),
+              'goals_type': earnLost
+            });
+
+          } catch (error) {
+            debugPrint("Error saving to firebase : $error");
+          }
         }
       }
     } catch (error) {
@@ -203,6 +252,7 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
             userGender = data['gender'].toString();
           });
         }
+
         
       } else {
         debugPrint("Error Fetching Data");
@@ -322,7 +372,7 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
 
       if (mounted) {
         setState(() {
-          caloriesDeficitSurplus = sum.toString();
+          caloriesDeficitSurplus = sum.toStringAsFixed(2);
         });
       }
     } catch (error) {
@@ -404,6 +454,33 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
       debugPrint("$error");
     }
   }
+  
+  Future<void> calculateProgress() async {
+    try {
+      RegExp regex = RegExp(r'\d+(\.\d+)?');
+      Match? match = regex.firstMatch(targetedWeight);
+
+      if (match != null) {
+        String extractedNumber = match.group(0)!;
+        double targetedWeightValue = double.parse(extractedNumber);
+        debugPrint("This is the $targetedWeightValue");
+
+        // Perform the calculation using the extracted number
+        String progress = (currentWeight / targetedWeightValue).toStringAsFixed(2);
+
+        if (mounted) {
+          setState(() {
+            progressValue = double.parse(progress);
+            debugPrint("Your Progress is: $progressValue");
+          });
+        }
+      } else {
+        debugPrint("No numeric value found in targetedWeight.");
+      }
+    } catch (error) {
+      debugPrint("$error calculating progress");
+    }
+  }
 
   Future<void> calculateTotalCaloriesBurn () async {
     if(mounted) {
@@ -442,7 +519,7 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
     await calculateBMI();
     await calculateBMR();
     await calculateTotalCaloriesBurn();
-
+    await calculateProgress();
     await calculateCaloriesStatus();
 
   }
@@ -455,7 +532,7 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
 
   }
 
-    void addWeightRecord(BuildContext context, double screenHeight, double screenWidth) {
+  void addWeightRecord(BuildContext context, double screenHeight, double screenWidth) {
 
     TextEditingController currentWeightController = TextEditingController();
 
@@ -471,7 +548,7 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
           ),
         ),
         content: Container(
-          height: 100 * screenHeight / 375, // Adjust the height as needed
+          height: 50 * screenHeight / 375, // Adjust the height as needed
           padding: const EdgeInsets.only(
             left: 10,
             right: 10,
@@ -482,7 +559,7 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
                 controller: currentWeightController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'Current Weight',
+                  labelText: 'Enter Your Weight',
                 ),
               ),
             ],
@@ -493,13 +570,11 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
             width: 225 * screenWidth / 375,
             child: TextButton(
               onPressed: () {
-                String initialWeightText = weightController.text;
-                String weightGoalsText = calorieController.text;
+                String weightStri = currentWeightController.text;
 
-                double initialWeight = double.tryParse(initialWeightText) ?? 0.0;
-                double weightGoals = double.tryParse(weightGoalsText) ?? 0.0;
+                double weight = double.parse(weightStri);
 
-                saveWeightsGoals(initialWeight, weightGoals, selectedGoal);
+                saveWeights(weight);
 
                 Navigator.pop(context);
               },
@@ -941,26 +1016,26 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
                         top: 5 * screenHeight / 375,
                         child: AnimatedRadialGauge(
                           duration: const Duration(seconds: 1), 
-                          value: 1.0,
+                          value: progressValue,
                           radius: 110,
                           curve: Curves.elasticOut,
         
-                          axis: GaugeAxis(
-                            min: progressValue,
-                            max: 10.0,
+                          axis: const GaugeAxis(
+                            min: 0.0,
+                            max: 1.0,
                             degrees: 280,
         
-                            style: const GaugeAxisStyle(
+                            style: GaugeAxisStyle(
                               thickness: 15, 
                               background: Color.fromARGB(255, 242, 198, 198), 
                               segmentSpacing: 0
                             ),
-                            pointer: const GaugePointer.triangle(
+                            pointer: GaugePointer.triangle(
                               width: 25, 
                               height: 25, 
                               color: Colors.transparent
                             ),
-                            progressBar: const GaugeProgressBar.rounded(
+                            progressBar: GaugeProgressBar.rounded(
                               color: Color.fromARGB(255, 255, 96, 120)
                             )
                           ),
@@ -1172,7 +1247,7 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
                 ),
                 child: ElevatedButton(
                   onPressed: () {
-                    
+                    addWeightRecord(context, screenHeight, screenWidth);
                   },
                   style: ElevatedButton.styleFrom(
                     shadowColor: Colors.transparent, 

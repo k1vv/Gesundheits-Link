@@ -10,6 +10,7 @@ class HealthButtonSmall extends StatelessWidget {
   final String caloriesValue;
   final String destinationPageRoute;
   final double gap;
+  final String healthType;
 
   const HealthButtonSmall({
     Key? key,
@@ -19,7 +20,8 @@ class HealthButtonSmall extends StatelessWidget {
     required this.imageAsset,
     required this.caloriesValue,
     required this.destinationPageRoute,
-    required this.gap
+    required this.gap,
+    required this.healthType,
   }) : super(key: key);
 
   @override
@@ -79,9 +81,9 @@ class HealthButtonSmall extends StatelessWidget {
                     color: Colors.black,
                   ),
                 ),
-                const Text(
-                  'kcal',
-                  style: TextStyle(
+                Text(
+                  healthType,
+                  style: const TextStyle(
                     fontStyle: FontStyle.italic,
                     fontSize: 10,
                     color: Colors.grey,

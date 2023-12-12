@@ -624,7 +624,6 @@ class _HeartRatePageState extends State<HeartRatePage> {
               ),
             ],
           ),
-          SizedBox(height: 10 * screenHeight / 375),
           Container(
             padding: const EdgeInsets.all(10),
             width: 350 * screenWidth / 375,
@@ -635,19 +634,27 @@ class _HeartRatePageState extends State<HeartRatePage> {
             child: Column(
               children: [
                 Container(
+                  width: 350 * screenWidth / 375,
                   decoration: BoxDecoration(
                     border: Border.all(width: 1, color: Colors.black),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  padding: const EdgeInsets.only(
+                    left: 10, 
+                    right: 10,
+                  ),
+                  alignment: Alignment.center,
                   child: Column(
                     children: [
+                      SizedBox(height: 5 * screenHeight / 375,),
                       Builder (
                         builder: (context) {
                           try {
                             final int heartRateData = int.parse(heartRateDataCurrent);
                             if (heartRateData >= 60 && heartRateData <= 120) {
                               return const Text(
-                                "Your heart rate is great!",
+                                "Your current heart rate is great!",
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 18,
                                   color: Colors.green,
@@ -655,7 +662,8 @@ class _HeartRatePageState extends State<HeartRatePage> {
                               );
                             } else if (heartRateData < 60) {
                               return const Text(
-                                "Your heart rate is too low. Seek medical attention now.",
+                                "Your current heart rate is too low. Seek medical attention now.",
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 18,
                                   color: Colors.red,
@@ -663,7 +671,8 @@ class _HeartRatePageState extends State<HeartRatePage> {
                               );
                             } else if (heartRateData > 120) {
                               return const Text(
-                                "Your heart rate is quite high. You should get some rest.",
+                                "Your current heart rate is quite high. You should get some rest.",
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 18,
                                   color: Colors.orange,
@@ -687,7 +696,8 @@ class _HeartRatePageState extends State<HeartRatePage> {
                             );
                           }
                         },
-                      )
+                      ),
+                      SizedBox(height: 5 * screenHeight / 375,),
                     ],
                   ),
                 ),

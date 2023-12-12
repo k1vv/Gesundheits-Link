@@ -758,7 +758,7 @@ class _SettingsState extends State<Settings> {
           ),
         ],
       ),
-    );
+    ).animate().fadeIn(duration: 1200.ms);
   }
   @override
   void dispose() {
