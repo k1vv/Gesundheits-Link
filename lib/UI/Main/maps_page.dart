@@ -30,6 +30,7 @@ class _ShowMapsState extends State<ShowMaps> {
   String distance = "N/A";
   String elapsedTime = "N/A";
   String calories = "N/A";
+  String watchId = "";
 
   Future<void> fetchLatestExerciseData() async {
     try {
@@ -205,11 +206,28 @@ class _ShowMapsState extends State<ShowMaps> {
     }
   }
   
+  Future<void> fetchWatchId() async {
+  User? user = FirebaseAuth.instance.currentUser;
+  try {
+    if(user != null) {
+      String userId = user.uid;
+      DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref(distance).child('users').child(userId).child("smartwatch").once()).snapshot;
+
+      if(dataSnapshot.value != null) {
+        watchId = dataSnapshot.value.toString();
+      }
+    }
+    initializeData();
+  } catch (error) {
+    debugPrint('Error fetching scanned data: $error');
+  }
+}
+
   Future<void> initializeData() async {
     await fetchLatestExerciseData();
     await fetchExerciseData();
 
-    startExercise = FirebaseDatabase.instance.ref().child('ExerciseStatus');
+    startExercise = FirebaseDatabase.instance.ref().child('SmartWatch/1/ExerciseStatus');
     startExercise.onValue.listen((DatabaseEvent event) async {
       dynamic exercise = event.snapshot.value;
       if (exercise.toString() == "true") {
@@ -218,10 +236,11 @@ class _ShowMapsState extends State<ShowMaps> {
     });
   }
 
+  
   @override
   void initState() {
     super.initState();
-    initializeData();
+    fetchWatchId();
   }
 
   @override

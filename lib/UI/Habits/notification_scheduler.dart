@@ -45,19 +45,18 @@ static Future<void> scheduleNotifications() async {
         delay: delay,
       );
     } else if (now.hour < 8 && habit.timeRange == "Anytime" && habit.isStarred == false) {
-  // Set the targetTime to 2 minutes from now
-  DateTime targetTime = now.add(const Duration(minutes: 2));
-  Duration delay = targetTime.difference(now);
-
-  LocalNotifications.showScheduleNotification(
-    title: 'Anytime Message',
-    body: 'You still have unfinished habits',
-    payload: 'Scheduled Notification Payload',
-    delay: const Duration(minutes: 1),
-  );
-  debugPrint("success");
-} else if (now.hour < 13 && habit.timeRange == "Anytime" && habit.isStarred == false) {
-      DateTime targetTime = now.add(const Duration(minutes: 2));
+      targetTime = DateTime(now.year, now.month, now.day, 8, 0);
+      Duration delay = targetTime.difference(now);
+    
+      LocalNotifications.showScheduleNotification(
+        title: 'Anytime Message',
+        body: 'You still have unfinished habits',
+        payload: 'Scheduled Notification Payload',
+        delay: delay,
+      );
+      debugPrint("success");
+    } else if (now.hour < 13 && habit.timeRange == "Anytime" && habit.isStarred == false) {
+      targetTime = DateTime(now.year, now.month, now.day, 13, 0);
       Duration delay = targetTime.difference(now);
 
       LocalNotifications.showScheduleNotification(
@@ -68,7 +67,7 @@ static Future<void> scheduleNotifications() async {
       );
       debugPrint("success");
     } else if (now.hour < 19 && habit.timeRange == "Anytime" && habit.isStarred == false) {
-      DateTime targetTime = now.add(const Duration(minutes: 2));
+      targetTime = DateTime(now.year, now.month, now.day, 19, 0);
       Duration delay = targetTime.difference(now);
 
       LocalNotifications.showScheduleNotification(
@@ -79,7 +78,7 @@ static Future<void> scheduleNotifications() async {
       );
       debugPrint("success");
     } else if (now.hour > 19) {
-      DateTime targetTime = now.add(const Duration(minutes: 1));
+      targetTime = DateTime(now.year, now.month, now.day + 1, 8, 0);
       Duration delay = targetTime.difference(now);
 
       LocalNotifications.showScheduleNotification(

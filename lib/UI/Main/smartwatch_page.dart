@@ -21,8 +21,13 @@ class _WatchConnectionState extends State<WatchConnection> {
   String watchid = "";
   int watchBattery = 0;
 
+  bool isWatchConnected = false;
+
   Future<String?> fetchDataFromFirebase() async {
     try {
+      setState(() {
+      isWatchConnected = true; // Set the connection status to true
+    });
       // Get the current user from Firebase Auth
       User? user = FirebaseAuth.instance.currentUser;
   
@@ -41,15 +46,18 @@ class _WatchConnectionState extends State<WatchConnection> {
         if (snapshot.value != null) {
           String data = snapshot.value.toString();
           watchid = snapshot.value.toString();
-          if (watchid == "1") {
-            watchid = "Wear OS Emulator"; 
+          if (watchid == "1" || watchid == "2") {
+            watchid = "Galaxy Watch 4"; 
           } else {
-            watchid = "Galaxy Watch 4";
+            watchid = "Wear Os Emulator";
           }
           await fetchWatchData();
+          
           return data;
         } else {
-          // Data not found
+          setState(() {
+      isWatchConnected = false; // Set the connection status to false
+    });
           return null;
         }
       } else {
@@ -70,10 +78,10 @@ class _WatchConnectionState extends State<WatchConnection> {
       if (user != null) {
         // Reference to the users collection
         DatabaseReference usersRef =
-            FirebaseDatabase.instance.ref().child('Smartwatch');
+            FirebaseDatabase.instance.ref().child('SmartWatch');
 
         // Reference to the specific user's data
-        DatabaseReference userDataRef = usersRef.child("2").child('batteryLevel');
+        DatabaseReference userDataRef = usersRef.child("1").child('batteryLevel');
 
         // Fetch the data
         DataSnapshot snapshot = (await userDataRef.once()).snapshot;
@@ -108,6 +116,9 @@ class _WatchConnectionState extends State<WatchConnection> {
 
       // Optionally, reset the watchid or perform any other cleanup
       watchid = "";
+      setState(() {
+      isWatchConnected = false; // Set the connection status to false
+    });
     } else {
       // No user is currently logged in
       debugPrint('No user is currently logged in');
@@ -116,7 +127,6 @@ class _WatchConnectionState extends State<WatchConnection> {
     debugPrint('Error deleting data from Firebase: $e');
   }
 }
-
 
   void showDeleteConfirmationDialog(BuildContext context) {
     showDialog(
@@ -246,93 +256,94 @@ class _WatchConnectionState extends State<WatchConnection> {
                         return Column(
                           children: [
                             const SizedBox(height: 20,),
-                            SizedBox(
-                              height: 150,
-                              width: 300,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  alignment: Alignment.topLeft,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  shadowColor: Colors.white,
-                                  foregroundColor: Colors.grey,
-                                  surfaceTintColor: Colors.white,
-                                  backgroundColor: Colors.white,
-                                ),
-                              onPressed: () {
-                                showDeleteConfirmationDialog(context);
-                              },
-                            child:  Column(
-                            children: [
-                              const SizedBox(
-                                height: 30,
-                              ),
-                              Row(
-                                children: [
-                                  const SizedBox(
-                                    width: 20,
-                                  ),
-                                  const SizedBox(
-                                    height: 50,
-                                    width: 50,
-                                    child: Icon(
-                                      Icons.watch,
-                                      size: 50,
-                                      color: Colors.black, // Customize the color as needed
+                            if (isWatchConnected)
+                              SizedBox(
+                                height: 150,
+                                width: 300,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    alignment: Alignment.topLeft,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
                                     ),
+                                    shadowColor: Colors.white,
+                                    foregroundColor: Colors.grey,
+                                    surfaceTintColor: Colors.white,
+                                    backgroundColor: Colors.white,
                                   ),
-                                  const SizedBox(
-                                    width: 50,
-                                  ),
-                                  Column(
+                                  onPressed: () {
+                                    showDeleteConfirmationDialog(context);
+                                  },
+                                  child: Column(
                                     children: [
                                       const SizedBox(
-                                        child: Text(
-                                          'Watch Connected',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                            color: Colors.black,
-                                          ),
-                                        ),
+                                        height: 30,
                                       ),
-                                      SizedBox(
-                                        child: Text(
-                                          watchid,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                            color: Colors.black,
+                                      Row(
+                                        children: [
+                                          const SizedBox(
+                                            width: 20,
                                           ),
-                                        ),
+                                          const SizedBox(
+                                            height: 50,
+                                            width: 50,
+                                            child: Icon(
+                                              Icons.watch,
+                                              size: 50,
+                                              color: Colors.black, // Customize the color as needed
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            width: 50,
+                                          ),
+                                          Column(
+                                            children: [
+                                              const SizedBox(
+                                                child: Text(
+                                                  'Watch Connected',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                child: Text(
+                                                  watchid,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
+                                      const SizedBox(
+                                        height: 15,
+                                      ),
+                                      Row(
+                                        children: [
+                                          const SizedBox(
+                                            width: 13,
+                                          ),
+                                          SizedBox(
+                                            width: 225,
+                                            child: Text(
+                                              'Battery Level : $watchBattery%',
+                                              style: const TextStyle(fontSize: 12),
+                                            ),
+                                          ),
+                                        ],
+                                      )
                                     ],
                                   ),
-                                ],
+                                ),
                               ),
-                              const SizedBox(
-                                height: 15,
-                              ),
-                              Row(
-                                children: [
-                                  const SizedBox(
-                                    width: 13,
-                                  ),
-                                  SizedBox(
-                                    width: 225,
-                                    child: Text(
-                                      'Battery Level : $watchBattery%',
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            ],
-                            ),
-                            ),
-                            ),
                           ],
                         );
                       } else {
@@ -401,6 +412,7 @@ Future<void> _saveScannedData(String scannedData) async {
   @override
   void dispose() {
     qrController?.dispose();
+    this.qrController = null;
     super.dispose();
   }
 }

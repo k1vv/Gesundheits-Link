@@ -18,9 +18,6 @@ class _BodyMeasurementsPageState extends State<BodyMeasurementsPage> {
   final TextEditingController _weightController = TextEditingController();
   String _selectedGender = 'Male';
 
-  // Define a Future<DateTime?> property
-  Future<DateTime?>? _pickedDate;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

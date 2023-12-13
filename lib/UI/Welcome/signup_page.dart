@@ -258,7 +258,7 @@ Future<void> sendVerificationEmail(User user) async {
                   ),
                   child: const Center(
                     child: Text(
-                      "Password length must be bigger than 6 character",
+                      "Password length must be longer than 6 character",
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white),
                     ),
@@ -308,7 +308,7 @@ Future<void> sendVerificationEmail(User user) async {
                   ),
                   child: const Center(
                     child: Text(
-                      'Unsucessful Registration: Invalid Email',
+                      'Unsucessful Registration: Email Already Exist',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white),
                     ),

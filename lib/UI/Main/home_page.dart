@@ -87,6 +87,7 @@ class _HomePageState extends State<HomePage> {
   String heartRateRightNow = "N/A";
   String bloodOxygenRightNow = "N/A";
   String caloriesburnRightNow = "N/A";
+  String userText = "N/A";
 
   // UI Usage Variable //
 
@@ -448,7 +449,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> saveSleepData(String userId, String sleep, String dateFrom, String dateTo, DateTime selectedDate) async {
-
+    
     final databaseReference = FirebaseDatabase.instance.ref();
     
     final databasePath = 'health/$userId/sleep_session/${selectedDate.year}-${selectedDate.month}-${selectedDate.day}/';
@@ -475,11 +476,11 @@ class _HomePageState extends State<HomePage> {
 
     try {
       double sleepDeepData = double.parse(sleepdeep);
+      if(sleepDeepData > 0.0) {
+        await databaseReference.child(databasePath).update({'sleepDeep': sleepDeepData});
 
-      // Save sleep data, dateFrom, and dateTo to Firebase
-      await databaseReference.child(databasePath).update({'sleepDeep': sleepDeepData});
-
-      debugPrint('Sleep deep data saved to Firebase at $databasePath');
+        debugPrint('Sleep deep data saved to Firebase at $databasePath');
+      }   
     } catch (error) {
       debugPrint('Error saving Sleep deep data to Firebase: $error');
     }
@@ -494,10 +495,11 @@ class _HomePageState extends State<HomePage> {
     try {
       double sleepLightData = double.parse(sleepLight);
 
-      // Save sleep data, dateFrom, and dateTo to Firebase
-      await databaseReference.child(databasePath).update({'sleepLight': sleepLightData});
+      if(sleepLightData > 0.0) {
+        await databaseReference.child(databasePath).update({'sleepLight': sleepLightData});
 
       debugPrint('Sleep light data saved to Firebase at $databasePath');
+      }     
     } catch (error) {
       debugPrint('Error saving Sleep light data to Firebase: $error');
     }
@@ -512,10 +514,11 @@ class _HomePageState extends State<HomePage> {
     try {
       double sleepRemData = double.parse(sleepRem);
 
-      // Save sleep data, dateFrom, and dateTo to Firebase
-      await databaseReference.child(databasePath).update({'sleepRem': sleepRemData});
+      if(sleepRemData > 0) {
+        await databaseReference.child(databasePath).update({'sleepRem': sleepRemData});
 
-      debugPrint('Sleep Rem data saved to Firebase at $databasePath');
+        debugPrint('Sleep Rem data saved to Firebase at $databasePath');
+      }
     } catch (error) {
       debugPrint('Error saving Sleep Rem data to Firebase: $error');
     }
@@ -530,10 +533,11 @@ class _HomePageState extends State<HomePage> {
     try {
       double sleepAwakeData = double.parse(sleepAwake);
 
-      // Save sleep data, dateFrom, and dateTo to Firebase
-      await databaseReference.child(databasePath).update({'sleepAwake': sleepAwakeData});
+      if(sleepAwakeData > 0.0) {
+        await databaseReference.child(databasePath).update({'sleepAwake': sleepAwakeData});
 
-      debugPrint('Sleep Awake data saved to Firebase at $databasePath');
+        debugPrint('Sleep Awake data saved to Firebase at $databasePath');
+      }   
     } catch (error) {
       debugPrint('Error saving Sleep Awake data to Firebase: $error');
     }
@@ -681,9 +685,9 @@ class _HomePageState extends State<HomePage> {
       DatabaseEvent databaseEvent = await FirebaseDatabase.instance.ref().child(databasePath).once();
 
       if(mounted) {
-          setState(() {
+        setState(() {
             sleepTotalRightNow = 'N/A';
-          });
+         });
       }   
       if (databaseEvent.snapshot.value != null) {
         Map<String, dynamic> sleepData = (databaseEvent.snapshot.value as Map<dynamic, dynamic>).cast<String, dynamic>();
@@ -697,10 +701,29 @@ class _HomePageState extends State<HomePage> {
             });
           }
           
-          debugPrint('Fetched Sleep data: $sleepSession');
+          debugPrint('Fetched Sleep data: $sleepTotalRightNow');
         } else {
           debugPrint('Sleep data total is null or has an unexpected type.');
         }
+      } else {
+        debugPrint('Snapshot value is null.');
+      }
+    }
+  }
+
+  Future<void> fetchUsernameFirebase() async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      String userId = user.uid;
+      String databasePath = 'users/$userId/username';
+
+      DatabaseEvent databaseEvent = await FirebaseDatabase.instance.ref().child(databasePath).once();
+
+      if (databaseEvent.snapshot.value != null) {
+        String name = databaseEvent.snapshot.value.toString();
+     
+        userText = name;
       } else {
         debugPrint('Snapshot value is null.');
       }
@@ -718,7 +741,7 @@ class _HomePageState extends State<HomePage> {
 
       if(mounted) {
         setState(() {
-            sleepTotalRightNow = 'N/A';
+            currentWeightsNow = 'N/A';
          });
       }   
       if (databaseEvent.snapshot.value != null) {
@@ -734,7 +757,7 @@ class _HomePageState extends State<HomePage> {
   // Data Fetch from firebase
 
   Future<void> fetchData () async {
-    // await healthConnectData();
+    await healthConnectData();
 
     await firebaseData();
   }
@@ -758,6 +781,7 @@ class _HomePageState extends State<HomePage> {
       fetchBloodOxygenData(selectedDate);
       fetchSleepDataFirebase(selectedDate);
       fechWeights(selectedDate);
+      fetchUsernameFirebase();
   }
 
   Future<void> _fetchProfilePictureUrl() async {
@@ -796,6 +820,11 @@ class _HomePageState extends State<HomePage> {
       if(mounted) {
         setState(() {
           selectedDate = pickedDate;
+          sleepTotalRightNow = "N/A";
+          stepsTotalRightNow = "N/A";
+          heartRateRightNow = "N/A";
+          bloodOxygenRightNow = "N/A";
+          caloriesburnRightNow = "N/A";
         });
       }
       
@@ -903,7 +932,7 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               width: 290 * screenWidth / 375,
               child: Text(
-                "$currentDayNum, $currentDayDay's Information",
+                "$userText's $currentDayDay Information",
                 textAlign: TextAlign.left,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
@@ -914,7 +943,7 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               width: 286 * screenWidth / 375,
               child: Text(
-                '$currentMonth, $currentYear',
+                '$currentDayNum, $currentMonth, $currentYear',
                 textAlign: TextAlign.left,
                 style: const TextStyle(
                     fontWeight: FontWeight.bold,
@@ -1099,9 +1128,9 @@ class _HomePageState extends State<HomePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 const SizedBox(height: 20),
-                                const Row(
+                                 Row(
                                   children: [
-                                    Text(
+                                    const Text(
                                       'Weight Management',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
@@ -1110,11 +1139,11 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ),
                                     SizedBox(
-                                      width: 7,
+                                      width: 125 * screenWidth / 375,
                                     ),
-                                    Image(
+                                    const Image(
                                       image: AssetImage(
-                                          'assets/images/star.png'),
+                                          'assets/images/weight.png'),
                                       width: 20,
                                       height: 20,
                                     ),
@@ -1130,7 +1159,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                                 const Text(
-                                  'Sleep Session',
+                                  'Kilograms',
                                   style: TextStyle(
                                     fontStyle: FontStyle.italic,
                                     fontSize: 10,

@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_unnecessary_containers
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
+import 'package:myapp/UI/Habits/notification.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:myapp/UI/Main/main_page.dart';
@@ -22,15 +23,20 @@ class CustomHabits extends StatefulWidget {
 
 class _CustomHabitsState extends State<CustomHabits> {
 
+  DateTime selectedTime = DateTime.now();
+  DateTime now = DateTime.now();
+  DateTime selectedDateTime = DateTime.now();
+
   late TextEditingController _nameTextController = TextEditingController();
   late TextEditingController _descriptionTextController = TextEditingController();
   String name = '';
   String description = '';
   String options = 'Daily  >';
-  Color buttonColor1 = const Color.fromARGB(255, 255, 241, 245);
-  Color buttonColor2 = const Color.fromARGB(255, 226, 226, 226);
+  Color buttonColor1 = const Color.fromARGB(255, 226, 226, 226);
+  Color buttonColor2 = const Color.fromARGB(255, 255, 241, 245);
   Color buttonColor3 = const Color.fromARGB(255, 226, 226, 226);
   Color buttonColor4 = const Color.fromARGB(255, 226, 226, 226);
+  
   FontWeight fontWeight1 = FontWeight.normal;
   FontWeight fontWeight2 = FontWeight.normal;
   FontWeight fontWeight3 = FontWeight.normal;
@@ -43,7 +49,7 @@ class _CustomHabitsState extends State<CustomHabits> {
   String endDate = "";
   Color selectedColor = const Color.fromARGB(255, 78, 255, 196);
   IconData selectedIcon = Icons.add;
-  String timeRange = "Anytime";
+  String timeRange = "Morning";
   List<String> previousTags = ["test", "test2", "test3"];
   String selectedTag = '';
   List<Widget> selectedTagWidgets = [];
@@ -95,6 +101,7 @@ class _CustomHabitsState extends State<CustomHabits> {
           "endTime": newHabit.endTime.toIso8601String(),
           "endHabitTime": newHabit.endHabitTime,
         });
+        scheduleNotification(selectedDateTime, newHabit);
 
         // ignore: use_build_context_synchronously
         Navigator.push(context, MaterialPageRoute(builder: (context) => const MainPage(initialIndex: 1,)));
@@ -260,6 +267,45 @@ class _CustomHabitsState extends State<CustomHabits> {
         );
       },
     );
+  }
+
+  Future<void> openTimePicker() async {
+    TimeOfDay? selectedTimeOfDay = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (selectedTimeOfDay != null) {
+      // Convert selectedTimeOfDay to DateTime
+      selectedDateTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        selectedTimeOfDay.hour,
+        selectedTimeOfDay.minute,
+      );
+
+      debugPrint("$selectedDateTime");
+      String formattedTime = "${selectedTimeOfDay.hour}:${selectedTimeOfDay.minute.toString().padLeft(2, '0')}";
+
+      debugPrint(formattedTime);
+      setState(() {
+        timeRange = formattedTime;
+      });
+
+      // Schedule the notification with the selected time
+      
+    }
+  }
+
+  Future<void> scheduleNotification(DateTime targetTime, Habit newHabit) async {
+    Duration delay = targetTime.difference(now);
+    LocalNotifications.showScheduleNotification(
+        title: 'Unfinished Habit',
+        body: 'You still have an unfinished habit ${newHabit.name} \n Finish it now',
+        payload: 'Scheduled Notification Payload',
+        delay: delay,
+      );
   }
 
   @override
@@ -510,58 +556,58 @@ class _CustomHabitsState extends State<CustomHabits> {
                 ),
               ),
               SizedBox(height: 10 * screenHeight / 375,),
-              SizedBox(
-                width: 300 * screenWidth / 375,
-                child: const Text(
-                  "Tag",
-                  textAlign: TextAlign.start,
-                  style: TextStyle(
-                    fontFamily: 'Arial',
-                    fontWeight: FontWeight.bold
-                  ),
-                ),
-              ),
-              SizedBox(height: 5 * screenHeight / 375,),
-              Row(
-                children: [
-                  Container(
-                    width: 50 * screenWidth / 375,
-                    height: 25 * screenWidth / 375,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30), 
-                      color: const Color.fromARGB(255, 235, 235, 235)                      
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            showTagDialog();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            elevation: 0,
-                            shadowColor: Colors.transparent, 
-                            backgroundColor: Colors.transparent, 
-                            foregroundColor: Colors.transparent, 
-                            surfaceTintColor: Colors.transparent, 
-                            alignment: Alignment.center),
-                            child: const Text("")
-                          ),
-                        GestureDetector(
-                          onTap: () {
-                            showTagDialog();
-                          },
-                          child: const Icon(
-                            Icons.add, 
-                            color: Colors.grey,
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                    SizedBox(width: 250 * screenWidth / 375,)
-                ],
-              ),              
+              // SizedBox(
+              //   width: 300 * screenWidth / 375,
+              //   child: const Text(
+              //     "Tag",
+              //     textAlign: TextAlign.start,
+              //     style: TextStyle(
+              //       fontFamily: 'Arial',
+              //       fontWeight: FontWeight.bold
+              //     ),
+              //   ),
+              // ),
+              // SizedBox(height: 5 * screenHeight / 375,),
+              // Row(
+              //   children: [
+              //     Container(
+              //       width: 50 * screenWidth / 375,
+              //       height: 25 * screenWidth / 375,
+              //       decoration: BoxDecoration(
+              //         borderRadius: BorderRadius.circular(30), 
+              //         color: const Color.fromARGB(255, 235, 235, 235)                      
+              //       ),
+              //       child: Stack(
+              //         alignment: Alignment.center,
+              //         children: [
+              //           ElevatedButton(
+              //             onPressed: () {
+              //               showTagDialog();
+              //             },
+              //             style: ElevatedButton.styleFrom(
+              //               elevation: 0,
+              //               shadowColor: Colors.transparent, 
+              //               backgroundColor: Colors.transparent, 
+              //               foregroundColor: Colors.transparent, 
+              //               surfaceTintColor: Colors.transparent, 
+              //               alignment: Alignment.center),
+              //               child: const Text("")
+              //             ),
+              //           GestureDetector(
+              //             onTap: () {
+              //               showTagDialog();
+              //             },
+              //             child: const Icon(
+              //               Icons.add, 
+              //               color: Colors.grey,
+              //             ),
+              //           )
+              //         ],
+              //       ),
+              //     ),
+              //       SizedBox(width: 250 * screenWidth / 375,)
+              //   ],
+              // ),              
               SizedBox(width: 10 * screenHeight / 375),
               Row(
                 children: [
@@ -689,9 +735,7 @@ class _CustomHabitsState extends State<CustomHabits> {
                       child: ElevatedButton(
                           onPressed: () {
                             changeColor(1);
-                            setState(() {
-                              timeRange = "Anytime";
-                            });
+                            openTimePicker();
                           },
                           style: ElevatedButton.styleFrom(
                             elevation: 0,

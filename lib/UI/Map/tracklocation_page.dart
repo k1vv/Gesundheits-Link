@@ -35,6 +35,7 @@ class _TrackLocationState extends State<TrackLocation> {
   String heartRateText = "N";
   String caloriesText = "00";
   String formattedDuration = '00:00:00';
+  String watchId = "";
 
   bool isRunning = false;
   bool showError = false;
@@ -108,23 +109,26 @@ class _TrackLocationState extends State<TrackLocation> {
   }
 
   Future<void> stopRunning() async {
-    imageBytes = await _screenshotController.capture();
-    stopForegroundService();
-    setState(() {
-      isRunning = false;
-      
-    });
-    setState(() {
-      markers.clear();
-      polylinePoints.clear();
-      polyline.points.clear();
-      mapController.move(originalCenter, 10);
-    });
+    try{
+      imageBytes = await _screenshotController.capture();
+      stopForegroundService();
+      setState(() {
+        isRunning = false;
 
-    Geolocator.getPositionStream().listen((Position position) {}).cancel();
-    
-    await saveExerciseDataToFirebase();
+      });
+      setState(() {
+        markers.clear();
+        polylinePoints.clear();
+        polyline.points.clear();
+        mapController.move(originalCenter, 10);
+      });
 
+      Geolocator.getPositionStream().listen((Position position) {}).cancel();
+
+      await saveExerciseDataToFirebase();
+    } catch (error) {
+      debugPrint("Error Encountered");
+    }    
   }
 
   Future<void> uploadScreenshotToFirebase(
@@ -299,15 +303,18 @@ class _TrackLocationState extends State<TrackLocation> {
   }
 
   void updateCalories(dynamic caloriesValue) {
-    int roundedCalories = caloriesValue?.round() ?? 0;
+
+    int roundedCalories = caloriesValue.round();
 
     setState(() {
       caloriesText = roundedCalories.toString();
     });
-  }
+
+}
 
   void updateDistance(dynamic distanceWatch) {
-    double distanceFetch = distanceWatch?.toDouble() ?? 0;
+
+    double distanceFetch = distanceWatch.toDouble();
 
     // Convert meters to kilometers
     double distanceInKm = distanceFetch / 1000;
@@ -319,44 +326,122 @@ class _TrackLocationState extends State<TrackLocation> {
       // Update the state with the formatted distance
       distance = formattedDistance;
     });
-  }
+
+}
 
   void updateHeartRate(dynamic heartrate) {
+
     int heartRateFetch = heartrate;
 
     setState(() {
       heartRateText = heartRateFetch.toString();
     });
-  }
+
+}
+
 
   void updateStatus(dynamic status) {
-    bool statusNow = status;
 
-    if(statusNow == false) {
-      stopRunning(); 
-    }
+      bool statusNow = status;
+
+      if(statusNow == false) {
+        stopRunning(); 
+      }
+
   }
 
   void updateRunStatus(dynamic status) {
-    bool statusNow = status;
-    if(statusNow == true) {
-      if(mounted) {
-        setState(() {
-          isRunning = false;
-          shouldUpdateListeners = false;
-        });
+
+      bool statusNow = status;
+      if(statusNow == true) {
+        if(mounted) {
+          setState(() {
+            isRunning = false;
+            shouldUpdateListeners = false;
+          });
+        }
+      } else {
+        if(mounted) {
+          setState(() {
+            isRunning = true;
+            shouldUpdateListeners = true;
+          });
+        }    
+        startTimer();
+        startRunning();
       }
-    } else {
-      if(mounted) {
-        setState(() {
-          isRunning = true;
-          shouldUpdateListeners = true;
-        });
-      }    
-      startTimer();
-      startRunning();
-    }
+
   }
+
+  Future<void> fetchWatchId() async {
+  User? user = FirebaseAuth.instance.currentUser;
+  try {
+    if(user != null) {
+      String userId = user.uid;
+      DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref(distance).child('users').child(userId).child("smartwatch").once()).snapshot;
+
+      if(dataSnapshot.value != null) {
+        watchId = dataSnapshot.value.toString();
+      }
+    }
+    initializeData();
+  } catch (error) {
+    debugPrint('Error fetching scanned data: $error');
+  }
+}
+
+Future<void> initializeData() async {
+  
+    databaseReference = FirebaseDatabase.instance.ref();
+    userId = FirebaseAuth.instance.currentUser!.uid;
+
+    caloriesRef = databaseReference.child('SmartWatch/1/ExerciseSessions/002/Calories');
+    distanceRef = databaseReference.child('SmartWatch/1/ExerciseSessions/002/Distance');
+    heartRateRef = databaseReference.child('SmartWatch/1/ExerciseSessions/002/HeartRate');
+
+    stopRef = databaseReference.child('SmartWatch/1/ExerciseStatus');
+    pauseRef = databaseReference.child('SmartWatch/1/RunStatus');
+
+    caloriesRef.onValue.listen((DatabaseEvent event) {
+      if (!shouldUpdateListeners) return;
+      dynamic caloriesValue = event.snapshot.value;
+      if(caloriesValue != null) {
+        updateCalories(caloriesValue);
+      }
+      
+    });
+
+    distanceRef.onValue.listen((DatabaseEvent event) {
+      if (!shouldUpdateListeners) return;
+      dynamic distanceValue = event.snapshot.value;
+      if(distanceValue != null ) {
+        updateDistance(distanceValue);
+      }
+      
+    });
+
+    heartRateRef.onValue.listen((DatabaseEvent event) {
+      if (!shouldUpdateListeners) return;
+      dynamic heartRateValue = event.snapshot.value;
+      if(heartRateValue != null) {
+        updateHeartRate(heartRateValue);
+      }
+      
+    });
+    stopRef.onValue.listen((DatabaseEvent event) {
+      dynamic stopRun = event.snapshot.value;
+      if (stopRun != null ){
+        updateStatus(stopRun);
+      }
+      
+    });
+    pauseRef.onValue.listen((DatabaseEvent event) {
+      dynamic pauseRun = event.snapshot.value;
+      if(pauseRun != null) {
+        updateRunStatus(pauseRun);
+      }
+    });
+}
 
   @override
   void initState() {
@@ -366,48 +451,12 @@ class _TrackLocationState extends State<TrackLocation> {
     mapController = MapController();
 
     startRunning();
-    startTimer();
 
-    //distance = (calculateDistance() / 1000).toStringAsFixed(2);
     paceTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       updatePace();
     });
+    fetchWatchId();
 
-    databaseReference = FirebaseDatabase.instance.ref();
-    userId = FirebaseAuth.instance.currentUser!.uid;
-
-    caloriesRef = databaseReference.child('SmartWatch/1/ExerciseSessions/002/Calories');
-    distanceRef = databaseReference.child('SmartWatch/1/ExerciseSessions/002/Distance');
-    heartRateRef = databaseReference.child('SmartWatch/1/ExerciseSessions/002/HeartRate');
-
-    stopRef = databaseReference.child('ExerciseStatus');
-    pauseRef = databaseReference.child('RunStatus');
-
-    caloriesRef.onValue.listen((DatabaseEvent event) {
-      if (!shouldUpdateListeners) return; // Check shouldUpdateListeners before updating
-      dynamic caloriesValue = event.snapshot.value;
-      updateCalories(caloriesValue);
-    });
-
-    distanceRef.onValue.listen((DatabaseEvent event) {
-      if (!shouldUpdateListeners) return; // Check shouldUpdateListeners before updating
-      dynamic distanceValue = event.snapshot.value;
-      updateDistance(distanceValue);
-    });
-
-    heartRateRef.onValue.listen((DatabaseEvent event) {
-      if (!shouldUpdateListeners) return; // Check shouldUpdateListeners before updating
-      dynamic heartRateValue = event.snapshot.value;
-      updateHeartRate(heartRateValue);
-    });
-    stopRef.onValue.listen((DatabaseEvent event) {
-      dynamic stopRun = event.snapshot.value;
-      updateStatus(stopRun);
-    });
-    pauseRef.onValue.listen((DatabaseEvent event) {
-      dynamic pauseRun = event.snapshot.value;
-      updateRunStatus(pauseRun);
-    });
   }
 
   @override
@@ -657,99 +706,6 @@ class _TrackLocationState extends State<TrackLocation> {
                             ],
                           )
                         ),
-                    // Visibility(
-                    //   visible: showWidgets2,
-                    //   child: Row(
-                    //     mainAxisAlignment: MainAxisAlignment.center,
-                    //     children: [
-                    //       SizedBox(
-                    //         width: 60,
-                    //         height: 60,
-                    //         child: ElevatedButton(
-                    //           onPressed: () {},
-                    //           onLongPress: () {
-                    //             setState(() {
-                    //               showWidgets2 = !showWidgets2;
-                    //               showWidgets3 = !showWidgets3;
-                    //               isRunning = false;
-                    //             });
-                    //           },
-                    //           style: ElevatedButton.styleFrom(
-                    //               padding: EdgeInsets.zero,
-                    //               elevation: 0,
-                    //               shadowColor: Colors.transparent,
-                    //               foregroundColor: Colors.white,
-                    //               backgroundColor: Colors.transparent,
-                    //               surfaceTintColor: Colors.transparent),
-                    //           child: Image.asset(
-                    //             'assets/images/pause.png',
-                    //             width: 60,
-                    //             height: 60,
-                    //             fit: BoxFit.fill,
-                    //           ),
-                    //         ),
-                    //       )
-                    //     ],
-                    //   ),
-                    // ),
-                    // Visibility(
-                    //   visible: showWidgets3,
-                    //   child: Row(
-                    //     mainAxisAlignment: MainAxisAlignment.center,
-                    //     children: [
-                    //       SizedBox(
-                    //         width: 60,
-                    //         height: 60,
-                    //         child: ElevatedButton(
-                    //           onPressed: () {
-                    //             stopRunning();
-                    //           },
-                    //           style: ElevatedButton.styleFrom(
-                    //               padding: EdgeInsets.zero,
-                    //               elevation: 0,
-                    //               shadowColor: Colors.transparent,
-                    //               foregroundColor: Colors.white,
-                    //               backgroundColor: Colors.transparent,
-                    //               surfaceTintColor: Colors.transparent),
-                    //           child: Image.asset(
-                    //             'assets/images/stop.png',
-                    //             width: 60,
-                    //             height: 60,
-                    //             fit: BoxFit.fill,
-                    //           ),
-                    //         ),
-                    //       ),
-                    //       SizedBox(
-                    //         width: 60,
-                    //         height: 60,
-                    //         child: ElevatedButton(
-                    //           onPressed: () {
-                    //             setState(() {
-                    //               showWidgets3 = !showWidgets3;
-                    //               showWidgets2 = !showWidgets2;
-                    //               isRunning = true;
-                    //             });
-                    //             startTimer();
-                    //             startRunning();
-                    //           },
-                    //           style: ElevatedButton.styleFrom(
-                    //               padding: EdgeInsets.zero,
-                    //               elevation: 0,
-                    //               shadowColor: Colors.transparent,
-                    //               foregroundColor: Colors.white,
-                    //               backgroundColor: Colors.transparent,
-                    //               surfaceTintColor: Colors.transparent),
-                    //           child: Image.asset(
-                    //             'assets/images/start.png',
-                    //             width: 60,
-                    //             height: 60,
-                    //             fit: BoxFit.fill,
-                    //           ),
-                    //         ),
-                    //       )
-                    //     ],
-                    //   ),
-                    // ),
                   ],
                 ),
               ],

@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_declarations, avoid_returning_null_for_void
 
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -80,7 +81,8 @@ class LocalNotifications {
     required String payload,
     required Duration delay, // Accept delay as a parameter
   }) async {
-    tz.initializeTimeZones();
+    try {
+      tz.initializeTimeZones();
     await _flutterLocalNotificationsPlugin.zonedSchedule(
       2,
       title,
@@ -101,6 +103,9 @@ class LocalNotifications {
           UILocalNotificationDateInterpretation.absoluteTime,
       payload: payload,
     );
+    } catch (error) {
+      debugPrint("Error Encoutered : $error");
+    }
   }
   // close a specific channel notification
   static Future cancel(int id) async {
