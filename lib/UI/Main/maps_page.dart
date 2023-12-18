@@ -1,13 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:myapp/UI/Map/exercise.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/UI/Map/tracklocation_page.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_database/firebase_database.dart';
 
 class ShowMaps extends StatefulWidget {
   const ShowMaps({Key? key}) : super(key: key);
@@ -207,30 +207,37 @@ class _ShowMapsState extends State<ShowMaps> {
   }
   
   Future<void> fetchWatchId() async {
-  User? user = FirebaseAuth.instance.currentUser;
-  try {
-    if(user != null) {
-      String userId = user.uid;
-      DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref(distance).child('users').child(userId).child("smartwatch").once()).snapshot;
-
-      if(dataSnapshot.value != null) {
-        watchId = dataSnapshot.value.toString();
+    User? user = FirebaseAuth.instance.currentUser;
+    try {
+      if(user != null) {
+        String userId = user.uid;
+        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child('users').child(userId).child("smartwatch").once()).snapshot;
+  
+        if(dataSnapshot.value != null) {
+          watchId = dataSnapshot.value.toString();
+          isConnect = true;
+        } else {
+          debugPrint("No data found");
+          isConnect = false;
+        }
+      } else {
+        debugPrint("Users not logged in");
       }
+      debugPrint("This is your $watchId");
+      initializeData();
+    } catch (error) {
+      debugPrint('Error fetching scanned data: $error');
     }
-    initializeData();
-  } catch (error) {
-    debugPrint('Error fetching scanned data: $error');
   }
-}
 
   Future<void> initializeData() async {
     await fetchLatestExerciseData();
     await fetchExerciseData();
 
-    startExercise = FirebaseDatabase.instance.ref().child('SmartWatch/1/ExerciseStatus');
+    startExercise = FirebaseDatabase.instance.ref().child('SmartWatch/$watchId/ExerciseStatus');
     startExercise.onValue.listen((DatabaseEvent event) async {
       dynamic exercise = event.snapshot.value;
-      if (exercise.toString() == "true") {
+      if (exercise == true) {
         await _requestLocationPermission();
       }
     });
@@ -414,8 +421,8 @@ class _ShowMapsState extends State<ShowMaps> {
           if (exerciseList.isNotEmpty)
             Container(
               padding: const EdgeInsets.only(
-                left: 10, 
-                right: 10,
+                left: 5, 
+                right: 5,
               ),
               child: Container(
                 width: 370 * screenWidth / 375,
@@ -454,7 +461,7 @@ class _ShowMapsState extends State<ShowMaps> {
                                   const Column(
                                     children: [
                                       Text(
-                                        "aa", 
+                                        "    ", 
                                         style: TextStyle(
                                           color: Colors.transparent
                                         ),

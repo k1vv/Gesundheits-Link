@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:myapp/UI/Main/main_page.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class WatchConnection extends StatefulWidget {
@@ -13,12 +14,15 @@ class WatchConnection extends StatefulWidget {
 }
 
 class _WatchConnectionState extends State<WatchConnection> {
+
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  QRViewController? qrController;
-  bool isScanning = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
+  QRViewController? qrController;
+  bool isScanning = false;
+  String watchsIds = "";
   String watchid = "";
+  String watchName = "";
   int watchBattery = 0;
 
   bool isWatchConnected = false;
@@ -46,11 +50,8 @@ class _WatchConnectionState extends State<WatchConnection> {
         if (snapshot.value != null) {
           String data = snapshot.value.toString();
           watchid = snapshot.value.toString();
-          if (watchid == "1" || watchid == "2") {
-            watchid = "Galaxy Watch 4"; 
-          } else {
-            watchid = "Wear Os Emulator";
-          }
+          watchsIds = snapshot.value.toString();
+          
           await fetchWatchData();
           
           return data;
@@ -70,33 +71,41 @@ class _WatchConnectionState extends State<WatchConnection> {
     }
   }
   
-  Future<void> fetchWatchData() async {
-    try {
-      // Get the current user from Firebase Auth
-      User? user = FirebaseAuth.instance.currentUser;
+Future<void> fetchWatchData() async {
+  try {
+    DatabaseReference watchRef = FirebaseDatabase.instance.ref().child('SmartWatch');
+    DatabaseReference userDataRef = watchRef.child(watchsIds);
 
-      if (user != null) {
-        // Reference to the users collection
-        DatabaseReference usersRef =
-            FirebaseDatabase.instance.ref().child('SmartWatch');
+    DataSnapshot snapshot = (await userDataRef.once()).snapshot;
 
-        // Reference to the specific user's data
-        DatabaseReference userDataRef = usersRef.child("1").child('batteryLevel');
+    if (snapshot.value != null) {
+      final Map<Object?, Object?> dataMap = snapshot.value as Map<Object?, Object?>;
 
-        // Fetch the data
-        DataSnapshot snapshot = (await userDataRef.once()).snapshot;
+      if (dataMap['DeviceName'] != null) {
+        watchName = dataMap['DeviceName'].toString();
 
-        // Check if the data exists
-        if (snapshot.value != null) {
-          watchBattery = snapshot.value as int;
+        if (watchName == "freshbs") {
+          watchName = "Galaxy Watch 4";
+        } else if (watchName == "sdk_gwear_x86_64") {
+          watchName = "Wear OS Emulator";
         } else {
+          watchName = "Unknown Device";
         }
-      } else {
       }
-    } catch (e) {
-      debugPrint('Error fetching data from Firebase: $e');
+
+      if (dataMap['batteryLevel'] != null) {
+        watchBattery = dataMap['batteryLevel'] as int;
+      }
+    } else {
+      // Handle the case where data doesn't exist
+      watchName = 'Unknown Device';
+      watchBattery = 0;
     }
+  } catch (e) {
+    debugPrint('Error fetching data from Firebase: $e');
+    // Handle the error if needed
   }
+}
 
   Future<void> deleteDataFromFirebase() async {
   try {
@@ -249,7 +258,7 @@ class _WatchConnectionState extends State<WatchConnection> {
                     future: fetchDataFromFirebase(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
+                        return Container();
                       } else if (snapshot.hasError) {
                         return Text('Error: ${snapshot.error}');
                       } else if (snapshot.data != null) {
@@ -311,7 +320,7 @@ class _WatchConnectionState extends State<WatchConnection> {
                                               ),
                                               SizedBox(
                                                 child: Text(
-                                                  watchid,
+                                                  watchName,
                                                   style: const TextStyle(
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 16,
@@ -399,8 +408,10 @@ Future<void> _saveScannedData(String scannedData) async {
       await _database.child('users').child(userId).update({
         'smartwatch': scannedData,
       });
-
+      Navigator.push(
+        context, MaterialPageRoute(builder: (context) => const MainPage(initialIndex: 2,)));
       debugPrint('Scanned data saved to Firebase: $scannedData');
+      
     } else {
       debugPrint('User not signed in.');
     }

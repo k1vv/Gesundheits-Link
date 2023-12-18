@@ -187,62 +187,75 @@ class _CaloriesPageState extends State<CaloriesPage> {
   // Fetch Weekly Calories Data //
 
   Future<void> fetchCaloriesWeeklyData() async {
-    final today = DateTime.now();
-    String userId = "";
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      userId = user.uid;
+    try{
+      final today = DateTime.now();
+      String userId = "";
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        userId = user.uid;
 
-      double totalCalories = 0;
-      DateTime startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+        double totalCalories = 0;
+        DateTime startOfWeek = today.subtract(Duration(days: today.weekday - 1));
 
-      for (int i = 0; i < 7; i++) {
-        double maxCalories = 0; 
-        DateTime currentDate = startOfWeek.add(Duration(days: i));
+        for (int i = 0; i < 7; i++) {
+          double maxCalories = 0; 
+          DateTime currentDate = startOfWeek.add(Duration(days: i));
 
-        String databasePath = 'health/$userId/calories/${currentDate.year}-${currentDate.month}-${currentDate.day}/';
+          String databasePath = 'health/$userId/calories/${currentDate.year}-${currentDate.month}-${currentDate.day}/';
 
-        DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
+          DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
 
-        if (dataSnapshot.value != null) {
-          Map<Object?, Object?>? data = dataSnapshot.value as Map<Object?, Object?>?;
-          int sum = data?.values.whereType<int>().fold<int>(0, (int acc, int value) => acc + value) ?? 0;
+          if (dataSnapshot.value != null) {
+            if(dataSnapshot.value is List<Object?>) {
+              List<Object?> data = dataSnapshot.value as List<Object?>;
+              int sum = data.whereType<int>().fold<int>(0, (int acc, int value) => acc + value);
+    
+              totalCalories += sum.toDouble();
+              maxCalories = sum.toDouble();
 
-          totalCalories += sum.toDouble();
-          maxCalories = sum.toDouble();
+            } else if(dataSnapshot.value is Map<Object?, Object?>?) {
+              Map<Object?, Object?>? data = dataSnapshot.value as Map<Object?, Object?>?;
+              int sum = data?.values.whereType<int>().fold<int>(0, (int acc, int value) => acc + value) ?? 0;
+
+              totalCalories += sum.toDouble();
+              maxCalories = sum.toDouble();
+            }
+          }
+          if(mounted) {
+            setState(() {
+              caloriesWeeklyData[i] = maxCalories;
+            });
+          }
+          debugPrint("maxCalories: $maxCalories %$i");
         }
+
+        findBiggestWeeklyCalories();
         if(mounted) {
           setState(() {
-            caloriesWeeklyData[i] = maxCalories;
+            totalCaloriesBurn = totalCalories.toString();
+            barGroups = List.generate(7, (index) {
+              return BarChartGroupData(
+                x: index,
+                barsSpace: 4,
+                barRods: [
+                  BarChartRodData(
+                    y: index < caloriesWeeklyData.length
+                        ? (caloriesWeeklyData[index]?.toDouble() ?? 0.0)
+                        : 0.0,
+                    colors: [const Color.fromARGB(255, 255, 96, 120)],
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(5),
+                      bottom: Radius.circular(0),
+                    ),
+                  ),
+                ],
+              );
+            });
           });
         }
-        debugPrint("maxCalories: $maxCalories %$i");
       }
-
-      findBiggestWeeklyCalories();
-      if(mounted) {
-        setState(() {
-          totalCaloriesBurn = totalCalories.toString();
-          barGroups = List.generate(7, (index) {
-            return BarChartGroupData(
-              x: index,
-              barsSpace: 4,
-              barRods: [
-                BarChartRodData(
-                  y: index < caloriesWeeklyData.length
-                      ? (caloriesWeeklyData[index]?.toDouble() ?? 0.0)
-                      : 0.0,
-                  colors: [const Color.fromARGB(255, 255, 96, 120)],
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(5),
-                    bottom: Radius.circular(0),
-                  ),
-                ),
-              ],
-            );
-          });
-        });
-      }
+    }catch (error) {
+      debugPrint("Error fetching data: $error");
     }
   }
 
@@ -298,11 +311,20 @@ class _CaloriesPageState extends State<CaloriesPage> {
         DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
 
         if (dataSnapshot.value != null) {
-          Map<Object?, Object?>? data = dataSnapshot.value as Map<Object?, Object?>?;
-          int sum = data?.values.whereType<int>().fold<int>(0, (int acc, int value) => acc + value) ?? 0;
+          if(dataSnapshot.value is List<Object?>) {
+            List<Object?> data = dataSnapshot.value as List<Object?>;
+            int sum = data.whereType<int>().fold<int>(0, (int acc, int value) => acc + value);
+    
+            totalCalories += sum.toDouble();
+            maxCalories = sum.toDouble();
 
-          totalCalories += sum.toDouble();
-          maxCalories = sum.toDouble();
+          } else if(dataSnapshot.value is Map<Object?, Object?>?) {
+            Map<Object?, Object?>? data = dataSnapshot.value as Map<Object?, Object?>?;
+            int sum = data?.values.whereType<int>().fold<int>(0, (int acc, int value) => acc + value) ?? 0;
+
+            totalCalories += sum.toDouble();
+            maxCalories = sum.toDouble();
+          }
         }
         if (mounted) {
           setState(() {
@@ -792,7 +814,7 @@ class _CaloriesPageState extends State<CaloriesPage> {
                             style: TextStyle(color: Colors.grey),
                           ),
                           SizedBox(
-                            width: 164 * screenWidth / 375,
+                            width: 160 * screenWidth / 375,
                           ),
                           SizedBox(
                             width: 134 * screenWidth / 375,

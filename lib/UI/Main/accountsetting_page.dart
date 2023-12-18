@@ -51,16 +51,22 @@ class _SettingsState extends State<Settings> {
       if (!mounted) return;
 
       if (data != null && data is Map) {
-        setState(() {
+        if(mounted) {
+          setState(() {
           username = data['username'] ?? "No Username Found";
           email = data['email'] ?? "No Email Found";
           profilePictureUrl = data['profilePictureUrl'] ?? '';
         });
+        }
+        
       } else {
-        setState(() {
+        if(mounted)
+ {
+  setState(() {
           username = "No Data Found";
           email = "No Data Found";
         });
+ }        
       }
     }
   }
@@ -98,12 +104,15 @@ class _SettingsState extends State<Settings> {
         if (!mounted) return;
 
         if (imageUrl != null) {
-          setState(() {
+          if(mounted) {
+            setState(() {
             currentImage = Image.file(
               imageFile,
               fit: BoxFit.cover,   
             );
           });
+          }
+          
           updateProfilePictureUrl(userId, imageUrl);
           Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (BuildContext context) => const MainPage(initialIndex: 4,)),
@@ -152,12 +161,14 @@ class _SettingsState extends State<Settings> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 if (!mounted) return;
                 final newUsername = newUsernameController.text.trim();
                 if (newUsername.isNotEmpty) {
                   performUsernameReset(newUsername);
-                  Navigator.of(context).pop();
+                  await Future.delayed(const Duration(seconds: 2));
+                  Navigator.push(
+        context, MaterialPageRoute(builder: (context) => const MainPage(initialIndex: 4,)));
                 }
               },
               child: const Text('Reset'),
@@ -179,29 +190,41 @@ class _SettingsState extends State<Settings> {
 
         if (!mounted) return;
 
-        setState(() {
+        if(mounted) {
+          setState(() {
           username = newUsername;
         });
         setState(() {
           showError2 = true;
         });
+        }
+        
         Future.delayed(const Duration(seconds: 5), () {
-          setState(() {
+          if(mounted) {
+            setState(() {
             showError2 = false;
           });
+          }
+          
         });
         debugPrint('Username updated in Firebase Realtime Database');
       }
     } catch (e) {
       if (!mounted) return;
       debugPrint("Username reset failed: $e");
-      setState(() {
+      if(mounted) {
+        setState(() {
         showError3 = true;
       });
+      }
+      
       Future.delayed(const Duration(seconds: 5), () {
-        setState(() {
+        if(mounted) {
+          setState(() {
           showError3 = false;
         });
+        }
+        
       });
     }
   }
@@ -272,11 +295,14 @@ class _SettingsState extends State<Settings> {
         await userRef.update({'email': newEmail});
   
         if (!mounted) return;
-  
-        setState(() {
+
+        if(mounted) {
+setState(() {
           email = newEmail;
         });
   
+        }
+        
         // Display a success message or navigate to a new screen
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -345,13 +371,19 @@ class _SettingsState extends State<Settings> {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         await user.updatePassword(newPassword);
-        setState(() {
-          showError = true;
-        });
+        if(mounted) {
+            setState(() {
+            showError = true;
+          });
+        }
+        
         Future.delayed(const Duration(seconds: 5), () {
-          setState(() {
+          if(mounted) {
+            setState(() {
             showError = false;
           });
+          }
+          
         });
 
         if (!mounted) return;
@@ -367,13 +399,19 @@ class _SettingsState extends State<Settings> {
     } catch (e) {
       if (!mounted) return;
       debugPrint("Password reset failed: $e");
-      setState(() {
+      if(mounted) {
+        setState(() {
         showError1 = true;
       });
+      }
+      
       Future.delayed(const Duration(seconds: 5), () {
-        setState(() {
+        if(mounted) {
+          setState(() {
           showError1 = false;
         });
+        }
+        
       });
 
       if (e is FirebaseAuthException && e.code == 'requires-recent-login') {

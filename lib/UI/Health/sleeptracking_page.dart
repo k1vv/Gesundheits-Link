@@ -242,7 +242,7 @@ class _SleepPage extends State<SleepPage> {
       body: SingleChildScrollView(
         child: Column(children: [
           SizedBox(
-            height: 15 * screenHeight / 375,
+            height: 10 * screenHeight / 375,
           ),
           SizedBox(
             child: Text(
@@ -378,8 +378,8 @@ class _SleepPage extends State<SleepPage> {
               borderRadius: BorderRadius.circular(15),
               elevation: 10,
               child: Container(
-                width: 325 * screenWidth / 375,
-                height: 125 * screenHeight / 375,
+                width: 330 * screenWidth / 375,
+                height: 130 * screenHeight / 375,
                 padding: EdgeInsets.only(
                   left: 25 * screenWidth / 375,
                   right: 25 * screenWidth / 375,

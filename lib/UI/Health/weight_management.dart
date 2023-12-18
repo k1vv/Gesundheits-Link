@@ -314,11 +314,16 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
 
         final DatabaseReference databaseReference = FirebaseDatabase.instance.ref();
 
-        DataSnapshot dataSnapshot = (await databaseReference.child(databasePath).once()).snapshot;
+        DataSnapshot dataSnapshot = 
+        (await databaseReference.child(databasePath).once()).snapshot;
 
         if (dataSnapshot.value != null) {
-          Map<Object?, Object?>? data = dataSnapshot.value as Map<Object?, Object?>?;
-          int sum = data?.values.whereType<int>().fold<int>(0, (int acc, int value) => acc + value) ?? 0;
+
+          Map<Object?, Object?>? data = 
+          dataSnapshot.value as Map<Object?, Object?>?;
+
+          int sum = 
+          data?.values.whereType<int>().fold<int>(0, (int acc, int value) => acc + value) ?? 0;
 
           activeCaloriesBurn = double.parse(sum.toString());
 
@@ -347,7 +352,7 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
           Map<Object?, Object?>? data = dataSnapshot.value as Map<Object?, Object?>?;
           double sum = data?.values.whereType<double>().fold<double>(0, (double acc, double value) => acc + value) ?? 0;
 
-          totalCaloriesConsumed = sum.toString();
+          totalCaloriesConsumed = sum.toStringAsFixed(2);
 
           debugPrint("Your Calories Consumed : $totalCaloriesConsumed");
         }
@@ -457,20 +462,19 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
   
   Future<void> calculateProgress() async {
     try {
-      RegExp regex = RegExp(r'\d+(\.\d+)?');
-      Match? match = regex.firstMatch(targetedWeight);
+      RegExp regex = RegExp(r'\d+(\.\d+)?');                                                        // Declare what's need to be remove from a variable
+      Match? match = regex.firstMatch(targetedWeight);                                              // Remove unnecassary elements from the variable
 
       if (match != null) {
         String extractedNumber = match.group(0)!;
-        double targetedWeightValue = double.parse(extractedNumber);
-        debugPrint("This is the $targetedWeightValue");
-
-        // Perform the calculation using the extracted number
-        String progress = (currentWeight / targetedWeightValue).toStringAsFixed(2);
+        double targetedWeightValue = double.parse(extractedNumber);                                 
+        debugPrint("This is the $targetedWeightValue");                                             // Print the result of the removal
+       
+        String progress = (currentWeight / targetedWeightValue).toStringAsFixed(2);                 // Perform the calculation using the extracted number
 
         if (mounted) {
           setState(() {
-            progressValue = double.parse(progress);
+            progressValue = double.parse(progress);                                                 // Set the value of the progress indicator to current progress percentage
             debugPrint("Your Progress is: $progressValue");
           });
         }
@@ -893,10 +897,9 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
     );
   }
 
-  @override
+  @override                     
   void initState() {
     super.initState();
-
     dataInitialization();
   }
 
@@ -970,6 +973,8 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
         automaticallyImplyLeading: false,
         shadowColor: Colors.white,
         backgroundColor: Colors.white,
+
+        surfaceTintColor: Colors.white,
       ),
       
       backgroundColor: Colors.white,
@@ -1105,7 +1110,7 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
                                 SizedBox(height: 5 * screenHeight / 375),
                                 Container(
                                   alignment: Alignment.bottomCenter,
-                                  width: 15 * screenWidth / 375,
+                                  width: 20 * screenWidth / 375,
                                   height: 10 * screenHeight / 375,
                                   color: Colors.transparent,
                                   child: const Text(
@@ -1124,7 +1129,7 @@ class _WeightManagementPageState extends State<WeightManagementPage> {
                       Positioned(
                         top: 92 * screenHeight / 375,
                         child: Container(
-                          width: 115 * screenWidth / 375,
+                          width: 120 * screenWidth / 375,
                           height: 12 * screenHeight / 375,
                           decoration: BoxDecoration(
                             color: const Color.fromARGB(255, 249, 157, 188), 

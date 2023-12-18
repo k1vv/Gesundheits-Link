@@ -300,7 +300,7 @@ class _CustomHabitsState extends State<CustomHabits> {
 
   Future<void> scheduleNotification(DateTime targetTime, Habit newHabit) async {
     Duration delay = targetTime.difference(now);
-    LocalNotifications.showScheduleNotification(
+    await LocalNotifications.showScheduleNotification(
         title: 'Unfinished Habit',
         body: 'You still have an unfinished habit ${newHabit.name} \n Finish it now',
         payload: 'Scheduled Notification Payload',

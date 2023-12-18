@@ -27,7 +27,6 @@ class TrackLocation extends StatefulWidget {
 class _TrackLocationState extends State<TrackLocation> {
 
   final ScreenshotController _screenshotController = ScreenshotController();
-  
 
   String? exerciseId;
   String userPace = 'N/A';
@@ -128,7 +127,7 @@ class _TrackLocationState extends State<TrackLocation> {
       await saveExerciseDataToFirebase();
     } catch (error) {
       debugPrint("Error Encountered");
-    }    
+    }
   }
 
   Future<void> uploadScreenshotToFirebase(
@@ -378,12 +377,13 @@ class _TrackLocationState extends State<TrackLocation> {
   try {
     if(user != null) {
       String userId = user.uid;
-      DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref(distance).child('users').child(userId).child("smartwatch").once()).snapshot;
+      DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child('users').child(userId).child("smartwatch").once()).snapshot;
 
       if(dataSnapshot.value != null) {
         watchId = dataSnapshot.value.toString();
       }
     }
+    debugPrint("This is your WATCH ID $watchId NOICEEEEEEEEEEEE");
     initializeData();
   } catch (error) {
     debugPrint('Error fetching scanned data: $error');
@@ -395,12 +395,12 @@ Future<void> initializeData() async {
     databaseReference = FirebaseDatabase.instance.ref();
     userId = FirebaseAuth.instance.currentUser!.uid;
 
-    caloriesRef = databaseReference.child('SmartWatch/1/ExerciseSessions/002/Calories');
-    distanceRef = databaseReference.child('SmartWatch/1/ExerciseSessions/002/Distance');
-    heartRateRef = databaseReference.child('SmartWatch/1/ExerciseSessions/002/HeartRate');
+    caloriesRef = databaseReference.child('SmartWatch/$watchId/ExerciseSessions/002/Calories');
+    distanceRef = databaseReference.child('SmartWatch/$watchId/ExerciseSessions/002/Distance');
+    heartRateRef = databaseReference.child('SmartWatch/$watchId/ExerciseSessions/002/HeartRate');
 
-    stopRef = databaseReference.child('SmartWatch/1/ExerciseStatus');
-    pauseRef = databaseReference.child('SmartWatch/1/RunStatus');
+    stopRef = databaseReference.child('SmartWatch/$watchId/ExerciseStatus');
+    pauseRef = databaseReference.child('SmartWatch/$watchId/RunStatus');
 
     caloriesRef.onValue.listen((DatabaseEvent event) {
       if (!shouldUpdateListeners) return;
@@ -673,7 +673,7 @@ Future<void> initializeData() async {
                             child: Column(
                               children: [
                                 const SizedBox(
-                                  height: 30,
+                                  height: 13,
                                 ),
                                 SizedBox(
                                   width: 180,

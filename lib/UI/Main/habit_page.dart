@@ -301,7 +301,7 @@ class _HabitsState extends State<Habits> {
                                         ),
                                         SizedBox(width: 10 * screenWidth / 375),
                                         SizedBox(
-                                          width: 175 * screenWidth / 375,
+                                          width: 170 * screenWidth / 375,
                                           child: Text(
                                             habit.name,
                                             style: const TextStyle(

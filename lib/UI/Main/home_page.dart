@@ -1,15 +1,16 @@
 // ignore_for_file: constant_identifier_names, unused_field, prefer_final_fields
 
 import 'dart:async';
-import 'package:intl/intl.dart';
-import 'package:health/health.dart';
-import 'package:flutter/material.dart';
-import 'package:myapp/UI/Health/divider.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:myapp/Widgets/healthcontainer.dart';
-import 'package:myapp/UI/Health/heartrate_page.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:health/health.dart';
+import 'package:intl/intl.dart';
+import 'package:myapp/UI/Health/divider.dart';
+import 'package:myapp/UI/Health/heartrate_page.dart';
+import 'package:myapp/Widgets/healthcontainer.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class HomePage extends StatefulWidget {
@@ -139,7 +140,7 @@ class _HomePageState extends State<HomePage> {
 
             if (user != null) {
               saveSteps(user.uid, stepnow!);
-              saveCalories(user.uid, stepnow);
+              // saveCalories(user.uid, stepnow);
             }
             break;
           }
@@ -451,8 +452,9 @@ class _HomePageState extends State<HomePage> {
   Future<void> saveSleepData(String userId, String sleep, String dateFrom, String dateTo, DateTime selectedDate) async {
     
     final databaseReference = FirebaseDatabase.instance.ref();
+    DateTime today = DateTime.now();
     
-    final databasePath = 'health/$userId/sleep_session/${selectedDate.year}-${selectedDate.month}-${selectedDate.day}/';
+    final databasePath = 'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/';
   
     try {
       int sleepData = int.parse(sleep);
@@ -471,8 +473,9 @@ class _HomePageState extends State<HomePage> {
   Future<void> saveSleepDeepData(String userId, String sleepdeep, DateTime selectedDate) async {
 
     final databaseReference = FirebaseDatabase.instance.ref();
+    DateTime Today = DateTime.now();
 
-    final databasePath = 'health/$userId/sleep_session/${selectedDate.year}-${selectedDate.month}-${selectedDate.day}/';
+    final databasePath = 'health/$userId/sleep_session/${Today.year}-${Today.month}-${Today.day}/';
 
     try {
       double sleepDeepData = double.parse(sleepdeep);
@@ -489,8 +492,9 @@ class _HomePageState extends State<HomePage> {
   Future<void> saveSleepLightData(String userId, String sleepLight, DateTime selectedDate) async {
     
     final databaseReference = FirebaseDatabase.instance.ref();
+    DateTime today = DateTime.now();
 
-    final databasePath = 'health/$userId/sleep_session/${selectedDate.year}-${selectedDate.month}-${selectedDate.day}/';
+    final databasePath = 'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/';
 
     try {
       double sleepLightData = double.parse(sleepLight);
@@ -509,7 +513,9 @@ class _HomePageState extends State<HomePage> {
 
     final databaseReference = FirebaseDatabase.instance.ref();
 
-    final databasePath = 'health/$userId/sleep_session/${selectedDate.year}-${selectedDate.month}-${selectedDate.day}/';
+    DateTime today = DateTime.now();
+
+    final databasePath = 'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/';
 
     try {
       double sleepRemData = double.parse(sleepRem);
@@ -528,7 +534,9 @@ class _HomePageState extends State<HomePage> {
 
     final databaseReference = FirebaseDatabase.instance.ref();
 
-    final databasePath = 'health/$userId/sleep_session/${selectedDate.year}-${selectedDate.month}-${selectedDate.day}/';
+    DateTime today = DateTime.now();
+
+    final databasePath = 'health/$userId/sleep_session/${today.year}-${today.month}-${today.day}/';
 
     try {
       double sleepAwakeData = double.parse(sleepAwake);
@@ -722,8 +730,12 @@ class _HomePageState extends State<HomePage> {
 
       if (databaseEvent.snapshot.value != null) {
         String name = databaseEvent.snapshot.value.toString();
-     
-        userText = name;
+        if(mounted) {
+          setState(() {
+            userText = name;
+          });
+        }
+        
       } else {
         debugPrint('Snapshot value is null.');
       }
@@ -775,36 +787,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> firebaseData () async {
+    try {
       fetchStepsData(selectedDate);
       fetchCaloriesData(selectedDate);
       fetchHeartRateData(selectedDate);
       fetchBloodOxygenData(selectedDate);
       fetchSleepDataFirebase(selectedDate);
-      fechWeights(selectedDate);
+      _fetchProfilePictureUrl();
       fetchUsernameFirebase();
-  }
-
-  Future<void> _fetchProfilePictureUrl() async {
-    final FirebaseAuth auth = FirebaseAuth.instance;
-    final DatabaseReference database = FirebaseDatabase.instance.ref();
-    User? user = auth.currentUser;
-
-    if (user != null) {
-      try {
-        DatabaseEvent event = await database.child('users').child(user.uid).once();
-        DataSnapshot snapshot = event.snapshot;
-        if (snapshot.value != null && snapshot.value is Map<dynamic, dynamic>) {
-          Map<dynamic, dynamic> values = snapshot.value as Map<dynamic, dynamic>;
-          if(mounted) {
-            setState(() {
-              _profilePictureUrl = values['profilePictureUrl'] ?? "";
-            });
-          }
-          
-        }
-      } catch (error) {
-        debugPrint("Error fetching profile picture: $error");
-      }
+      fechWeights(selectedDate);
+    } catch (error) {
+      debugPrint("Error fetching data from firebase: $error");
     }
   }
 
@@ -836,6 +829,29 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+    Future<void> _fetchProfilePictureUrl() async {
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    final DatabaseReference database = FirebaseDatabase.instance.ref();
+    User? user = auth.currentUser;
+
+    if (user != null) {
+      try {
+        DatabaseEvent event = await database.child('users').child(user.uid).once();
+        DataSnapshot snapshot = event.snapshot;
+        if (snapshot.value != null && snapshot.value is Map<dynamic, dynamic>) {
+          Map<dynamic, dynamic> values = snapshot.value as Map<dynamic, dynamic>;
+          if(mounted) {
+            setState(() {
+              _profilePictureUrl = values['profilePictureUrl'] ?? "";
+            });
+          }
+          
+        }
+      } catch (error) {
+        debugPrint("Error fetching profile picture: $error");
+      }
+    }
+  }
   @override
   void initState() {
    super.initState();
@@ -845,7 +861,6 @@ class _HomePageState extends State<HomePage> {
       selectedDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);     
    });
     fetchData();
-    _fetchProfilePictureUrl();
   }
 
   @override
@@ -899,7 +914,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   SizedBox(
-                    width: 215 * screenWidth / 375,
+                    width: 205 * screenWidth / 375,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -965,7 +980,7 @@ class _HomePageState extends State<HomePage> {
                         HealthButtonSmall(
                           screenWidth: screenWidth, 
                           screenHeight: screenHeight, 
-                          gap: 17.9,
+                          gap: 15,
                           buttonText: 'Calories', 
                           imageAsset: 'assets/images/flame.png', 
                           caloriesValue: caloriesburnRightNow, 
@@ -978,7 +993,7 @@ class _HomePageState extends State<HomePage> {
                         HealthButtonSmall(
                           screenWidth: screenWidth, 
                           screenHeight: screenHeight, 
-                          gap: 23.5,
+                          gap: 21,
                           buttonText: 'Steps', 
                           imageAsset: 'assets/images/icon-Z93.png', 
                           caloriesValue: stepsTotalRightNow, 
@@ -1029,7 +1044,7 @@ class _HomePageState extends State<HomePage> {
                                         color: Colors.black,
                                       ),
                                     ),
-                                    SizedBox(width: 48 * screenWidth / 375),
+                                    SizedBox(width: 45 * screenWidth / 375),
                                     Image(
                                       image: const AssetImage(
                                           'assets/images/heartrate.png'),
@@ -1074,7 +1089,7 @@ class _HomePageState extends State<HomePage> {
                         HealthButtonSmall(
                           screenWidth: screenWidth, 
                           screenHeight: screenHeight,
-                          gap: 4.8, 
+                          gap: 1, 
                           buttonText: 'Blood Oxygen', 
                           imageAsset: 'assets/images/pressure.png', 
                           caloriesValue: bloodOxygenRightNow, 
@@ -1087,7 +1102,7 @@ class _HomePageState extends State<HomePage> {
                         HealthButtonSmall(
                           screenWidth: screenWidth, 
                           screenHeight: screenHeight,
-                          gap: 5, 
+                          gap: 1, 
                           buttonText: 'Sleep Tracker', 
                           imageAsset: 'assets/images/star.png', 
                           caloriesValue: sleepTotalRightNow, 
@@ -1139,7 +1154,7 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ),
                                     SizedBox(
-                                      width: 125 * screenWidth / 375,
+                                      width: 120 * screenWidth / 375,
                                     ),
                                     const Image(
                                       image: AssetImage(
@@ -1149,7 +1164,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 42),
+                                const SizedBox(height: 34),
                                 Text(
                                   currentWeightsNow,
                                   style: const TextStyle(

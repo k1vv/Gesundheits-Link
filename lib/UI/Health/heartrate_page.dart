@@ -624,86 +624,86 @@ class _HeartRatePageState extends State<HeartRatePage> {
               ),
             ],
           ),
-          Container(
-            padding: const EdgeInsets.all(10),
-            width: 350 * screenWidth / 375,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Colors.white,
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: 350 * screenWidth / 375,
-                  decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: Colors.black),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.only(
-                    left: 10, 
-                    right: 10,
-                  ),
-                  alignment: Alignment.center,
-                  child: Column(
-                    children: [
-                      SizedBox(height: 5 * screenHeight / 375,),
-                      Builder (
-                        builder: (context) {
-                          try {
-                            final int heartRateData = int.parse(heartRateDataCurrent);
-                            if (heartRateData >= 60 && heartRateData <= 120) {
-                              return const Text(
-                                "Your current heart rate is great!",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.green,
-                                ),
-                              );
-                            } else if (heartRateData < 60) {
-                              return const Text(
-                                "Your current heart rate is too low. Seek medical attention now.",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.red,
-                                ),
-                              );
-                            } else if (heartRateData > 120) {
-                              return const Text(
-                                "Your current heart rate is quite high. You should get some rest.",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.orange,
-                                ),
-                              );
-                            }
-                            return const Text(
-                              "No Heart Rate Data",
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey,
-                              ),
-                            );
-                          } catch (e) {
-                            return const Text(
-                              "No Heart Rate Data",
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey,
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                      SizedBox(height: 5 * screenHeight / 375,),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // Container(
+          //   padding: const EdgeInsets.all(10),
+          //   width: 350 * screenWidth / 375,
+          //   decoration: BoxDecoration(
+          //     borderRadius: BorderRadius.circular(10),
+          //     color: Colors.white,
+          //   ),
+          //   child: Column(
+          //     children: [
+          //       Container(
+          //         width: 350 * screenWidth / 375,
+          //         decoration: BoxDecoration(
+          //           border: Border.all(width: 1, color: Colors.black),
+          //           borderRadius: BorderRadius.circular(10),
+          //         ),
+          //         padding: const EdgeInsets.only(
+          //           left: 10, 
+          //           right: 10,
+          //         ),
+          //         alignment: Alignment.center,
+          //         child: Column(
+          //           children: [
+          //             SizedBox(height: 5 * screenHeight / 375,),
+          //             Builder (
+          //               builder: (context) {
+          //                 try {
+          //                   final int heartRateData = int.parse(heartRateDataCurrent);
+          //                   if (heartRateData >= 60 && heartRateData <= 120) {
+          //                     return const Text(
+          //                       "Your current heart rate is great!",
+          //                       textAlign: TextAlign.center,
+          //                       style: TextStyle(
+          //                         fontSize: 18,
+          //                         color: Colors.green,
+          //                       ),
+          //                     );
+          //                   } else if (heartRateData < 60) {
+          //                     return const Text(
+          //                       "Your current heart rate is too low. Seek medical attention now.",
+          //                       textAlign: TextAlign.center,
+          //                       style: TextStyle(
+          //                         fontSize: 18,
+          //                         color: Colors.red,
+          //                       ),
+          //                     );
+          //                   } else if (heartRateData > 120) {
+          //                     return const Text(
+          //                       "Your current heart rate is quite high. You should get some rest.",
+          //                       textAlign: TextAlign.center,
+          //                       style: TextStyle(
+          //                         fontSize: 18,
+          //                         color: Colors.orange,
+          //                       ),
+          //                     );
+          //                   }
+          //                   return const Text(
+          //                     "No Heart Rate Data",
+          //                     style: TextStyle(
+          //                       fontSize: 18,
+          //                       color: Colors.grey,
+          //                     ),
+          //                   );
+          //                 } catch (e) {
+          //                   return const Text(
+          //                     "No Heart Rate Data",
+          //                     style: TextStyle(
+          //                       fontSize: 18,
+          //                       color: Colors.grey,
+          //                     ),
+          //                   );
+          //                 }
+          //               },
+          //             ),
+          //             SizedBox(height: 5 * screenHeight / 375,),
+          //           ],
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
         ]),
       ),
     );

@@ -57,7 +57,7 @@ class _WelcomeState extends State<Welcome> {
   @override
   void initState() {
     super.initState();
-    // authorize();
+    authorize();
   }
   
   @override

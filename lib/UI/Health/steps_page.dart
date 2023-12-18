@@ -1,12 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:async';
-import 'package:intl/intl.dart';
-import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:myapp/UI/Main/main_page.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:myapp/UI/Main/main_page.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 class StepsPage extends StatefulWidget {
@@ -207,11 +208,20 @@ class _StepsPageState extends State<StepsPage> {
         DataSnapshot dataSnapshot = (await FirebaseDatabase.instance.ref().child(databasePath).once()).snapshot;
 
         if (dataSnapshot.value != null) {
-          Map<Object?, Object?>? data = dataSnapshot.value as Map<Object?, Object?>?;
-          int sum = data?.values.whereType<int>().fold<int>(0, (int acc, int value) => acc + value) ?? 0;
+          if(dataSnapshot.value is List<Object?>) {
+            List<Object?> data = dataSnapshot.value as List<Object?>;
+            int sum = data.whereType<int>().fold<int>(0, (int acc, int value) => acc + value);
+    
+            totalsteps += sum.toDouble();
+            maxsteps = sum.toDouble();
 
-          totalsteps += sum.toDouble();
-          maxsteps = sum.toDouble();
+          } else if(dataSnapshot.value is Map<Object?, Object?>?) {
+            Map<Object?, Object?>? data = dataSnapshot.value as Map<Object?, Object?>?;
+            int sum = data?.values.whereType<int>().fold<int>(0, (int acc, int value) => acc + value) ?? 0;
+
+            totalsteps += sum.toDouble();
+            maxsteps = sum.toDouble();
+          }
         }
         if(mounted) {
           setState(() {
@@ -788,10 +798,10 @@ class _StepsPageState extends State<StepsPage> {
                             style: TextStyle(color: Colors.grey),
                           ),
                           SizedBox(
-                            width: 164 * screenWidth / 375,
+                            width: 145 * screenWidth / 375,
                           ),
                           SizedBox(
-                            width: 134 * screenWidth / 375,
+                            width: 145 * screenWidth / 375,
                             height: 15 * screenHeight / 375,
                             child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
