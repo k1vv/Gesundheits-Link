@@ -71,41 +71,41 @@ class _WatchConnectionState extends State<WatchConnection> {
     }
   }
   
-Future<void> fetchWatchData() async {
-  try {
-    DatabaseReference watchRef = FirebaseDatabase.instance.ref().child('SmartWatch');
-    DatabaseReference userDataRef = watchRef.child(watchsIds);
-
-    DataSnapshot snapshot = (await userDataRef.once()).snapshot;
-
-    if (snapshot.value != null) {
-      final Map<Object?, Object?> dataMap = snapshot.value as Map<Object?, Object?>;
-
-      if (dataMap['DeviceName'] != null) {
-        watchName = dataMap['DeviceName'].toString();
-
-        if (watchName == "freshbs") {
-          watchName = "Galaxy Watch 4";
-        } else if (watchName == "sdk_gwear_x86_64") {
-          watchName = "Wear OS Emulator";
-        } else {
-          watchName = "Unknown Device";
+  Future<void> fetchWatchData() async {
+    try {
+      DatabaseReference watchRef = FirebaseDatabase.instance.ref().child('SmartWatch');
+      DatabaseReference userDataRef = watchRef.child(watchsIds);
+  
+      DataSnapshot snapshot = (await userDataRef.once()).snapshot;
+  
+      if (snapshot.value != null) {
+        final Map<Object?, Object?> dataMap = snapshot.value as Map<Object?, Object?>;
+  
+        if (dataMap['DeviceName'] != null) {
+          watchName = dataMap['DeviceName'].toString();
+  
+          if (watchName == "freshbs") {
+            watchName = "Galaxy Watch 4";
+          } else if (watchName == "sdk_gwear_x86_64") {
+            watchName = "Wear OS Emulator";
+          } else {
+            watchName = "Unknown Device";
+          }
         }
+  
+        if (dataMap['batteryLevel'] != null) {
+          watchBattery = dataMap['batteryLevel'] as int;
+        }
+      } else {
+        // Handle the case where data doesn't exist
+        watchName = 'Unknown Device';
+        watchBattery = 0;
       }
-
-      if (dataMap['batteryLevel'] != null) {
-        watchBattery = dataMap['batteryLevel'] as int;
-      }
-    } else {
-      // Handle the case where data doesn't exist
-      watchName = 'Unknown Device';
-      watchBattery = 0;
+    } catch (e) {
+      debugPrint('Error fetching data from Firebase: $e');
+      // Handle the error if needed
     }
-  } catch (e) {
-    debugPrint('Error fetching data from Firebase: $e');
-    // Handle the error if needed
   }
-}
 
   Future<void> deleteDataFromFirebase() async {
   try {
