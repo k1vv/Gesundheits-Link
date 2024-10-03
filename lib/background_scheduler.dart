@@ -36,7 +36,6 @@ class BackgroundTasks {
    ];
   static List<HealthDataPoint> _healthDataList = [];
   static AppState _state = AppState.DATA_NOT_FETCHED;
-  static HealthFactory health = HealthFactory(useHealthConnectIfAvailable: true);
   static final permissions = types.map((e) => HealthDataAccess.READ_WRITE).toList();
 
   static String currentSteps = "N/A";
@@ -104,10 +103,10 @@ class BackgroundTasks {
     _healthDataList.clear();
 
     try {
-      List<HealthDataPoint> healthData = await health.getHealthDataFromTypes(
-        selectedDate,
-        selectedDate.add(const Duration(days: 1)),
-        types,
+      List<HealthDataPoint> healthData = await Health().getHealthDataFromTypes(
+        startTime: selectedDate,
+        endTime: selectedDate.add(const Duration(days: 1)),
+        types: types,
       );
       if (user != null) {
         if (types.contains(HealthDataType.STEPS)) {

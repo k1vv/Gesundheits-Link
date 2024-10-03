@@ -230,35 +230,36 @@ class _TrackLocationState extends State<TrackLocation> {
     setState(() {
       markers.clear();
       markers.add(
-        Marker(
-          width: 45.0,
-          height: 45.0,
-          point: latLng,
-          builder: (ctx) => Container(
-            color: Colors.transparent,
-            child: Image.asset(
-              'assets/images/running.png',
-              width: 45.0,
-              height: 45.0,
-            ),
-          ),
-        ),
-      );
+  Marker(
+    width: 45.0,
+    height: 45.0,
+    point: latLng,
+    child: Container(
+      color: Colors.transparent,
+      child: Image.asset(
+        'assets/images/running.png',
+        width: 45.0,
+        height: 45.0,
+      ),
+    ),
+  ),
+);
+
       markers.add(
-        Marker(
-          width: 45.0,
-          height: 45.0,
-          point: latLng,
-          builder: (ctx) => Container(
-            color: Colors.transparent,
-            child: Image.asset(
-              'assets/images/running.png',
-              width: 45.0,
-              height: 45.0,
-            ),
-          ),
-        ),
-      );
+  Marker(
+    width: 45.0,
+    height: 45.0,
+    point: latLng,
+    child: Container(
+      color: Colors.transparent,
+      child: Image.asset(
+        'assets/images/running.png',
+        width: 45.0,
+        height: 45.0,
+      ),
+    ),
+  ),
+);
       polylinePoints.add(latLng);
       polyline.points.add(latLng);
       mapController.move(latLng, 16.10);
@@ -472,39 +473,46 @@ Future<void> initializeData() async {
                   height: isMapExpanded ? 650 : 475,
                   width: double.infinity,
                   child: FlutterMap(
-                    mapController: mapController,
-                    options: MapOptions(
-                      interactiveFlags: InteractiveFlag.none,
-                      center: const LatLng(3.14661, 101.69515),
-                      zoom: 10,
-                    ),
-                    nonRotatedChildren: [
-                      RichAttributionWidget(
-                        attributions: [
-                          TextSourceAttribution('Mapbox',
-                              onTap: () => launchUrl(Uri.parse(
-                                  'https://www.mapbox.com/about/maps/'))),
-                        ],
-                      ),
-                    ],
-                    children: [
-                      TileLayer(
-                        urlTemplate:
-                            'https://api.mapbox.com/styles/v1/azim-razmi/cln080fjn013f01ns8xhkczvp/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXppbS1yYXptaSIsImEiOiJjbG16eXpqZ3UxOHcwMnFvNzRrN2hlemV0In0.91Bg7Xu9ZhxZ5Ioeo3YHhg',
-                        additionalOptions: const {
-                          'accessToken':
-                              'pk.eyJ1IjoiYXppbS1yYXptaSIsImEiOiJjbG16eXpqZ3UxOHcwMnFvNzRrN2hlemV0In0.91Bg7Xu9ZhxZ5Ioeo3YHhg',
-                          'id': 'mapbox.satellite',
-                        },
-                      ),
-                      MarkerLayer(
-                        markers: markers,
-                      ),
-                      PolylineLayer(
-                        polylines: [polyline],
-                      ),
-                    ],
-                  ),
+  mapController: mapController,
+  options: MapOptions(
+    // Use InteractionOptions to disable interactions
+    interactionOptions: InteractionOptions(
+      flags: InteractiveFlag.none,
+    ),
+    initialCenter: const LatLng(3.14661, 101.69515), // Updated center
+    initialZoom: 10, // Updated zoom
+  ),
+  // nonRotatedLayers: [
+  //   RichAttributionWidget(
+  //     attributions: [
+  //       TextSourceAttribution(
+  //         'Mapbox',
+  //         onTap: () => launchUrl(
+  //           Uri.parse('https://www.mapbox.com/about/maps/'),
+  //         ),
+  //       ),
+  //     ],
+  //   ),
+  // ],
+  children: [
+    TileLayer(
+      urlTemplate:
+          'https://api.mapbox.com/styles/v1/azim-razmi/cln080fjn013f01ns8xhkczvp/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXppbS1yYXptaSIsImEiOiJjbG16eXpqZ3UxOHcwMnFvNzRrN2hlemV0In0.91Bg7Xu9ZhxZ5Ioeo3YHhg',
+      additionalOptions: const {
+        'accessToken':
+            'pk.eyJ1IjoiYXppbS1yYXptaSIsImEiOiJjbG16eXpqZ3UxOHcwMnFvNzRrN2hlemV0In0.91Bg7Xu9ZhxZ5Ioeo3YHhg',
+        'id': 'mapbox.satellite',
+      },
+    ),
+    MarkerLayer(
+      markers: markers,
+    ),
+    PolylineLayer(
+      polylines: [polyline],
+    ),
+  ],
+),
+
                 ),
                 Column(
                   children: [

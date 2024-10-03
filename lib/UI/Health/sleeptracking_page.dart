@@ -104,8 +104,8 @@ class _SleepPage extends State<SleepPage> {
                 barsSpace: 4,
                 barRods: [
                   BarChartRodData(
-                    y: sleepDataForDay.toDouble(),
-                    colors: [const Color.fromARGB(255, 255, 96, 120)],
+                    toY: sleepDataForDay.toDouble(),          
+                    color: const Color.fromARGB(255, 255, 96, 120),
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(5),
                       bottom: Radius.circular(0),
@@ -279,24 +279,24 @@ class _SleepPage extends State<SleepPage> {
                       child: BarChart(
                         BarChartData(
                           titlesData: FlTitlesData(
-                            leftTitles: SideTitles(showTitles: false),
-                            bottomTitles: SideTitles(showTitles: false),
-                            topTitles: SideTitles(showTitles: false),
-                            rightTitles: SideTitles(
-                                showTitles: true,
-                                getTextStyles: (context, value) =>
-                                  const TextStyle(
-                                    fontSize: 12,
-                                    color: Color.fromARGB(71, 0, 0, 0),
-                                  ),
-                                margin: 10,
-                                reservedSize: 40, // Adjust the reserved size according to your need
-                                getTitles: (value) {
-                                  int hourValue = value.toInt() ~/ 60;
-                                  return '$hourValue Hour';
-                                },
+                            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            rightTitles:  AxisTitles(sideTitles: SideTitles(
+  showTitles: true,
+  reservedSize: 40, // Adjust the reserved size according to your need
+  getTitlesWidget: (value, meta) {
+    int hourValue = value.toInt() ~/ 60;
+    return Text(
+      '$hourValue Hour',
+      style: TextStyle(
+        fontSize: 12,
+        color: Color.fromARGB(71, 0, 0, 0),
+      ),
+    );
+  },
+)),
 
-                            ),
                           ),
                           gridData: FlGridData(
                             show: true,

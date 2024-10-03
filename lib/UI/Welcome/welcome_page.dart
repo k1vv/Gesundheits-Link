@@ -27,20 +27,18 @@ class _WelcomeState extends State<Welcome> {
 
   final permissions = types.map((e) => HealthDataAccess.READ_WRITE).toList();
 
-  HealthFactory health = HealthFactory(useHealthConnectIfAvailable: true);
-
   Future authorize() async {
     try {
       await Permission.activityRecognition.request();
       await Permission.location.request();
 
-      bool? hasPermissions = await health.hasPermissions(types, permissions: permissions);
+      bool? hasPermissions = await Health().hasPermissions(types, permissions: permissions);
       hasPermissions = false;
 
       bool authorized = false;
       if (!hasPermissions) {
         try {
-          authorized = await health.requestAuthorization(types, permissions: permissions);
+          authorized = await Health().requestAuthorization(types, permissions: permissions);
         } catch (error) {
           debugPrint("Exception in authorize: $error");
         }
@@ -56,6 +54,8 @@ class _WelcomeState extends State<Welcome> {
 
   @override
   void initState() {
+    Health().configure();
+    Health().getHealthConnectSdkStatus();
     super.initState();
     authorize();
   }

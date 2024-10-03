@@ -3,6 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_iconpicker/Models/configuration.dart';
 import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import 'package:myapp/UI/Habits/habit_model.dart';
 import 'package:myapp/UI/Habits/habit_provider.dart';
@@ -425,14 +426,16 @@ class _SetHabitsState extends State<SetHabits> {
   }
   
   _openIconPicker() async {
-    IconData? icon = await FlutterIconPicker.showIconPicker(
+    IconPickerIcon? icon = await showIconPicker(
       context,
-      iconPackModes: [IconPack.cupertino, IconPack.lineAwesomeIcons, IconPack.fontAwesomeIcons, IconPack.material],
+      configuration: SinglePickerConfiguration(
+        iconPackModes: [IconPack.cupertino, IconPack.lineAwesomeIcons, IconPack.fontAwesomeIcons, IconPack.material],
+      ),
     );
 
     if (icon != null) {
       setState(() {
-        selectedIcon = icon;
+        selectedIcon = icon.data;
       });
     }
   }

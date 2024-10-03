@@ -1,19 +1,19 @@
 buildscript {
-    ext.kotlin_version = '1.7.10'
+    ext.kotlin_version = '1.5.13'
     repositories {
         google()
         mavenCentral()
     }
     ext {
-        compileSdkVersion   = 34                // or latest
-        targetSdkVersion    = 31                // or latest
-        appCompatVersion    = "1.4.2"           // or latest
+        compileSdkVersion   = 34                // Latest SDK version
+        targetSdkVersion    = 34                // Latest target version
+        appCompatVersion    = "1.6.1"           // Version that avoids dexing issue
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.0'
+        classpath 'com.android.tools.build:gradle:7.4.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.gms:google-services:4.3.10'
+        classpath 'com.google.gms:google-services:4.3.15'
     }
 }
 

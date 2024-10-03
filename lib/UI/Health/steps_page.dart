@@ -104,8 +104,8 @@ class _StepsPageState extends State<StepsPage> {
              barsSpace: 4,
              barRods: [
                BarChartRodData(
-                 y: index < stepsData.length ? (stepsData[index]?.toDouble() ?? 0.0) : 0.0,
-                 colors: [const Color.fromARGB(255, 255, 96, 120)],
+                 toY: index < stepsData.length ? (stepsData[index]?.toDouble() ?? 0.0) : 0.0,
+                 color: const Color.fromARGB(255, 255, 96, 120),
                  borderRadius: const BorderRadius.vertical(
                    top: Radius.circular(5), bottom: Radius.circular(0)
                  )
@@ -241,10 +241,10 @@ class _StepsPageState extends State<StepsPage> {
               barsSpace: 4,
               barRods: [
                 BarChartRodData(
-                  y: index < stepsWeeklyData.length
+                  toY: index < stepsWeeklyData.length
                       ? (stepsWeeklyData[index]?.toDouble() ?? 0.0)
                       : 0.0,
-                  colors: [const Color.fromARGB(255, 255, 96, 120)],
+                  color: const Color.fromARGB(255, 255, 96, 120),
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(5),
                     bottom: Radius.circular(0),
@@ -335,10 +335,10 @@ class _StepsPageState extends State<StepsPage> {
                 barsSpace: 4,
                 barRods: [
                   BarChartRodData(
-                    y: index < stepsMonthlyData.length
+                    toY: index < stepsMonthlyData.length
                         ? (stepsMonthlyData[index]?.toDouble() ?? 0.0)
                         : 0.0,
-                    colors: [const Color.fromARGB(255, 255, 96, 120)],
+                    color: const Color.fromARGB(255, 255, 96, 120),
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(5),
                       bottom: Radius.circular(0),
@@ -628,19 +628,25 @@ class _StepsPageState extends State<StepsPage> {
                       child: BarChart(
                         BarChartData(
                           titlesData: FlTitlesData(
-                            leftTitles: SideTitles(showTitles: false),
-                            bottomTitles: SideTitles(showTitles: false),
-                            topTitles: SideTitles(showTitles: false),
-                            rightTitles: SideTitles(
-                              showTitles: true,
-                              getTextStyles: (context, value) =>
-                                  const TextStyle(
-                                fontSize: 12,
-                                color: Color.fromARGB(71, 0, 0, 0),
-                              ),
-                              margin: 10,
+                            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            rightTitles: AxisTitles(
+  sideTitles: SideTitles(
+    showTitles: true,
+    getTitlesWidget: (value, meta) {
+      return Text(
+        value.toString(),
+        style: TextStyle(
+          fontSize: 12,
+          color: Color.fromARGB(71, 0, 0, 0),
+        ),
+      );
+    },
+    // margin: 10,
+  ),
+),
 
-                            ),
                           ),
                           gridData: FlGridData(
                             show: true,

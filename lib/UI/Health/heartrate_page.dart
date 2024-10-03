@@ -74,10 +74,10 @@ class _HeartRatePageState extends State<HeartRatePage> {
              barsSpace: 4,
              barRods: [
                BarChartRodData(
-                 y: index < heartRateData.length
+                 toY: index < heartRateData.length
                   ? (double.parse(heartRateData[index].toString()))
                   : 0.0,
-                 colors: [const Color.fromARGB(255, 255, 96, 120)],
+                 color: const Color.fromARGB(255, 255, 96, 120),
                  borderRadius: const BorderRadius.vertical(
                    top: Radius.circular(5), bottom: Radius.circular(0)
                  )
@@ -204,10 +204,10 @@ class _HeartRatePageState extends State<HeartRatePage> {
               barsSpace: 4,
               barRods: [
                 BarChartRodData(
-                  y: index < heartRateWeeklyData.length
+                  toY: index < heartRateWeeklyData.length
                       ? (heartRateWeeklyData[index]?.toDouble() ?? 0.0)
                       : 0.0,
-                  colors: [const Color.fromARGB(255, 255, 96, 120)],
+                  color: const Color.fromARGB(255, 255, 96, 120),
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(5),
                     bottom: Radius.circular(0),
@@ -304,10 +304,10 @@ class _HeartRatePageState extends State<HeartRatePage> {
                 barsSpace: 4,
                 barRods: [
                   BarChartRodData(
-                    y: index < heartRateMonthlyData.length
+                    toY: index < heartRateMonthlyData.length
                         ? (heartRateMonthlyData[index]?.toDouble() ?? 0.0)
                         : 0.0,
-                    colors: [const Color.fromARGB(255, 255, 96, 120)],
+                    color: const Color.fromARGB(255, 255, 96, 120),
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(5),
                       bottom: Radius.circular(0),
@@ -513,20 +513,32 @@ class _HeartRatePageState extends State<HeartRatePage> {
                       child: BarChart(
                         BarChartData(
                           titlesData: FlTitlesData(
-                            leftTitles: SideTitles(showTitles: false),
-                            bottomTitles: SideTitles(showTitles: false),
-                            topTitles: SideTitles(showTitles: false),
-                            rightTitles: SideTitles(
-                              showTitles: true,
-                              getTextStyles: (context, value) =>
-                                  const TextStyle(
-                                fontSize: 12,
-                                color: Color.fromARGB(71, 0, 0, 0),
-                              ),
-                              margin: 10,
+  leftTitles: AxisTitles(
+    sideTitles: SideTitles(showTitles: false),
+  ),
+  bottomTitles: AxisTitles(
+    sideTitles: SideTitles(showTitles: false),
+  ),
+  topTitles: AxisTitles(
+    sideTitles: SideTitles(showTitles: false),
+  ),
+  rightTitles: AxisTitles(
+    sideTitles: SideTitles(
+      showTitles: true,
+      getTitlesWidget: (value, meta) {
+        return Text(
+          value.toString(),
+          style: TextStyle(
+            fontSize: 12,
+            color: Color.fromARGB(71, 0, 0, 0),
+          ),
+        );
+      },
+      // margin: 10,
+    ),
+  ),
+),
 
-                            ),
-                          ),
                           gridData: FlGridData(
                             show: true,
                             drawHorizontalLine: true,

@@ -49,7 +49,6 @@ class _HomePageState extends State<HomePage> {
    ];
   List<HealthDataPoint> _healthDataList = [];
   AppState _state = AppState.DATA_NOT_FETCHED;
-  HealthFactory health = HealthFactory(useHealthConnectIfAvailable: true);
   final permissions = types.map((e) => HealthDataAccess.READ_WRITE).toList();
 
   String currentSteps = "N/A";
@@ -99,14 +98,14 @@ class _HomePageState extends State<HomePage> {
     await Permission.location.request();
 
 
-    bool? hasPermissions = await health.hasPermissions(types, permissions: permissions);
+    bool? hasPermissions = await Health().hasPermissions(types, permissions: permissions);
 
     hasPermissions = false;
     bool authorized = false;
     if (!hasPermissions) {
       try {
         authorized =
-            await health.requestAuthorization(types, permissions: permissions);
+            await Health().requestAuthorization(types, permissions: permissions);
       } catch (error) {
         debugPrint("Exception in authorize: $error");
       }
@@ -127,9 +126,10 @@ class _HomePageState extends State<HomePage> {
     _healthDataList.clear();
 
     try {
-      List<HealthDataPoint> healthData = await health.getHealthDataFromTypes(
-        selectedDate,
-        selectedDate.add(const Duration(days: 1)),types,
+      List<HealthDataPoint> healthData = await Health().getHealthDataFromTypes(
+        startTime: selectedDate,
+        endTime: selectedDate.add(const Duration(days: 1)),
+        types: types,
       );
       if (types.contains(HealthDataType.STEPS)) {
         for (HealthDataPoint dataPoint in healthData) {
@@ -160,10 +160,10 @@ class _HomePageState extends State<HomePage> {
 
     try {
       List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(
-            selectedDate,
-            selectedDate.add(const Duration(days: 1)),
-            types,
+          await Health().getHealthDataFromTypes(
+            startTime: selectedDate,
+            endTime: selectedDate.add(const Duration(days: 1)),
+            types: types,
           );
 
       if (types.contains(HealthDataType.HEART_RATE)) {
@@ -191,10 +191,10 @@ class _HomePageState extends State<HomePage> {
 
     try {
       List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(
-            selectedDate,
-            selectedDate.add(const Duration(days: 1)),
-            types,
+          await Health().getHealthDataFromTypes(
+            startTime: selectedDate,
+            endTime: selectedDate.add(const Duration(days: 1)),
+            types: types,
           );
 
       if (types.contains(HealthDataType.BLOOD_OXYGEN)) {
@@ -224,10 +224,10 @@ class _HomePageState extends State<HomePage> {
 
     try {
       List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(
-            selectedDate,
-            selectedDate.add(const Duration(days: 1)),
-            types,
+          await Health().getHealthDataFromTypes(
+            startTime: selectedDate,
+            endTime: selectedDate.add(const Duration(days: 1)),
+            types: types,
           );
 
       if (user != null && types.contains(HealthDataType.SLEEP_SESSION)) {
@@ -255,10 +255,10 @@ class _HomePageState extends State<HomePage> {
 
     try {
       List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(
-            selectedDate,
-            selectedDate.add(const Duration(days: 1)),
-            types,
+          await Health().getHealthDataFromTypes(
+            startTime: selectedDate,
+            endTime: selectedDate.add(const Duration(days: 1)),
+            types: types,
           );
 
       if (user != null && types.contains(HealthDataType.SLEEP_DEEP)) {
@@ -285,10 +285,10 @@ class _HomePageState extends State<HomePage> {
     double totalSleepLight = 0;
 
     try {
-      List<HealthDataPoint> healthData = await health.getHealthDataFromTypes(
-        selectedDate,
-        selectedDate.add(const Duration(days: 1)),
-        types,
+      List<HealthDataPoint> healthData = await Health().getHealthDataFromTypes(
+        startTime: selectedDate,
+        endTime: selectedDate.add(const Duration(days: 1)),
+        types: types,
       );
 
       if (user != null && types.contains(HealthDataType.SLEEP_LIGHT)) {
@@ -315,10 +315,10 @@ class _HomePageState extends State<HomePage> {
 
     try {
       List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(
-            selectedDate,
-            selectedDate.add(const Duration(days: 1)),
-            types,
+          await Health().getHealthDataFromTypes(
+            startTime: selectedDate,
+            endTime: selectedDate.add(const Duration(days: 1)),
+            types: types,
           );
 
       if (user != null && types.contains(HealthDataType.SLEEP_REM)) {
@@ -344,10 +344,10 @@ class _HomePageState extends State<HomePage> {
   
     try {
       List<HealthDataPoint> healthData =
-          await health.getHealthDataFromTypes(
-            selectedDate,
-            selectedDate.add(const Duration(days: 1)),
-            types,
+          await Health().getHealthDataFromTypes(
+            startTime: selectedDate,
+            endTime: selectedDate.add(const Duration(days: 1)),
+            types: types,
           );
   
       if (user != null && types.contains(HealthDataType.SLEEP_AWAKE)) {
@@ -854,6 +854,8 @@ class _HomePageState extends State<HomePage> {
   }
   @override
   void initState() {
+    Health().configure();
+    Health().getHealthConnectSdkStatus();
    super.initState();
 
    setState(() {

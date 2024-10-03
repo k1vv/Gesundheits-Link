@@ -44,21 +44,22 @@ class _AdminPageState extends State<AdminPage> {
 
   final permissions = types.map((e) => HealthDataAccess.READ_WRITE).toList();
 
-  HealthFactory health = HealthFactory(useHealthConnectIfAvailable: true);
+  Future<void> installHealthConnect() async =>
+      await Health().installHealthConnect();
 
   Future authorize() async {
     await Permission.activityRecognition.request();
     await Permission.location.request();
 
-    bool? hasPermissions =
-        await health.hasPermissions(types, permissions: permissions);
+    bool? hasPermissions = await Health().hasPermissions(types, permissions: permissions);
+
     hasPermissions = false;
 
     bool authorized = false;
     if (!hasPermissions) {
       try {
         authorized =
-            await health.requestAuthorization(types, permissions: permissions);
+            await Health().requestAuthorization(types, permissions: permissions);
       } catch (error) {
         debugPrint("Exception in authorize: $error");
       }
@@ -75,9 +76,10 @@ class _AdminPageState extends State<AdminPage> {
     _healthDataList.clear();
 
     try {
-      List<HealthDataPoint> healthData = await health.getHealthDataFromTypes(
-        yesterday,now,
-        types
+      List<HealthDataPoint> healthData = await Health().getHealthDataFromTypes(
+        startTime: yesterday,
+        endTime: now,
+        types: types
       );
       if (types.contains(HealthDataType.STEPS)) {
         for (HealthDataPoint dataPoint in healthData) {
@@ -97,6 +99,8 @@ class _AdminPageState extends State<AdminPage> {
 
   @override
   void initState() {
+    Health().configure();
+    Health().getHealthConnectSdkStatus();
     super.initState();
     setState(() {
       selectedDate = DateTime.now();

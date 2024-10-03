@@ -1,4 +1,5 @@
 // ignore_for_file: avoid_unnecessary_containers
+import 'package:flutter_iconpicker/Models/configuration.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:myapp/UI/Habits/notification.dart';
@@ -132,14 +133,16 @@ class _CustomHabitsState extends State<CustomHabits> {
   }
   
   _openIconPicker() async {
-    IconData? icon = await FlutterIconPicker.showIconPicker(
+    IconPickerIcon? icon = await showIconPicker(
       context,
-      iconPackModes: [IconPack.cupertino, IconPack.lineAwesomeIcons, IconPack.fontAwesomeIcons, IconPack.material],
+      configuration: SinglePickerConfiguration(
+        iconPackModes: [IconPack.cupertino, IconPack.lineAwesomeIcons, IconPack.fontAwesomeIcons, IconPack.material],
+      ),
     );
 
     if (icon != null) {
       setState(() {
-        selectedIcon = icon;
+        selectedIcon = icon.data;
       });
     }
   }

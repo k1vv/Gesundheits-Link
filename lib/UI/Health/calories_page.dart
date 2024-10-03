@@ -100,8 +100,8 @@ class _CaloriesPageState extends State<CaloriesPage> {
              barsSpace: 4,
              barRods: [
                BarChartRodData(
-                 y: index < caloriesData.length ? (caloriesData[index]?.toDouble() ?? 0.0) : 0.0,
-                 colors: [const Color.fromARGB(255, 255, 96, 120)],
+                 toY: index < caloriesData.length ? (caloriesData[index]?.toDouble() ?? 0.0) : 0.0,
+                 color: const Color.fromARGB(255, 255, 96, 120),
                  borderRadius: const BorderRadius.vertical(
                    top: Radius.circular(5), bottom: Radius.circular(0)
                  )
@@ -239,10 +239,10 @@ class _CaloriesPageState extends State<CaloriesPage> {
                 barsSpace: 4,
                 barRods: [
                   BarChartRodData(
-                    y: index < caloriesWeeklyData.length
+                    toY: index < caloriesWeeklyData.length
                         ? (caloriesWeeklyData[index]?.toDouble() ?? 0.0)
                         : 0.0,
-                    colors: [const Color.fromARGB(255, 255, 96, 120)],
+                    color: const Color.fromARGB(255, 255, 96, 120),
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(5),
                       bottom: Radius.circular(0),
@@ -345,10 +345,10 @@ class _CaloriesPageState extends State<CaloriesPage> {
                 barsSpace: 4,
                 barRods: [
                   BarChartRodData(
-                    y: index < caloriesMonthlyData.length
+                    toY: index < caloriesMonthlyData.length
                         ? (caloriesMonthlyData[index]?.toDouble() ?? 0.0)
                         : 0.0,
-                    colors: [const Color.fromARGB(255, 255, 96, 120)],
+                    color: const Color.fromARGB(255, 255, 96, 120),
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(5),
                       bottom: Radius.circular(0),
@@ -640,20 +640,32 @@ class _CaloriesPageState extends State<CaloriesPage> {
                       child: BarChart(
                         BarChartData(
                           titlesData: FlTitlesData(
-                            leftTitles: SideTitles(showTitles: false),
-                            bottomTitles: SideTitles(showTitles: false),
-                            topTitles: SideTitles(showTitles: false),
-                            rightTitles: SideTitles(
-                              showTitles: true,
-                              getTextStyles: (context, value) =>
-                                  const TextStyle(
-                                fontSize: 12,
-                                color: Color.fromARGB(71, 0, 0, 0),
-                              ),
-                              margin: 10,
+  leftTitles: AxisTitles(
+    sideTitles: SideTitles(showTitles: false),
+  ),
+  bottomTitles: AxisTitles(
+    sideTitles: SideTitles(showTitles: false),
+  ),
+  topTitles: AxisTitles(
+    sideTitles: SideTitles(showTitles: false),
+  ),
+  rightTitles: AxisTitles(
+    sideTitles: SideTitles(
+      showTitles: true,
+      getTitlesWidget: (value, meta) {
+        return Text(
+          value.toString(),
+          style: TextStyle(
+            fontSize: 12,
+            color: Color.fromARGB(71, 0, 0, 0),
+          ),
+        );
+      },
+      // margin: 10,
+    ),
+  ),
+),
 
-                            ),
-                          ),
                           gridData: FlGridData(
                             show: true,
                             drawHorizontalLine: true,
